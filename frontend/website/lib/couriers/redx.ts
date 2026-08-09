@@ -15,7 +15,9 @@ function request<T>(
   path: string,
   init: RequestInit = {},
 ): Promise<T> {
-  const accessToken = token?.startsWith("Bearer ") ? token : `Bearer ${token ?? ""}`;
+  const accessToken = token?.startsWith("Bearer ")
+    ? token
+    : `Bearer ${token ?? ""}`;
   return courierFetch<T>(`${baseUrl(sandbox)}${path}`, {
     ...init,
     headers: {

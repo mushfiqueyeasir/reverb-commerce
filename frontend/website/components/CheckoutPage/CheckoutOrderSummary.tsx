@@ -74,7 +74,7 @@ export default function CheckoutOrderSummary({
 
       <div className="mb-6 space-y-4">
         {items.map((item) => (
-          <div key={`${item.id}-${item.size}`} className="flex gap-4">
+          <div key={item.variantId} className="flex gap-4">
             <div className="relative h-20 w-20 shrink-0">
               <ImageLoader
                 src={item.image}
@@ -89,9 +89,11 @@ export default function CheckoutOrderSummary({
             </div>
             <div className="min-w-0 flex-1">
               <p className="mb-1 truncate text-sm font-medium">{item.title}</p>
-              <p className="mb-1 text-xs text-muted-foreground">
-                Size: {item.size}
-              </p>
+              {item.size && (
+                <p className="mb-1 text-xs text-muted-foreground">
+                  Size: {item.size}
+                </p>
+              )}
               <p className="text-sm">{format(item.currentPrice)}</p>
             </div>
           </div>

@@ -1,10 +1,7 @@
 import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
-import {
-  getSupabaseServiceRoleKey,
-  getSupabaseUrl,
-} from "@/lib/config.server";
+import { getSupabaseServiceRoleKey, getSupabaseUrl } from "@/lib/config.server";
 import { noStoreFetch } from "./noStoreFetch";
 
 // Service-role client. Bypasses RLS — server-only, never import in client code.

@@ -25,11 +25,7 @@ function request<T>(
 
 export const steadfastAdapter: CourierAdapter = {
   async testConnection(settings) {
-    await request(
-      settings.api_key,
-      settings.secret_key,
-      "/get_balance",
-    );
+    await request(settings.api_key, settings.secret_key, "/get_balance");
   },
 
   async listStores() {
@@ -60,9 +56,13 @@ export const steadfastAdapter: CourierAdapter = {
         }),
       },
     );
-    const consignment = (response.consignment ?? response) as Record<string, unknown>;
+    const consignment = (response.consignment ?? response) as Record<
+      string,
+      unknown
+    >;
     const externalId = String(consignment.consignment_id ?? "");
-    if (!externalId) throw new Error("Steadfast did not return a consignment ID.");
+    if (!externalId)
+      throw new Error("Steadfast did not return a consignment ID.");
     return {
       externalId,
       trackingCode: consignment.tracking_code

@@ -1,4 +1,7 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Reverb Commerce Storefront
+
+The Next.js storefront and administration application for Reverb Commerce, an
+e-commerce platform by Reverb Solution.
 
 ## Getting Started
 

@@ -4,9 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, canWrite } from "@/lib/admin/auth";
 import { writeAuditLog } from "@/lib/admin/auditLog";
-import {
-  RESTOCK_ON_DELETE_STATUSES,
-} from "@/lib/admin/orderStock";
+import { RESTOCK_ON_DELETE_STATUSES } from "@/lib/admin/orderStock";
 import type { OrderStatus } from "@/type/db";
 
 /**

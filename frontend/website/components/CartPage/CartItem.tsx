@@ -8,10 +8,11 @@ import { Plus, Minus, Trash2 } from "lucide-react";
 interface CartItemProps {
   item: {
     id: string;
+    variantId: string;
     title: string;
     image: string;
     currentPrice: number;
-    size: string;
+    size: string | null;
     quantity: number;
   };
 }
@@ -43,7 +44,9 @@ export default function CartItem({ item }: CartItemProps) {
           <p className="mb-1 text-xs text-muted-foreground">
             {format(item.currentPrice)}
           </p>
-          <p className="text-xs text-muted-foreground">Size: {item.size}</p>
+          {item.size && (
+            <p className="text-xs text-muted-foreground">Size: {item.size}</p>
+          )}
         </div>
       </div>
 
@@ -51,9 +54,7 @@ export default function CartItem({ item }: CartItemProps) {
         <div className="flex w-fit items-center overflow-hidden rounded-full border border-border">
           <button
             type="button"
-            onClick={() =>
-              updateQuantity(item.id, item.size, item.quantity - 1)
-            }
+            onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
             disabled={item.quantity === 1}
             aria-label="Decrease quantity"
             className={`grid size-11 place-items-center transition-colors ${
@@ -73,9 +74,7 @@ export default function CartItem({ item }: CartItemProps) {
           />
           <button
             type="button"
-            onClick={() =>
-              updateQuantity(item.id, item.size, item.quantity + 1)
-            }
+            onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
             aria-label="Increase quantity"
             className="grid size-11 place-items-center transition-colors hover:bg-foreground/5"
           >
@@ -84,7 +83,7 @@ export default function CartItem({ item }: CartItemProps) {
         </div>
         <button
           type="button"
-          onClick={() => removeItem(item.id, item.size)}
+          onClick={() => removeItem(item.variantId)}
           className="grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-primary"
           aria-label="Remove item"
         >

@@ -29,7 +29,8 @@ async function accessToken(settings: CourierProviderSettings): Promise<string> {
       }),
     },
   );
-  if (!response.access_token) throw new Error("Pathao did not return an access token.");
+  if (!response.access_token)
+    throw new Error("Pathao did not return an access token.");
   return response.access_token;
 }
 
@@ -93,7 +94,10 @@ export const pathaoAdapter: CourierAdapter = {
         id: String(item.city_id ?? ""),
         name: String(item.city_name ?? ""),
       }))
-      .filter((item) => item.id && (!search || item.name.toLowerCase().includes(search)));
+      .filter(
+        (item) =>
+          item.id && (!search || item.name.toLowerCase().includes(search)),
+      );
   },
 
   async createShipment(settings, input) {
@@ -139,7 +143,8 @@ export const pathaoAdapter: CourierAdapter = {
     return {
       status: String(data.order_status_slug ?? data.order_status ?? "unknown"),
       message: typeof response.message === "string" ? response.message : null,
-      providerTime: typeof data.updated_at === "string" ? data.updated_at : null,
+      providerTime:
+        typeof data.updated_at === "string" ? data.updated_at : null,
       raw: response,
     };
   },

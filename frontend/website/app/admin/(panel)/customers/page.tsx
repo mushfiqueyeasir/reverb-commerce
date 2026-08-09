@@ -19,11 +19,13 @@ export default async function CustomersPage() {
   ]);
   const symbol = settings.currency_symbol || "$";
   const rows = (
-    (customers as unknown as (CustomerRow & {
-      orders?: {
-        order_shipments?: { id: string } | { id: string }[] | null;
-      }[];
-    })[] | null) ?? []
+    (customers as unknown as
+      | (CustomerRow & {
+          orders?: {
+            order_shipments?: { id: string } | { id: string }[] | null;
+          }[];
+        })[]
+      | null) ?? []
   ).map((customer) => ({
     ...customer,
     deletion_locked: Boolean(

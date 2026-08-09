@@ -2,7 +2,9 @@
 // storefront so page/components need no changes; data now comes from Supabase.
 
 export interface ProductStock {
-  size: string;
+  id: string;
+  size: string | null;
+  color: string | null;
   quantity: number;
 }
 
@@ -33,6 +35,7 @@ export interface Product {
   originalPrice: number;
   currentPrice: number;
   description: { html?: string } | null;
+  sizingMode: "none" | "required";
   sizeChart: ProductSizeChartRow[];
   stock: ProductStock[];
 }
@@ -56,6 +59,7 @@ export interface TransformedProduct {
   discount?: number;
   href: string;
   slug: string;
+  sizingMode: "none" | "required";
   stock: ProductStock[];
   sizeChart: ProductSizeChartRow[];
   categories: ProductCategory[];

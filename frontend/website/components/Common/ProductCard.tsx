@@ -9,7 +9,7 @@ import ImageLoader from "./ImageLoader";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
 import { useWishlistStore } from "@/store/wishlistStore";
 import { cn } from "@/lib/utils";
-import type { ProductStock } from "@/type/productType";
+import type { ProductSizeChartRow, ProductStock } from "@/type/productType";
 
 export interface ProductCardProps {
   id: string;
@@ -22,6 +22,8 @@ export interface ProductCardProps {
   discount?: number;
   href: string;
   stock?: ProductStock[];
+  sizingMode: "none" | "required";
+  sizeChart?: ProductSizeChartRow[];
   tag?: string;
 }
 
@@ -36,6 +38,8 @@ export default function ProductCard({
   discount,
   href,
   stock,
+  sizingMode,
+  sizeChart,
   tag,
 }: ProductCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -173,6 +177,8 @@ export default function ProductCard({
         discount={discount}
         href={href}
         stock={stock}
+        sizingMode={sizingMode}
+        sizeChart={sizeChart}
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
       />

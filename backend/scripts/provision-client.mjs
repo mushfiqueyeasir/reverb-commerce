@@ -56,7 +56,7 @@ runVercel([
 
 runVercel(["link", "--yes", "--project", desiredProject], { cwd: repositoryRoot });
 if (!args.adopt) {
-  runVercel(["git", "connect", "https://github.com/mushfiqueyeasir/Ve-Gear"], {
+  runVercel(["git", "connect", "https://github.com/mushfiqueyeasir/reverb-commerce"], {
     cwd: repositoryRoot,
   });
 }

@@ -15,7 +15,13 @@ export function courierEventKey(
 ): string {
   return createHash("sha256")
     .update(
-      JSON.stringify({ provider, shipmentId, eventName, providerTime, payload }),
+      JSON.stringify({
+        provider,
+        shipmentId,
+        eventName,
+        providerTime,
+        payload,
+      }),
     )
     .digest("hex");
 }
@@ -57,7 +63,10 @@ export async function applyCourierUpdate(input: {
     p_provider_time: providerTime,
     p_payload:
       input.payload && typeof input.payload === "object" ? input.payload : {},
-    p_next_order_status: mappedOrderStatus(input.shipment.provider, input.status),
+    p_next_order_status: mappedOrderStatus(
+      input.shipment.provider,
+      input.status,
+    ),
   });
   if (error) return { error: error.message };
   return (data as { duplicate?: boolean } | null)?.duplicate

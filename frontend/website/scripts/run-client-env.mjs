@@ -7,7 +7,10 @@ import { parseEnv } from "node:util";
 const websiteDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const [command, clientId, ...nextArguments] = process.argv.slice(2);
 
-if (!["dev", "build"].includes(command) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(clientId ?? "")) {
+if (
+  !["dev", "build"].includes(command) ||
+  !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(clientId ?? "")
+) {
   throw new Error("Usage: npm run dev:client -- <client-id> (or build:client)");
 }
 
@@ -18,14 +21,26 @@ if (!existsSync(envPath)) {
   );
 }
 
-const nextCli = join(websiteDirectory, "node_modules", "next", "dist", "bin", "next");
-if (!existsSync(nextCli)) throw new Error("Run npm install in frontend/website first");
+const nextCli = join(
+  websiteDirectory,
+  "node_modules",
+  "next",
+  "dist",
+  "bin",
+  "next",
+);
+if (!existsSync(nextCli))
+  throw new Error("Run npm install in frontend/website first");
 
-const result = spawnSync(process.execPath, [nextCli, command, ...nextArguments], {
-  cwd: websiteDirectory,
-  env: { ...process.env, ...parseEnv(readFileSync(envPath, "utf8")) },
-  stdio: "inherit",
-});
+const result = spawnSync(
+  process.execPath,
+  [nextCli, command, ...nextArguments],
+  {
+    cwd: websiteDirectory,
+    env: { ...process.env, ...parseEnv(readFileSync(envPath, "utf8")) },
+    stdio: "inherit",
+  },
+);
 
 if (result.error) throw result.error;
 process.exitCode = result.status ?? 1;

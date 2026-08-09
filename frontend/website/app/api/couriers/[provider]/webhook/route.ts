@@ -2,7 +2,10 @@ import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getCourierSettings } from "@/lib/couriers/settings";
-import { isCourierProvider, type CourierProvider } from "@/lib/couriers/metadata";
+import {
+  isCourierProvider,
+  type CourierProvider,
+} from "@/lib/couriers/metadata";
 import { applyCourierUpdate, courierEventKey } from "@/lib/couriers/shipments";
 import type { OrderShipmentRow } from "@/type/db";
 
@@ -45,7 +48,10 @@ function authenticated(
   return secureEqual(request.nextUrl.searchParams.get("token") ?? "", secret);
 }
 
-function stringValue(payload: Record<string, unknown>, ...keys: string[]): string {
+function stringValue(
+  payload: Record<string, unknown>,
+  ...keys: string[]
+): string {
   for (const key of keys) {
     const value = payload[key];
     if (typeof value === "string" || typeof value === "number") {
@@ -144,8 +150,7 @@ export async function POST(
       "message",
       "reason",
     ) || null;
-  const providerTime =
-    stringValue(payload, "timestamp", "updated_at") || null;
+  const providerTime = stringValue(payload, "timestamp", "updated_at") || null;
   const shipment = await findShipment(provider, externalId, invoice);
   if (!shipment) {
     return webhookResponse(

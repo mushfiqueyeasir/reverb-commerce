@@ -11,7 +11,7 @@ const { jsPDF } = require("jspdf");
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const outputPath = join(
   currentDir,
-  "Reverb-Solution-Ecommerce-Platform-Feature-Guide.pdf",
+  "Reverb-Commerce-Feature-Guide.pdf",
 );
 const logoData = `data:image/png;base64,${readFileSync(
   join(currentDir, "reverb-solution-logo.png"),
@@ -31,10 +31,10 @@ const C = {
 const pages = [
   {
     eyebrow: "PRODUCT OVERVIEW",
-    title: "E-Commerce Platform",
+    title: "Reverb Commerce",
     subtitle: "Complete Product Feature & Technology Documentation",
     intro:
-      "Designed and developed by Reverb Solution, this platform connects a modern customer storefront with the complete merchant workflow required to manage products, content, orders, customers, payments and growth.",
+      "Designed and developed by Reverb Solution, Reverb Commerce connects a modern customer storefront with the complete merchant workflow required to manage products, content, orders, customers, payments and growth.",
     columns: [
       [
         {
@@ -293,7 +293,7 @@ const pages = [
         {
           title: "Variants & inventory",
           bullets: [
-            "Size, color, SKU and optional price override.",
+            "Optional sizing, size-free inventory, and automatic or manual SKUs.",
             "Stock quantity and low-stock threshold per variant.",
             "One-click default tee variants.",
             "Inventory sorted from lowest stock upward.",
@@ -495,12 +495,12 @@ const doc = new jsPDF({
 });
 
 doc.setProperties({
-  title: "Reverb Solution E-Commerce Platform Feature Documentation",
+  title: "Reverb Commerce Feature Documentation",
   subject: "Complete product feature and technology documentation",
   author: "Reverb Solution",
   creator: "Reverb Solution",
   keywords:
-    "Reverb Solution, ecommerce, Next.js, React, Supabase, bKash, Pathao, Steadfast, REDX, SMTP, pg_cron, admin panel",
+    "Reverb Commerce, Reverb Solution, ecommerce, Next.js, React, Supabase, bKash, Pathao, Steadfast, REDX, SMTP, pg_cron, admin panel",
 });
 
 const pageWidth = doc.internal.pageSize.getWidth();
@@ -537,7 +537,7 @@ function drawPageBase(page, pageNumber) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.2);
   doc.text(
-    "E-COMMERCE PLATFORM / FEATURE DOCUMENTATION",
+    "REVERB COMMERCE / FEATURE DOCUMENTATION",
     pageWidth - margin,
     15.2,
     {

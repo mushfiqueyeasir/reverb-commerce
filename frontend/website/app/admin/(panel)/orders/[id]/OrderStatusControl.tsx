@@ -63,22 +63,22 @@ export function OrderStatusControl({
         </p>
       ) : null}
       <div className="flex flex-wrap gap-2">
-      {next.map((to) => {
-        const isLoading = pending && pendingStatus === to;
-        return (
-          <Button
-            key={to}
-            size="sm"
-            variant={to === "cancelled" ? "destructive" : "default"}
-            className="rounded-full capitalize"
-            disabled={pending}
-            onClick={() => change(to)}
-          >
-            {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
-            Mark {to}
-          </Button>
-        );
-      })}
+        {next.map((to) => {
+          const isLoading = pending && pendingStatus === to;
+          return (
+            <Button
+              key={to}
+              size="sm"
+              variant={to === "cancelled" ? "destructive" : "default"}
+              className="rounded-full capitalize"
+              disabled={pending}
+              onClick={() => change(to)}
+            >
+              {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
+              Mark {to}
+            </Button>
+          );
+        })}
       </div>
     </div>
   );

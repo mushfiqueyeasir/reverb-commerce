@@ -6,10 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import {
-  FormField,
-  adminInputClass,
-} from "@/components/admin/FormField";
+import { FormField, adminInputClass } from "@/components/admin/FormField";
 import {
   COURIER_META,
   COURIER_PROVIDERS,
@@ -149,7 +146,9 @@ export function CourierSettings({
                 <div>
                   <p className="font-medium text-foreground">{meta.label}</p>
                   <p className="text-xs text-muted-foreground">
-                    {active ? "Active for new shipments" : "Configured provider"}
+                    {active
+                      ? "Active for new shipments"
+                      : "Configured provider"}
                   </p>
                 </div>
               </div>
@@ -182,211 +181,228 @@ export function CourierSettings({
 
             {active ? (
               <>
-            {provider !== "steadfast" ? (
-              <div className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
-                <div>
-                  <p className="text-sm font-medium">Sandbox mode</p>
-                  <p className="text-xs text-muted-foreground">
-                    Turn off only when live credentials are ready.
-                  </p>
+                {provider !== "steadfast" ? (
+                  <div className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
+                    <div>
+                      <p className="text-sm font-medium">Sandbox mode</p>
+                      <p className="text-xs text-muted-foreground">
+                        Turn off only when live credentials are ready.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={draft.sandbox}
+                      onCheckedChange={(sandbox) =>
+                        update(provider, { sandbox })
+                      }
+                    />
+                  </div>
+                ) : null}
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {provider === "pathao" ? (
+                    <>
+                      <FormField label="Client ID">
+                        <Input
+                          value={draft.clientId}
+                          onChange={(event) =>
+                            update(provider, { clientId: event.target.value })
+                          }
+                          className={adminInputClass}
+                          autoComplete="off"
+                        />
+                      </FormField>
+                      <FormField
+                        label="Client Secret"
+                        hint={
+                          draft.hasClientSecret && !draft.clientSecret
+                            ? "Saved; leave blank to keep it."
+                            : undefined
+                        }
+                      >
+                        <Input
+                          type="password"
+                          value={draft.clientSecret}
+                          onChange={(event) =>
+                            update(provider, {
+                              clientSecret: event.target.value,
+                            })
+                          }
+                          placeholder={
+                            draft.hasClientSecret ? "••••••••••••" : ""
+                          }
+                          className={adminInputClass}
+                          autoComplete="new-password"
+                        />
+                      </FormField>
+                      <FormField label="Merchant email / username">
+                        <Input
+                          value={draft.username}
+                          onChange={(event) =>
+                            update(provider, { username: event.target.value })
+                          }
+                          className={adminInputClass}
+                          autoComplete="off"
+                        />
+                      </FormField>
+                      <FormField
+                        label="Merchant password"
+                        hint={
+                          draft.hasPassword && !draft.password
+                            ? "Saved; leave blank to keep it."
+                            : undefined
+                        }
+                      >
+                        <Input
+                          type="password"
+                          value={draft.password}
+                          onChange={(event) =>
+                            update(provider, { password: event.target.value })
+                          }
+                          placeholder={draft.hasPassword ? "••••••••••••" : ""}
+                          className={adminInputClass}
+                          autoComplete="new-password"
+                        />
+                      </FormField>
+                    </>
+                  ) : null}
+
+                  {provider === "steadfast" ? (
+                    <>
+                      <FormField label="API Key">
+                        <Input
+                          value={draft.apiKey}
+                          onChange={(event) =>
+                            update(provider, { apiKey: event.target.value })
+                          }
+                          className={adminInputClass}
+                          autoComplete="off"
+                        />
+                      </FormField>
+                      <FormField
+                        label="Secret Key"
+                        hint={
+                          draft.hasSecretKey && !draft.secretKey
+                            ? "Saved; leave blank to keep it."
+                            : undefined
+                        }
+                      >
+                        <Input
+                          type="password"
+                          value={draft.secretKey}
+                          onChange={(event) =>
+                            update(provider, { secretKey: event.target.value })
+                          }
+                          placeholder={draft.hasSecretKey ? "••••••••••••" : ""}
+                          className={adminInputClass}
+                          autoComplete="new-password"
+                        />
+                      </FormField>
+                    </>
+                  ) : null}
+
+                  {provider === "redx" ? (
+                    <FormField
+                      label="API Access Token"
+                      hint={
+                        draft.hasAccessToken && !draft.accessToken
+                          ? "Saved; leave blank to keep it."
+                          : undefined
+                      }
+                    >
+                      <Input
+                        type="password"
+                        value={draft.accessToken}
+                        onChange={(event) =>
+                          update(provider, { accessToken: event.target.value })
+                        }
+                        placeholder={draft.hasAccessToken ? "••••••••••••" : ""}
+                        className={adminInputClass}
+                        autoComplete="new-password"
+                      />
+                    </FormField>
+                  ) : null}
+
+                  {provider !== "steadfast" ? (
+                    <FormField label="Pickup Store ID">
+                      <Input
+                        value={draft.pickupStoreId}
+                        onChange={(event) =>
+                          update(provider, {
+                            pickupStoreId: event.target.value,
+                          })
+                        }
+                        className={adminInputClass}
+                        inputMode="numeric"
+                      />
+                    </FormField>
+                  ) : null}
                 </div>
-                <Switch
-                  checked={draft.sandbox}
-                  onCheckedChange={(sandbox) => update(provider, { sandbox })}
-                />
-              </div>
-            ) : null}
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              {provider === "pathao" ? (
-                <>
-                  <FormField label="Client ID">
+                <div className="space-y-3 rounded-xl border border-border bg-background/40 p-4">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      Webhook
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Register this callback and secret in the {meta.label}{" "}
+                      merchant panel. Saving active settings verifies the API
+                      connection.
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
                     <Input
-                      value={draft.clientId}
-                      onChange={(event) =>
-                        update(provider, { clientId: event.target.value })
-                      }
+                      readOnly
+                      value={callback}
                       className={adminInputClass}
-                      autoComplete="off"
                     />
-                  </FormField>
-                  <FormField
-                    label="Client Secret"
-                    hint={
-                      draft.hasClientSecret && !draft.clientSecret
-                        ? "Saved; leave blank to keep it."
-                        : undefined
-                    }
-                  >
-                    <Input
-                      type="password"
-                      value={draft.clientSecret}
-                      onChange={(event) =>
-                        update(provider, { clientSecret: event.target.value })
-                      }
-                      placeholder={draft.hasClientSecret ? "••••••••••••" : ""}
-                      className={adminInputClass}
-                      autoComplete="new-password"
-                    />
-                  </FormField>
-                  <FormField label="Merchant email / username">
-                    <Input
-                      value={draft.username}
-                      onChange={(event) =>
-                        update(provider, { username: event.target.value })
-                      }
-                      className={adminInputClass}
-                      autoComplete="off"
-                    />
-                  </FormField>
-                  <FormField
-                    label="Merchant password"
-                    hint={
-                      draft.hasPassword && !draft.password
-                        ? "Saved; leave blank to keep it."
-                        : undefined
-                    }
-                  >
-                    <Input
-                      type="password"
-                      value={draft.password}
-                      onChange={(event) =>
-                        update(provider, { password: event.target.value })
-                      }
-                      placeholder={draft.hasPassword ? "••••••••••••" : ""}
-                      className={adminInputClass}
-                      autoComplete="new-password"
-                    />
-                  </FormField>
-                </>
-              ) : null}
-
-              {provider === "steadfast" ? (
-                <>
-                  <FormField label="API Key">
-                    <Input
-                      value={draft.apiKey}
-                      onChange={(event) =>
-                        update(provider, { apiKey: event.target.value })
-                      }
-                      className={adminInputClass}
-                      autoComplete="off"
-                    />
-                  </FormField>
-                  <FormField
-                    label="Secret Key"
-                    hint={
-                      draft.hasSecretKey && !draft.secretKey
-                        ? "Saved; leave blank to keep it."
-                        : undefined
-                    }
-                  >
-                    <Input
-                      type="password"
-                      value={draft.secretKey}
-                      onChange={(event) =>
-                        update(provider, { secretKey: event.target.value })
-                      }
-                      placeholder={draft.hasSecretKey ? "••••••••••••" : ""}
-                      className={adminInputClass}
-                      autoComplete="new-password"
-                    />
-                  </FormField>
-                </>
-              ) : null}
-
-              {provider === "redx" ? (
-                <FormField
-                  label="API Access Token"
-                  hint={
-                    draft.hasAccessToken && !draft.accessToken
-                      ? "Saved; leave blank to keep it."
-                      : undefined
-                  }
-                >
-                  <Input
-                    type="password"
-                    value={draft.accessToken}
-                    onChange={(event) =>
-                      update(provider, { accessToken: event.target.value })
-                    }
-                    placeholder={draft.hasAccessToken ? "••••••••••••" : ""}
-                    className={adminInputClass}
-                    autoComplete="new-password"
-                  />
-                </FormField>
-              ) : null}
-
-              {provider !== "steadfast" ? (
-                <FormField label="Pickup Store ID">
-                  <Input
-                    value={draft.pickupStoreId}
-                    onChange={(event) =>
-                      update(provider, { pickupStoreId: event.target.value })
-                    }
-                    className={adminInputClass}
-                    inputMode="numeric"
-                  />
-                </FormField>
-              ) : null}
-            </div>
-
-            <div className="space-y-3 rounded-xl border border-border bg-background/40 p-4">
-              <div>
-                <p className="text-sm font-medium text-foreground">Webhook</p>
-                <p className="text-xs text-muted-foreground">
-                  Register this callback and secret in the {meta.label} merchant
-                  panel. Saving active settings verifies the API connection.
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Input readOnly value={callback} className={adminInputClass} />
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="outline"
-                  aria-label={`Copy ${meta.label} webhook URL`}
-                  onClick={() => copy(callback)}
-                >
-                  <Copy className="size-4" />
-                </Button>
-              </div>
-              <FormField
-                label={
-                  provider === "steadfast"
-                    ? "Webhook bearer token"
-                    : "Webhook secret"
-                }
-                hint="Save once to generate a secret, or enter your own."
-              >
-                <div className="flex gap-2">
-                  <Input
-                    value={draft.webhookSecret}
-                    onChange={(event) =>
-                      update(provider, { webhookSecret: event.target.value })
-                    }
-                    className={adminInputClass}
-                    autoComplete="off"
-                  />
-                  {draft.webhookSecret ? (
                     <Button
                       type="button"
                       size="icon"
                       variant="outline"
-                      aria-label={`Copy ${meta.label} webhook secret`}
-                      onClick={() => copy(draft.webhookSecret)}
+                      aria-label={`Copy ${meta.label} webhook URL`}
+                      onClick={() => copy(callback)}
                     >
                       <Copy className="size-4" />
                     </Button>
-                  ) : null}
+                  </div>
+                  <FormField
+                    label={
+                      provider === "steadfast"
+                        ? "Webhook bearer token"
+                        : "Webhook secret"
+                    }
+                    hint="Save once to generate a secret, or enter your own."
+                  >
+                    <div className="flex gap-2">
+                      <Input
+                        value={draft.webhookSecret}
+                        onChange={(event) =>
+                          update(provider, {
+                            webhookSecret: event.target.value,
+                          })
+                        }
+                        className={adminInputClass}
+                        autoComplete="off"
+                      />
+                      {draft.webhookSecret ? (
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="outline"
+                          aria-label={`Copy ${meta.label} webhook secret`}
+                          onClick={() => copy(draft.webhookSecret)}
+                        >
+                          <Copy className="size-4" />
+                        </Button>
+                      ) : null}
+                    </div>
+                  </FormField>
                 </div>
-              </FormField>
-            </div>
               </>
             ) : (
               <p className="border-t border-border pt-4 text-sm text-muted-foreground">
-                This provider is inactive. Select "Use {meta.label}" to configure
-                and activate it for new shipments.
+                This provider is inactive. Select "Use {meta.label}" to
+                configure and activate it for new shipments.
               </p>
             )}
           </section>

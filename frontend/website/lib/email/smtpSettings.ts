@@ -166,9 +166,7 @@ export async function verifySmtpSettings(
   const current = await getSmtpSettings();
   const user = input.username?.trim() || "";
   const pass =
-    (input.password ?? "").replace(/\s+/g, "").trim() ||
-    current.password ||
-    "";
+    (input.password ?? "").replace(/\s+/g, "").trim() || current.password || "";
   if (!user || !pass) {
     return { error: "SMTP username and password are required." };
   }

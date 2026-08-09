@@ -11,29 +11,41 @@ export const dynamic = "force-dynamic";
 export default async function OrdersPage() {
   const session = await requireAdminSession();
   const supabase = await createSupabaseServerClient();
-  const [{ data: orders }, { data: settings }, courierSettings] = await Promise.all([
-    supabase
-      .from("orders")
-      .select(
-        "id, order_number, status, delivery, totals, created_at, order_shipments(provider, courier_status)",
-      )
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("site_settings")
-      .select("currency_symbol")
-      .eq("id", 1)
-      .maybeSingle(),
-    getCourierSettings(),
-  ]);
+  const [{ data: orders }, { data: settings }, courierSettings] =
+    await Promise.all([
+      supabase
+        .from("orders")
+        .select(
+          "id, order_number, status, delivery, totals, created_at, order_shipments(provider, courier_status)",
+        )
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("site_settings")
+        .select("currency_symbol")
+        .eq("id", 1)
+        .maybeSingle(),
+      getCourierSettings(),
+    ]);
   const symbol = settings?.currency_symbol || "$";
   const activeProvider =
-    COURIER_PROVIDERS.find((provider) => courierSettings[provider].active) ?? null;
+    COURIER_PROVIDERS.find((provider) => courierSettings[provider].active) ??
+    null;
 
-  const rows: OrderTableRow[] = ((orders as unknown as (OrderRow & {
-    order_shipments?:
-      | { provider: OrderTableRow["courier"]; courier_status: string | null }
-      | { provider: OrderTableRow["courier"]; courier_status: string | null }[];
-  })[] | null) ?? []).map((o) => {
+  const rows: OrderTableRow[] = (
+    (orders as unknown as
+      | (OrderRow & {
+          order_shipments?:
+            | {
+                provider: OrderTableRow["courier"];
+                courier_status: string | null;
+              }
+            | {
+                provider: OrderTableRow["courier"];
+                courier_status: string | null;
+              }[];
+        })[]
+      | null) ?? []
+  ).map((o) => {
     const shipment = Array.isArray(o.order_shipments)
       ? o.order_shipments[0]
       : o.order_shipments;

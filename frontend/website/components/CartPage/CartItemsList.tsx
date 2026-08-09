@@ -13,7 +13,7 @@ export default function CartItemsList() {
 
       <div className="space-y-6">
         {items.map((item) => (
-          <CartItem key={`${item.id}-${item.size}`} item={item} />
+          <CartItem key={item.variantId} item={item} />
         ))}
       </div>
     </div>

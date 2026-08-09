@@ -242,13 +242,17 @@ export default function TrackOrderPageScreen() {
                       Courier tracking
                     </h3>
                     <p className="text-xs text-muted-foreground">
-                      {result.courier.trackingCode || "Tracking is being prepared"}
+                      {result.courier.trackingCode ||
+                        "Tracking is being prepared"}
                     </p>
                   </div>
                 </div>
                 <div className="text-left sm:text-right">
                   <p className="text-sm font-medium capitalize text-foreground">
-                    {(result.courier.status || "processing").replaceAll("-", " ")}
+                    {(result.courier.status || "processing").replaceAll(
+                      "-",
+                      " ",
+                    )}
                   </p>
                   {result.courier.updatedAt ? (
                     <p className="text-xs text-muted-foreground">
@@ -265,7 +269,10 @@ export default function TrackOrderPageScreen() {
               {result.courier.events.length ? (
                 <ol className="mt-4 space-y-3 border-t border-border pt-4">
                   {result.courier.events.slice(0, 5).map((event, index) => (
-                    <li key={`${event.time}-${event.status}-${index}`} className="text-sm">
+                    <li
+                      key={`${event.time}-${event.status}-${index}`}
+                      className="text-sm"
+                    >
                       <p className="font-medium capitalize text-foreground">
                         {event.status.replaceAll("-", " ")}
                       </p>

@@ -78,6 +78,7 @@ export default async function OrderDetailPage({
   ]);
 
   const orderItems = (items as OrderItemRow[] | null) ?? [];
+  const hasSizedItems = orderItems.some((item) => Boolean(item.size));
   const customer = customerRes.data as {
     id: string;
     name: string | null;
@@ -92,7 +93,8 @@ export default async function OrderDetailPage({
     : { data: [] };
   const courierEvents = (eventRows as CourierEventRow[] | null) ?? [];
   const activeProvider =
-    COURIER_PROVIDERS.find((provider) => courierSettings[provider].active) ?? null;
+    COURIER_PROVIDERS.find((provider) => courierSettings[provider].active) ??
+    null;
 
   const customerName =
     [o.delivery?.firstName, o.delivery?.lastName].filter(Boolean).join(" ") ||
@@ -179,7 +181,7 @@ export default async function OrderDetailPage({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Product</TableHead>
-                    <TableHead>Size</TableHead>
+                    {hasSizedItems && <TableHead>Size</TableHead>}
                     <TableHead>Color</TableHead>
                     <TableHead className="text-right">Qty</TableHead>
                     <TableHead className="text-right">Unit price</TableHead>
@@ -190,7 +192,7 @@ export default async function OrderDetailPage({
                   {orderItems.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={6}
+                        colSpan={hasSizedItems ? 6 : 5}
                         className="h-16 text-center text-muted-foreground"
                       >
                         No items on this order.
@@ -202,7 +204,9 @@ export default async function OrderDetailPage({
                         <TableCell className="font-medium text-foreground">
                           {it.title ?? "—"}
                         </TableCell>
-                        <TableCell>{it.size ?? "—"}</TableCell>
+                        {hasSizedItems && (
+                          <TableCell>{it.size ?? "—"}</TableCell>
+                        )}
                         <TableCell>{it.color ?? "—"}</TableCell>
                         <TableCell className="text-right">
                           {it.quantity}

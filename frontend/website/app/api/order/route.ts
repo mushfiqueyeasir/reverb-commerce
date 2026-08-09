@@ -30,6 +30,21 @@ function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+interface CheckoutVariantRow {
+  id: string;
+  product_id: string;
+  size: string | null;
+  color: string | null;
+  stock_quantity: number;
+}
+
+interface CheckoutProductRow {
+  id: string;
+  title: string;
+  current_price: number;
+  status: string;
+}
+
 async function failUnpaidOrder(
   supabase: ReturnType<typeof createSupabaseAdminClient>,
   orderId: string,
@@ -76,10 +91,88 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const supabase = createSupabaseAdminClient();
+    const requestedItems = body.items.map((item) => ({
+      productId: item.product,
+      variantId: item.variantId,
+      quantity: Number(item.quantity),
+    }));
+
+    if (
+      requestedItems.some(
+        (item) =>
+          !item.productId ||
+          !item.variantId ||
+          !Number.isInteger(item.quantity) ||
+          item.quantity < 1,
+      )
+    ) {
+      return NextResponse.json(
+        { error: "Every cart item must have a valid variant and quantity." },
+        { status: 400 },
+      );
+    }
+
+    const variantIds = [
+      ...new Set(requestedItems.map((item) => item.variantId)),
+    ];
+    const { data: variantData, error: variantError } = await supabase
+      .from("product_variants")
+      .select("id, product_id, size, color, stock_quantity")
+      .in("id", variantIds);
+    if (variantError) throw variantError;
+
+    const variants = (variantData as CheckoutVariantRow[] | null) ?? [];
+    const productIds = [
+      ...new Set(variants.map((variant) => variant.product_id)),
+    ];
+    const { data: productData, error: productError } = await supabase
+      .from("products")
+      .select("id, title, current_price, status")
+      .in("id", productIds);
+    if (productError) throw productError;
+
+    const variantById = new Map(
+      variants.map((variant) => [variant.id, variant]),
+    );
+    const productById = new Map(
+      ((productData as CheckoutProductRow[] | null) ?? []).map((product) => [
+        product.id,
+        product,
+      ]),
+    );
+    const authoritativeItems = requestedItems.map((requested) => {
+      const variant = variantById.get(requested.variantId);
+      const product = variant ? productById.get(variant.product_id) : null;
+      if (
+        !variant ||
+        !product ||
+        product.status !== "active" ||
+        variant.product_id !== requested.productId
+      ) {
+        throw new Error("A cart item is no longer available.");
+      }
+      if (variant.stock_quantity < requested.quantity) {
+        throw new Error(`Insufficient stock for ${product.title}.`);
+      }
+      return {
+        productId: product.id,
+        variantId: variant.id,
+        title: product.title,
+        size: variant.size,
+        color: variant.color,
+        quantity: requested.quantity,
+        unitPrice: Number(product.current_price),
+      };
+    });
+
     const settings = await getSiteSettings();
     const zone = resolveZone(body.delivery.shippingMethod);
     const shipping = shippingCostForZone(settings.deliveryCharges, zone);
-    const subtotal = Number(body.totals.subtotal) || 0;
+    const subtotal = authoritativeItems.reduce(
+      (sum, item) => sum + item.unitPrice * item.quantity,
+      0,
+    );
 
     if (paymentMethod === "bkash") {
       const bkash = await getBkashSettings();
@@ -130,14 +223,10 @@ export async function POST(request: NextRequest) {
         email: customerEmail,
         shippingMethod: zone,
       },
-      items: body.items.map((item) => ({
-        product_id: item.product,
-        variant_id: item.variantId ?? null,
-        title: item.title ?? "",
-        size: item.size,
-        color: item.color ?? null,
+      items: authoritativeItems.map((item) => ({
+        product_id: item.productId,
+        variant_id: item.variantId,
         quantity: item.quantity,
-        unit_price: item.unitPrice,
       })),
       totals: {
         subtotal,
@@ -151,12 +240,26 @@ export async function POST(request: NextRequest) {
       payment_method: paymentMethod,
     };
 
-    const supabase = createSupabaseAdminClient();
     const { data, error } = await supabase.rpc("place_order", { payload });
 
     if (error) throw error;
 
-    const result = data as { id: string; order_number: string };
+    const result = data as {
+      id: string;
+      order_number: string;
+      totals: {
+        subtotal: number;
+        shipping: number;
+        discount: number;
+        discount_percent: number;
+        promo_code: string | null;
+        total: number;
+      };
+    };
+    const placedSubtotal = Number(result.totals.subtotal) || 0;
+    const placedShipping = Number(result.totals.shipping) || 0;
+    const placedDiscount = Number(result.totals.discount) || 0;
+    const placedTotal = Number(result.totals.total) || 0;
     const customerName = `${firstName.trim()} ${lastName.trim()}`.trim();
     const deliveryAddress = [
       address.trim(),
@@ -175,7 +278,7 @@ export async function POST(request: NextRequest) {
         );
         const callbackURL = `${origin}/api/payment/bkash/callback`;
         const payment = await createBkashPayment({
-          amount: total,
+          amount: placedTotal,
           merchantInvoiceNumber: result.order_number,
           payerReference: phone.trim().replace(/\D/g, "").slice(-11) || "01",
           callbackURL,
@@ -232,7 +335,7 @@ export async function POST(request: NextRequest) {
     // COD — send emails immediately
     try {
       const productIds = [
-        ...new Set(body.items.map((item) => item.product).filter(Boolean)),
+        ...new Set(authoritativeItems.map((item) => item.productId)),
       ];
       const imageByProduct = new Map<string, string>();
       if (productIds.length > 0) {
@@ -257,19 +360,19 @@ export async function POST(request: NextRequest) {
         customerPhone: phone.trim(),
         deliveryAddress,
         shippingLabel: `${paymentMethodLabel("cod")} · ${deliveryZoneLabel(zone)}`,
-        items: body.items.map((item) => ({
-          title: item.title ?? "Product",
+        items: authoritativeItems.map((item) => ({
+          title: item.title,
           size: item.size,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
-          imageUrl: imageByProduct.get(item.product) ?? null,
+          imageUrl: imageByProduct.get(item.productId) ?? null,
         })),
-        subtotal,
-        shipping,
-        discount,
+        subtotal: placedSubtotal,
+        shipping: placedShipping,
+        discount: placedDiscount,
         discountPercent,
         promoCode,
-        total,
+        total: placedTotal,
         currencyLabel: settings.currency || "BDT",
         storeName: settings.store_name || "VE Gear",
         logoUrl: settings.logoUrl,
@@ -305,7 +408,14 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 },
     );
-  } catch {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (/stock|variant|cart item|unavailable/i.test(message)) {
+      return NextResponse.json(
+        { error: message || "A cart item is no longer available." },
+        { status: 409 },
+      );
+    }
     return NextResponse.json(
       { error: "Failed to place order. Please try again later." },
       { status: 500 },

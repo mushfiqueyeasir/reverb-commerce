@@ -1,4 +1,4 @@
-# E-Commerce Platform Scalability and Client Deployment Plan
+# Reverb Commerce Scalability and Client Deployment Plan
 
 **Owner:** Reverb Solution<br>
 **Status:** Architecture proposal
@@ -6,7 +6,7 @@
 
 ## 1. Executive Summary
 
-The current application was built as a single store for VE Gear. The goal is now to sell the same product to multiple independent merchants while maintaining one shared codebase.
+Reverb Commerce originated as the VE Gear store. The goal is to provide the product to multiple independent merchants while maintaining one shared codebase.
 
 The recommended near-term architecture is:
 
@@ -194,7 +194,7 @@ The following issues are not only scalability concerns. They must be corrected b
 
 - The order API currently accepts customer-submitted item prices and subtotal values instead of rebuilding the order from authoritative product and variant records.
 - The database order function can be called by the anonymous role and trusts its payload.
-- Quantities, stock availability, variant ownership, and price overrides need authoritative server-side validation.
+- Quantities, stock availability, variant ownership, and prices need authoritative server-side validation.
 - Order creation, stock changes, and idempotency need one atomic transaction.
 - Public order tracking uses a predictable order number and returns customer/order details without a second verifier.
 - Checkout, promo validation, tracking, contact, and login endpoints have no application-level rate limiting.

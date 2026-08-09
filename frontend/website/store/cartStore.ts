@@ -3,20 +3,21 @@ import { persist } from "zustand/middleware";
 
 export interface CartItem {
   id: string;
+  variantId: string;
   title: string;
   image: string;
   currentPrice: number;
   originalPrice: number;
-  size: string;
+  size: string | null;
   quantity: number;
 }
 
 interface CartStore {
   items: CartItem[];
   addItem: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => void;
-  removeItem: (id: string, size: string) => void;
-  updateQuantity: (id: string, size: string, quantity: number) => void;
-  isItemInCart: (id: string, size: string) => boolean;
+  removeItem: (variantId: string) => void;
+  updateQuantity: (variantId: string, quantity: number) => void;
+  isItemInCart: (variantId: string) => boolean;
   getTotal: () => number;
   getItemCount: () => number;
   clearCart: () => void;
@@ -28,17 +29,17 @@ export const useCartStore = create<CartStore>()(
       items: [],
 
       addItem: (item) => {
-        const { id, size, quantity = 1 } = item;
+        const { variantId, quantity = 1 } = item;
         const currentState = get();
         const existingItem = currentState.items.find(
-          (i) => i.id === id && i.size === size,
+          (i) => i.variantId === variantId,
         );
 
         if (existingItem) {
           set({
             ...currentState,
             items: currentState.items.map((i) =>
-              i.id === id && i.size === size
+              i.variantId === variantId
                 ? { ...i, quantity: i.quantity + quantity }
                 : i,
             ),
@@ -51,19 +52,17 @@ export const useCartStore = create<CartStore>()(
         }
       },
 
-      removeItem: (id, size) => {
+      removeItem: (variantId) => {
         const currentState = get();
         set({
           ...currentState,
-          items: currentState.items.filter(
-            (i) => !(i.id === id && i.size === size),
-          ),
+          items: currentState.items.filter((i) => i.variantId !== variantId),
         });
       },
 
-      updateQuantity: (id, size, quantity) => {
+      updateQuantity: (variantId, quantity) => {
         if (quantity <= 0) {
-          get().removeItem(id, size);
+          get().removeItem(variantId);
           return;
         }
 
@@ -71,13 +70,13 @@ export const useCartStore = create<CartStore>()(
         set({
           ...currentState,
           items: currentState.items.map((i) =>
-            i.id === id && i.size === size ? { ...i, quantity } : i,
+            i.variantId === variantId ? { ...i, quantity } : i,
           ),
         });
       },
 
-      isItemInCart: (id, size) => {
-        return get().items.some((i) => i.id === id && i.size === size);
+      isItemInCart: (variantId) => {
+        return get().items.some((i) => i.variantId === variantId);
       },
 
       getTotal: () => {
@@ -98,6 +97,9 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: "cart-storage",
+      version: 2,
+      migrate: (persisted, version) =>
+        version < 2 ? { items: [] } : (persisted as CartStore),
     },
   ),
 );

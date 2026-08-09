@@ -299,10 +299,11 @@ async function buildOrderInvoicePdf(
 
   y = Math.max(leftY, rightY) + 10;
 
+  const hasSizedItems = data.items.some((item) => Boolean(item.size));
   const cols = {
     item: margin + 2,
     size: margin + contentW * 0.48,
-    qty: margin + contentW * 0.62,
+    qty: margin + contentW * (hasSizedItems ? 0.62 : 0.58),
     unit: margin + contentW * 0.74,
     total: pageW - margin - 2,
   };
@@ -314,7 +315,7 @@ async function buildOrderInvoicePdf(
   doc.setFontSize(7.5);
   doc.setTextColor(...onPrimary);
   doc.text("ITEM", cols.item, y);
-  doc.text("SIZE", cols.size, y);
+  if (hasSizedItems) doc.text("SIZE", cols.size, y);
   doc.text("QTY", cols.qty, y);
   doc.text("UNIT", cols.unit, y);
   doc.text("TOTAL", cols.total, y, { align: "right" });
@@ -333,7 +334,7 @@ async function buildOrderInvoicePdf(
       if (item.color) titleParts.push(asciiSafe(item.color));
       const title = doc.splitTextToSize(
         titleParts.join(" / "),
-        contentW * 0.44,
+        contentW * (hasSizedItems ? 0.44 : 0.54),
       );
       const rowH = Math.max(8, title.length * 4.5 + 3);
       ensureSpace(rowH + 2);
@@ -346,7 +347,7 @@ async function buildOrderInvoicePdf(
       doc.setTextColor(...fg);
       doc.text(title, cols.item, y);
       doc.setTextColor(...muted);
-      doc.text(asciiSafe(item.size || "-"), cols.size, y);
+      if (hasSizedItems) doc.text(asciiSafe(item.size || "-"), cols.size, y);
       doc.text(String(item.quantity), cols.qty, y);
       doc.setTextColor(...fg);
       doc.text(money(item.unitPrice, code), cols.unit, y);

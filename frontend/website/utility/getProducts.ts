@@ -18,6 +18,7 @@ interface RawProduct {
   original_price: number;
   current_price: number;
   description: { html?: string } | null;
+  sizing_mode?: "none" | "required";
   size_chart?: unknown;
   product_images: {
     path: string;
@@ -25,7 +26,12 @@ interface RawProduct {
     is_main: boolean;
     sort: number;
   }[];
-  product_variants: { size: string | null; stock_quantity: number }[];
+  product_variants: {
+    id: string;
+    size: string | null;
+    color: string | null;
+    stock_quantity: number;
+  }[];
   product_categories: {
     categories: {
       id: string;
@@ -37,30 +43,25 @@ interface RawProduct {
 }
 
 const PRODUCT_SELECT = `
-  id, title, slug, original_price, current_price, description, size_chart,
+  id, title, slug, original_price, current_price, description, sizing_mode, size_chart,
   product_images ( path, alt, is_main, sort ),
-  product_variants ( size, stock_quantity ),
+  product_variants ( id, size, color, stock_quantity ),
   product_categories ( categories ( id, name, slug, description ) )
 `;
 
 const PRODUCT_SELECT_LEGACY = `
   id, title, slug, original_price, current_price, description,
   product_images ( path, alt, is_main, sort ),
-  product_variants ( size, stock_quantity ),
+  product_variants ( id, size, color, stock_quantity ),
   product_categories ( categories ( id, name, slug, description ) )
 `;
 
-function aggregateStock(
-  variants: { size: string | null; stock_quantity: number }[],
-): ProductStock[] {
-  const bySize = new Map<string, number>();
-  for (const v of variants) {
-    const size = v.size ?? "One Size";
-    bySize.set(size, (bySize.get(size) ?? 0) + (v.stock_quantity ?? 0));
-  }
-  return Array.from(bySize.entries()).map(([size, quantity]) => ({
-    size,
-    quantity,
+function mapStock(variants: RawProduct["product_variants"]): ProductStock[] {
+  return variants.map((variant) => ({
+    id: variant.id,
+    size: variant.size,
+    color: variant.color,
+    quantity: variant.stock_quantity ?? 0,
   }));
 }
 
@@ -86,6 +87,8 @@ function mapProduct(raw: RawProduct): Product {
     .map((i) => productImageUrl(i.path))
     .filter((u): u is string => Boolean(u));
 
+  const sizingMode = raw.sizing_mode ?? "required";
+
   return {
     _id: raw.id,
     title: raw.title,
@@ -96,8 +99,12 @@ function mapProduct(raw: RawProduct): Product {
     originalPrice: Number(raw.original_price),
     currentPrice: Number(raw.current_price),
     description: raw.description ? { html: raw.description.html } : null,
-    sizeChart: resolveSizeChart(raw.size_chart, raw.description),
-    stock: aggregateStock(raw.product_variants),
+    sizingMode,
+    sizeChart:
+      sizingMode === "required"
+        ? resolveSizeChart(raw.size_chart, raw.description)
+        : [],
+    stock: mapStock(raw.product_variants),
   };
 }
 
@@ -115,7 +122,7 @@ export async function getProducts(): Promise<Product[]> {
   }
 
   // Fallback before size_chart / sort migrations.
-  const legacySelect = /size_chart/i.test(ordered.error.message)
+  const legacySelect = /(size_chart|sizing_mode)/i.test(ordered.error.message)
     ? PRODUCT_SELECT_LEGACY
     : PRODUCT_SELECT;
 
@@ -139,7 +146,7 @@ export const getProductBySlug = cache(
       .eq("status", "active")
       .maybeSingle();
 
-    if (error && /size_chart/i.test(error.message)) {
+    if (error && /(size_chart|sizing_mode)/i.test(error.message)) {
       ({ data, error } = await supabase
         .from("products")
         .select(PRODUCT_SELECT_LEGACY)
@@ -205,6 +212,7 @@ export function transformProduct(product: Product): TransformedProduct {
     discount,
     href: `/product/${product.slug.current}`,
     slug: product.slug.current,
+    sizingMode: product.sizingMode,
     stock: product.stock,
     sizeChart: product.sizeChart ?? [],
     categories: product.categories,

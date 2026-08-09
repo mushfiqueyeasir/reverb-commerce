@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Save, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -17,6 +17,7 @@ import {
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -29,7 +30,12 @@ import { BUCKETS } from "@/lib/supabase/config";
 import { slugify } from "@/lib/admin/format";
 import { DEFAULT_TEE_SIZE_CHART } from "@/lib/products/sizeChart";
 import { DEFAULT_TEE_VARIANTS } from "@/lib/products/variants";
-import { saveProduct, type ProductVariantInput } from "./actions";
+import { generateProductSku } from "@/lib/products/sku";
+import {
+  saveProduct,
+  suggestProductSlug,
+  type ProductVariantInput,
+} from "./actions";
 
 export interface SizeChartFormRow {
   size: string;
@@ -41,6 +47,7 @@ export interface ProductFormData {
   id?: string;
   title: string;
   slug: string;
+  sizing_mode: "none" | "required";
   status: "active" | "draft" | "archived";
   product_type: string | null;
   original_price: number;
@@ -57,7 +64,6 @@ interface VariantRow {
   size: string;
   color: string;
   sku: string;
-  price_override: string;
   stock_quantity: string;
   low_stock_threshold: string;
 }
@@ -71,7 +77,6 @@ const emptyVariant = (): VariantRow => ({
   size: "",
   color: "",
   sku: "",
-  price_override: "",
   stock_quantity: "0",
   low_stock_threshold: "5",
 });
@@ -85,10 +90,15 @@ export function ProductForm({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [slugPending, startSlugTransition] = useTransition();
+  const slugRequest = useRef(0);
 
   const [title, setTitle] = useState(product?.title ?? "");
   const [slug, setSlug] = useState(product?.slug ?? "");
-  const [slugTouched, setSlugTouched] = useState(Boolean(product));
+  const [hasSizes, setHasSizes] = useState(product?.sizing_mode !== "none");
+  const [skuMode, setSkuMode] = useState<"auto" | "manual">(
+    product ? "manual" : "auto",
+  );
   const [status, setStatus] = useState<"active" | "draft" | "archived">(
     product?.status ?? "active",
   );
@@ -115,7 +125,22 @@ export function ProductForm({
 
   const onTitleChange = (v: string) => {
     setTitle(v);
-    if (!slugTouched) setSlug(slugify(v));
+    slugRequest.current += 1;
+    if (!product) setSlug(slugify(v));
+  };
+
+  const generateSlug = () => {
+    if (product || !title.trim()) return;
+    const request = ++slugRequest.current;
+    startSlugTransition(async () => {
+      const result = await suggestProductSlug(title);
+      if (request !== slugRequest.current) return;
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+      if (result.slug) setSlug(result.slug);
+    });
   };
 
   const toggleCategory = (id: string) => {
@@ -156,6 +181,40 @@ export function ProductForm({
   const loadDefaultSizeChart = () =>
     setSizeChart(DEFAULT_TEE_SIZE_CHART.map((r) => ({ ...r })));
 
+  const changeSizingMode = (enabled: boolean) => {
+    setHasSizes(enabled);
+    if (enabled) return;
+
+    setVariants((current) => {
+      const first = current[0] ?? emptyVariant();
+      const stock = current.reduce(
+        (sum, variant) => sum + (Number(variant.stock_quantity) || 0),
+        0,
+      );
+      return [
+        {
+          ...first,
+          size: "",
+          color: "",
+          stock_quantity: String(stock),
+        },
+      ];
+    });
+    setSizeChart([]);
+  };
+
+  const changeSkuMode = (mode: "auto" | "manual") => {
+    if (mode === "manual" && skuMode === "auto") {
+      setVariants((current) =>
+        current.map((variant) => ({
+          ...variant,
+          sku: generateProductSku(title, variant.color, variant.size),
+        })),
+      );
+    }
+    setSkuMode(mode);
+  };
+
   const submit = () => {
     if (!title.trim()) {
       toast.error("Title is required.");
@@ -169,19 +228,35 @@ export function ProductForm({
           v.color.trim() ||
           v.sku.trim() ||
           v.stock_quantity !== "" ||
-          v.price_override.trim(),
+          v.low_stock_threshold !== "",
       )
       .map((v) => ({
         id: v.id,
         size: v.size.trim() || null,
         color: v.color.trim() || null,
-        sku: v.sku.trim() || null,
-        price_override: v.price_override.trim()
-          ? Number(v.price_override)
-          : null,
+        sku:
+          (skuMode === "auto"
+            ? generateProductSku(title, v.color, v.size)
+            : v.sku.trim()) || null,
         stock_quantity: Number(v.stock_quantity) || 0,
         low_stock_threshold: Number(v.low_stock_threshold) || 0,
       }));
+
+    if (hasSizes && cleanedVariants.some((variant) => !variant.size)) {
+      toast.error("Add a size to every variant.");
+      return;
+    }
+    if (!hasSizes && cleanedVariants.length !== 1) {
+      toast.error("A size-free product requires one general inventory row.");
+      return;
+    }
+    const skus = cleanedVariants
+      .map((variant) => variant.sku?.toLowerCase())
+      .filter((sku): sku is string => Boolean(sku));
+    if (new Set(skus).size !== skus.length) {
+      toast.error("Every variation must have a unique SKU.");
+      return;
+    }
 
     const cleanedSizeChart = sizeChart
       .map((row) => ({
@@ -195,13 +270,14 @@ export function ProductForm({
       const res = await saveProduct({
         id: product?.id,
         title,
-        slug: slug.trim() || slugify(title),
+        sizing_mode: hasSizes ? "required" : "none",
         status,
         product_type: productType.trim() || null,
         original_price: Number(originalPrice) || 0,
         current_price: Number(currentPrice) || 0,
         description: description.trim() ? { html: description } : null,
-        size_chart: cleanedSizeChart.length ? cleanedSizeChart : null,
+        size_chart:
+          hasSizes && cleanedSizeChart.length ? cleanedSizeChart : null,
         categoryIds,
         images,
         variants: cleanedVariants,
@@ -235,14 +311,16 @@ export function ProductForm({
           <TabsTrigger value="images" className="rounded-lg px-4">
             Images
           </TabsTrigger>
-          <TabsTrigger value="size-chart" className="rounded-lg px-4">
-            Size chart
-          </TabsTrigger>
+          {hasSizes && (
+            <TabsTrigger value="size-chart" className="rounded-lg px-4">
+              Size chart
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="general" className="space-y-5">
           <p className="text-sm text-muted-foreground">
-            Name, visibility, URL slug, and product story.
+            Name, visibility, automatic URL, and product story.
           </p>
           <FormField
             label="Status"
@@ -273,19 +351,29 @@ export function ProductForm({
               id="title"
               value={title}
               onChange={(e) => onTitleChange(e.target.value)}
+              onBlur={generateSlug}
               placeholder="e.g. Coral Signal Tee"
               className={adminInputClass}
             />
           </FormField>
-          <FormField label="Slug" htmlFor="slug">
+          <FormField
+            label="URL slug"
+            htmlFor="slug"
+            hint={
+              product
+                ? "Existing product URLs remain stable when the title changes."
+                : "Generated from the title and checked for uniqueness."
+            }
+          >
             <Input
               id="slug"
               value={slug}
-              onChange={(e) => {
-                setSlugTouched(true);
-                setSlug(e.target.value);
-              }}
-              className={adminInputClass}
+              readOnly
+              aria-busy={slugPending}
+              placeholder={
+                slugPending ? "Checking availability…" : "Generated from title"
+              }
+              className={`${adminInputClass} cursor-default bg-muted/50`}
             />
           </FormField>
           <FormField label="Description">
@@ -335,34 +423,85 @@ export function ProductForm({
         </TabsContent>
 
         <TabsContent value="variations" className="space-y-4">
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card/60 p-4">
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                This product has sizes
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Turn this off for accessories, bike parts, and other products
+                sold without a size choice.
+              </p>
+            </div>
+            <Switch
+              checked={hasSizes}
+              onCheckedChange={changeSizingMode}
+              aria-label="This product has sizes"
+            />
+          </div>
+
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-sm font-medium text-foreground">
-                Stock by size
+                {hasSizes ? "Stock by size" : "General inventory"}
               </p>
               <p className="text-xs text-muted-foreground">
-                Prefill M–2XL, then set colour, SKU, and stock.
+                {hasSizes
+                  ? "Prefill M–2XL, then set colour, SKU, and stock."
+                  : "Customers will not see or select a size for this product."}
               </p>
             </div>
-            <div className="flex shrink-0 items-center gap-2">
+            {hasSizes && (
+              <div className="flex shrink-0 items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 rounded-full px-3.5"
+                  onClick={loadDefaultVariants}
+                >
+                  Load tee defaults
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 rounded-full px-3.5"
+                  onClick={addVariant}
+                >
+                  <Plus className="size-3.5" />
+                  Add row
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card/60 p-4">
+            <div>
+              <p className="text-sm font-medium text-foreground">SKU</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Generate SKUs from the product, color, and size, or enter your
+                own identifiers.
+              </p>
+            </div>
+            <div className="flex gap-2">
               <Button
                 type="button"
-                variant="outline"
                 size="sm"
-                className="h-9 rounded-full px-3.5"
-                onClick={loadDefaultVariants}
+                variant={skuMode === "auto" ? "default" : "outline"}
+                className="rounded-full"
+                onClick={() => changeSkuMode("auto")}
               >
-                Load tee defaults
+                Auto-generate
               </Button>
               <Button
                 type="button"
-                variant="outline"
                 size="sm"
-                className="h-9 rounded-full px-3.5"
-                onClick={addVariant}
+                variant={skuMode === "manual" ? "default" : "outline"}
+                className="rounded-full"
+                onClick={() => changeSkuMode("manual")}
               >
-                <Plus className="size-3.5" />
-                Add row
+                Enter manually
               </Button>
             </div>
           </div>
@@ -388,42 +527,39 @@ export function ProductForm({
                   key={i}
                   className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-card/60 p-3 sm:grid-cols-12 sm:items-end sm:gap-2 sm:p-3.5"
                 >
-                  <FormField label="Size" className="sm:col-span-1">
-                    <Input
-                      value={v.size}
-                      onChange={(e) => updateVariant(i, "size", e.target.value)}
-                      placeholder="M"
-                      className={adminInputClass}
-                    />
-                  </FormField>
-                  <FormField label="Color" className="sm:col-span-2">
-                    <Input
-                      value={v.color}
-                      onChange={(e) =>
-                        updateVariant(i, "color", e.target.value)
-                      }
-                      placeholder="Black"
-                      className={adminInputClass}
-                    />
-                  </FormField>
+                  {hasSizes && (
+                    <FormField label="Size" className="sm:col-span-1">
+                      <Input
+                        value={v.size}
+                        onChange={(e) =>
+                          updateVariant(i, "size", e.target.value)
+                        }
+                        placeholder="M"
+                        className={adminInputClass}
+                      />
+                    </FormField>
+                  )}
+                  {hasSizes && (
+                    <FormField label="Color" className="sm:col-span-2">
+                      <Input
+                        value={v.color}
+                        onChange={(e) =>
+                          updateVariant(i, "color", e.target.value)
+                        }
+                        placeholder="Black"
+                        className={adminInputClass}
+                      />
+                    </FormField>
+                  )}
                   <FormField label="SKU" className="col-span-2 sm:col-span-2">
                     <Input
-                      value={v.sku}
-                      onChange={(e) => updateVariant(i, "sku", e.target.value)}
-                      className={adminInputClass}
-                    />
-                  </FormField>
-                  <FormField
-                    label="Price override"
-                    className="col-span-2 sm:col-span-2"
-                  >
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={v.price_override}
-                      onChange={(e) =>
-                        updateVariant(i, "price_override", e.target.value)
+                      value={
+                        skuMode === "auto"
+                          ? generateProductSku(title, v.color, v.size)
+                          : v.sku
                       }
+                      onChange={(e) => updateVariant(i, "sku", e.target.value)}
+                      readOnly={skuMode === "auto"}
                       className={adminInputClass}
                     />
                   </FormField>
@@ -449,18 +585,20 @@ export function ProductForm({
                       className={`${adminInputClass} min-w-[4.5rem] px-3 tabular-nums`}
                     />
                   </FormField>
-                  <div className="col-span-2 flex justify-end sm:col-span-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="size-9 rounded-full"
-                      onClick={() => removeVariant(i)}
-                      aria-label="Remove variation"
-                    >
-                      <Trash2 className="size-4 text-destructive" />
-                    </Button>
-                  </div>
+                  {hasSizes && (
+                    <div className="col-span-2 flex justify-end sm:col-span-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="size-9 rounded-full"
+                        onClick={() => removeVariant(i)}
+                        aria-label="Remove variation"
+                      >
+                        <Trash2 className="size-4 text-destructive" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -511,103 +649,109 @@ export function ProductForm({
           />
         </TabsContent>
 
-        <TabsContent value="size-chart" className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-medium text-foreground">Size chart</p>
-              <p className="text-xs text-muted-foreground">
-                Optional. Shown on the product page when rows exist.
-              </p>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-9 rounded-full px-3.5"
-                onClick={loadDefaultSizeChart}
-              >
-                Load tee defaults
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-9 rounded-full px-3.5"
-                onClick={addSizeChartRow}
-              >
-                <Plus className="size-3.5" />
-                Add row
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {sizeChart.map((row, i) => (
-              <div
-                key={i}
-                className="grid grid-cols-1 gap-3 rounded-xl border border-border bg-card/60 p-3.5 sm:grid-cols-12 sm:items-end sm:gap-2"
-              >
-                <FormField label="Size" className="sm:col-span-3">
-                  <Input
-                    value={row.size}
-                    onChange={(e) => updateSizeChart(i, "size", e.target.value)}
-                    placeholder="M"
-                    className={adminInputClass}
-                  />
-                </FormField>
-                <FormField label="Chest (in)" className="sm:col-span-4">
-                  <Input
-                    value={row.chest}
-                    onChange={(e) =>
-                      updateSizeChart(i, "chest", e.target.value)
-                    }
-                    placeholder="22"
-                    className={adminInputClass}
-                  />
-                </FormField>
-                <FormField label="Length (in)" className="sm:col-span-4">
-                  <Input
-                    value={row.length}
-                    onChange={(e) =>
-                      updateSizeChart(i, "length", e.target.value)
-                    }
-                    placeholder="28"
-                    className={adminInputClass}
-                  />
-                </FormField>
-                <div className="flex justify-end sm:col-span-1">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="rounded-full"
-                    onClick={() => removeSizeChartRow(i)}
-                    aria-label="Remove size chart row"
-                  >
-                    <Trash2 className="size-4 text-destructive" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-            {sizeChart.length === 0 && (
-              <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border px-4 py-10 text-center">
-                <p className="text-sm text-muted-foreground">
-                  No size chart. Customers won&apos;t see a guide on this
-                  product.
+        {hasSizes && (
+          <TabsContent value="size-chart" className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  Size chart
                 </p>
+                <p className="text-xs text-muted-foreground">
+                  Optional. Shown on the product page when rows exist.
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
                 <Button
                   type="button"
+                  variant="outline"
                   size="sm"
-                  className="rounded-full"
+                  className="h-9 rounded-full px-3.5"
                   onClick={loadDefaultSizeChart}
                 >
                   Load tee defaults
                 </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 rounded-full px-3.5"
+                  onClick={addSizeChartRow}
+                >
+                  <Plus className="size-3.5" />
+                  Add row
+                </Button>
               </div>
-            )}
-          </div>
-        </TabsContent>
+            </div>
+
+            <div className="space-y-3">
+              {sizeChart.map((row, i) => (
+                <div
+                  key={i}
+                  className="grid grid-cols-1 gap-3 rounded-xl border border-border bg-card/60 p-3.5 sm:grid-cols-12 sm:items-end sm:gap-2"
+                >
+                  <FormField label="Size" className="sm:col-span-3">
+                    <Input
+                      value={row.size}
+                      onChange={(e) =>
+                        updateSizeChart(i, "size", e.target.value)
+                      }
+                      placeholder="M"
+                      className={adminInputClass}
+                    />
+                  </FormField>
+                  <FormField label="Chest (in)" className="sm:col-span-4">
+                    <Input
+                      value={row.chest}
+                      onChange={(e) =>
+                        updateSizeChart(i, "chest", e.target.value)
+                      }
+                      placeholder="22"
+                      className={adminInputClass}
+                    />
+                  </FormField>
+                  <FormField label="Length (in)" className="sm:col-span-4">
+                    <Input
+                      value={row.length}
+                      onChange={(e) =>
+                        updateSizeChart(i, "length", e.target.value)
+                      }
+                      placeholder="28"
+                      className={adminInputClass}
+                    />
+                  </FormField>
+                  <div className="flex justify-end sm:col-span-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="rounded-full"
+                      onClick={() => removeSizeChartRow(i)}
+                      aria-label="Remove size chart row"
+                    >
+                      <Trash2 className="size-4 text-destructive" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              {sizeChart.length === 0 && (
+                <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border px-4 py-10 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    No size chart. Customers won&apos;t see a guide on this
+                    product.
+                  </p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="rounded-full"
+                    onClick={loadDefaultSizeChart}
+                  >
+                    Load tee defaults
+                  </Button>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+        )}
       </Tabs>
 
       <FormActions>

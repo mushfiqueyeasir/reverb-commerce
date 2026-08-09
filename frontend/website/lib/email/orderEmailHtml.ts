@@ -3,7 +3,7 @@ import { DEFAULT_PALETTE } from "@/lib/theme/palette";
 
 export type OrderEmailItem = {
   title: string;
-  size: string;
+  size: string | null;
   quantity: number;
   unitPrice: number;
   imageUrl?: string | null;
@@ -66,7 +66,7 @@ function itemsRows(
                 <td style="padding-right:12px;vertical-align:top;">${thumb}</td>
                 <td style="vertical-align:middle;font-size:14px;color:${colors.foreground};">
                   <div style="font-weight:600;">${escapeHtml(item.title)}</div>
-                  <div style="color:${colors.mutedForeground};font-size:13px;margin-top:4px;">Size: ${escapeHtml(item.size)}</div>
+                   ${item.size ? `<div style="color:${colors.mutedForeground};font-size:13px;margin-top:4px;">Size: ${escapeHtml(item.size)}</div>` : ""}
                 </td>
               </tr>
             </table>

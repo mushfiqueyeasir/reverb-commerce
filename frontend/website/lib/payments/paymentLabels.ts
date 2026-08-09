@@ -24,6 +24,7 @@ export function normalizePaymentMethod(
 export function normalizePaymentStatus(
   value: string | null | undefined,
 ): PaymentStatus {
-  if (value === "processing" || value === "paid" || value === "failed") return value;
+  if (value === "processing" || value === "paid" || value === "failed")
+    return value;
   return "unpaid";
 }

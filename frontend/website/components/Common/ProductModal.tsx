@@ -10,13 +10,12 @@ import ImageLoader from "./ImageLoader";
 import { useCartStore } from "@/store/cartStore";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
 import { trackAddToCart } from "@/utility/analytics/facebookPixelEvents";
+import { getProductSizeOptions } from "@/lib/products/variants";
 
 interface ProductModalProps extends ProductCardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-const sizes = ["M", "L", "XL", "2XL"] as const;
 
 export default function ProductModal({
   id,
@@ -27,28 +26,43 @@ export default function ProductModal({
   discount,
   href,
   stock,
+  sizingMode,
+  sizeChart,
   open,
   onOpenChange,
 }: ProductModalProps) {
-  const [selectedSize, setSelectedSize] = useState<"M" | "L" | "XL" | "2XL">(
-    "M",
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
+    null,
   );
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCartStore();
   const { format, code } = useCurrency();
   const router = useRouter();
 
-  const selectedSizeStock = stock?.find((s) => s.size === selectedSize);
-  const maxQuantity = selectedSizeStock?.quantity || 0;
+  const isSized = sizingMode === "required";
+  const sizes = isSized
+    ? getProductSizeOptions(sizeChart ?? [], stock ?? [])
+    : [];
+  const selectedVariant = stock?.find(
+    (variant) => variant.id === selectedVariantId,
+  );
+  const maxQuantity = selectedVariant?.quantity || 0;
+  const effectivePrice = currentPrice;
 
   useEffect(() => {
     if (open) {
-      const firstAvailableSize =
-        stock?.find((s) => s.quantity > 0)?.size || "M";
-      setSelectedSize(firstAvailableSize as "M" | "L" | "XL" | "2XL");
+      const availableSizes = isSized
+        ? getProductSizeOptions(sizeChart ?? [], stock ?? [])
+        : [];
+      const firstAvailable = isSized
+        ? availableSizes
+            .map((size) => stock?.find((variant) => variant.size === size))
+            .find((variant) => (variant?.quantity ?? 0) > 0)
+        : stock?.find((variant) => variant.quantity > 0);
+      setSelectedVariantId(firstAvailable?.id ?? null);
       setQuantity(1);
     }
-  }, [open, stock]);
+  }, [open, stock, isSized, sizeChart]);
 
   useEffect(() => {
     if (maxQuantity === 0) {
@@ -58,7 +72,7 @@ export default function ProductModal({
     } else if (maxQuantity > 0 && quantity === 0) {
       setQuantity(1);
     }
-  }, [selectedSize, maxQuantity, quantity]);
+  }, [selectedVariantId, maxQuantity, quantity]);
 
   const handleQuantityChange = (delta: number) => {
     setQuantity((prev) => {
@@ -70,34 +84,36 @@ export default function ProductModal({
   };
 
   const handleAddToCart = () => {
-    if (maxQuantity === 0 || quantity === 0) return;
+    if (!selectedVariant || maxQuantity === 0 || quantity === 0) return;
     addItem({
       id,
+      variantId: selectedVariant.id,
       title,
       image,
-      currentPrice,
+      currentPrice: effectivePrice,
       originalPrice,
-      size: selectedSize,
+      size: selectedVariant.size,
       quantity,
     });
     // Track AddToCart event for Meta catalog ads
-    trackAddToCart(id, currentPrice, code, quantity);
+    trackAddToCart(id, effectivePrice, code, quantity);
     onOpenChange(false);
   };
 
   const handleBuyNow = () => {
-    if (maxQuantity === 0 || quantity === 0) return;
+    if (!selectedVariant || maxQuantity === 0 || quantity === 0) return;
     addItem({
       id,
+      variantId: selectedVariant.id,
       title,
       image,
-      currentPrice,
+      currentPrice: effectivePrice,
       originalPrice,
-      size: selectedSize,
+      size: selectedVariant.size,
       quantity,
     });
     // Track AddToCart event for Meta catalog ads
-    trackAddToCart(id, currentPrice, code, quantity);
+    trackAddToCart(id, effectivePrice, code, quantity);
     onOpenChange(false);
     router.push("/cart");
   };
@@ -142,39 +158,44 @@ export default function ProductModal({
                 <p className="text-sm text-gray-600">Tax included.</p>
               </div>
 
-              <div className="space-y-3">
-                <div>
-                  <label className="mb-2 block text-sm text-foreground">
-                    Size
-                  </label>
-                </div>
-                <div className="flex flex-wrap gap-2 sm:gap-3">
-                  {sizes.map((size) => {
-                    const sizeStock = stock?.find((s) => s.size === size);
-                    const isAvailable = (sizeStock?.quantity || 0) > 0;
-                    const isSelected = selectedSize === size;
+              {isSized && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="mb-2 block text-sm text-foreground">
+                      Size
+                    </label>
+                  </div>
+                  <div className="flex flex-wrap gap-2 sm:gap-3">
+                    {sizes.map((size) => {
+                      const sizeStock = stock?.find((s) => s.size === size);
+                      const isAvailable = (sizeStock?.quantity || 0) > 0;
+                      const isSelected = selectedVariantId === sizeStock?.id;
 
-                    return (
-                      <button
-                        key={size}
-                        type="button"
-                        onClick={() => isAvailable && setSelectedSize(size)}
-                        disabled={!isAvailable}
-                        className={`size-11 rounded-full border text-sm font-medium transition-colors ${
-                          isSelected
-                            ? "border-foreground bg-foreground text-background"
-                            : isAvailable
-                              ? "border-border bg-card text-foreground hover:border-foreground"
-                              : "cursor-not-allowed border-border bg-foreground/5 text-foreground/30"
-                        }`}
-                        title={!isAvailable ? "Out of stock" : undefined}
-                      >
-                        {size}
-                      </button>
-                    );
-                  })}
+                      return (
+                        <button
+                          key={size}
+                          type="button"
+                          onClick={() =>
+                            isAvailable &&
+                            setSelectedVariantId(sizeStock?.id ?? null)
+                          }
+                          disabled={!isAvailable}
+                          className={`size-11 rounded-full border text-sm font-medium transition-colors ${
+                            isSelected
+                              ? "border-foreground bg-foreground text-background"
+                              : isAvailable
+                                ? "border-border bg-card text-foreground hover:border-foreground"
+                                : "cursor-not-allowed border-border bg-foreground/5 text-foreground/30"
+                          }`}
+                          title={!isAvailable ? "Out of stock" : undefined}
+                        >
+                          {size}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="space-y-3">
                 <label className="block text-sm text-foreground">
@@ -222,7 +243,9 @@ export default function ProductModal({
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  disabled={maxQuantity === 0 || quantity === 0}
+                  disabled={
+                    !selectedVariant || maxQuantity === 0 || quantity === 0
+                  }
                   className="h-12 w-full rounded-full border border-foreground px-4 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-foreground hover:text-background disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-foreground"
                 >
                   Add to cart
@@ -230,7 +253,9 @@ export default function ProductModal({
                 <button
                   type="button"
                   onClick={handleBuyNow}
-                  disabled={maxQuantity === 0 || quantity === 0}
+                  disabled={
+                    !selectedVariant || maxQuantity === 0 || quantity === 0
+                  }
                   className="h-12 w-full rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors duration-200 hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Buy it now

@@ -69,10 +69,7 @@ import {
   saveCourierSettings,
   type SettingsInput,
 } from "./actions";
-import {
-  CourierSettings,
-  courierDraftFromPublic,
-} from "./CourierSettings";
+import { CourierSettings, courierDraftFromPublic } from "./CourierSettings";
 
 function orNull(v: string): string | null {
   const t = v.trim();

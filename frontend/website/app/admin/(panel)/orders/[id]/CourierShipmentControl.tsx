@@ -78,19 +78,28 @@ export function CourierShipmentControl({
               />
             </span>
             <div>
-              <p className="text-sm font-medium text-foreground">{meta.label}</p>
+              <p className="text-sm font-medium text-foreground">
+                {meta.label}
+              </p>
               <p className="text-xs text-muted-foreground">
-                {shipment.tracking_code || shipment.external_id || "Sync pending"}
+                {shipment.tracking_code ||
+                  shipment.external_id ||
+                  "Sync pending"}
               </p>
             </div>
           </div>
           <Badge variant="outline" className="capitalize">
-            {(shipment.courier_status || shipment.sync_state).replaceAll("-", " ")}
+            {(shipment.courier_status || shipment.sync_state).replaceAll(
+              "-",
+              " ",
+            )}
           </Badge>
         </div>
 
         {shipment.status_message ? (
-          <p className="text-xs text-muted-foreground">{shipment.status_message}</p>
+          <p className="text-xs text-muted-foreground">
+            {shipment.status_message}
+          </p>
         ) : null}
 
         <Button
@@ -124,7 +133,10 @@ export function CourierShipmentControl({
             {events.slice(0, 6).map((event) => (
               <div key={event.id} className="text-xs">
                 <p className="font-medium capitalize text-foreground">
-                  {(event.courier_status || event.event_name).replaceAll("-", " ")}
+                  {(event.courier_status || event.event_name).replaceAll(
+                    "-",
+                    " ",
+                  )}
                 </p>
                 <p className="text-muted-foreground">
                   {formatDateTime(event.provider_time || event.created_at)}
@@ -163,21 +175,25 @@ export function CourierShipmentControl({
 
   return (
     <div className="space-y-3">
-      {!compact ? <div className="flex items-center gap-3">
-        <span className="grid h-10 w-20 place-items-center rounded-lg bg-white px-2">
-          <Image
-            src={meta.logo}
-            alt={`${meta.label} logo`}
-            width={72}
-            height={30}
-            className="max-h-7 w-auto max-w-full"
-          />
-        </span>
-        <div>
-          <p className="text-sm font-medium text-foreground">{meta.label}</p>
-          <p className="text-xs text-muted-foreground">Active for new shipments</p>
+      {!compact ? (
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-20 place-items-center rounded-lg bg-white px-2">
+            <Image
+              src={meta.logo}
+              alt={`${meta.label} logo`}
+              width={72}
+              height={30}
+              className="max-h-7 w-auto max-w-full"
+            />
+          </span>
+          <div>
+            <p className="text-sm font-medium text-foreground">{meta.label}</p>
+            <p className="text-xs text-muted-foreground">
+              Active for new shipments
+            </p>
+          </div>
         </div>
-      </div> : null}
+      ) : null}
 
       {!compact && !eligible ? (
         <p className="text-xs text-muted-foreground">
@@ -187,11 +203,7 @@ export function CourierShipmentControl({
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button
-            size="sm"
-            className="rounded-full"
-            disabled={!eligible}
-          >
+          <Button size="sm" className="rounded-full" disabled={!eligible}>
             <PackageCheck className="size-4" />
             Send to {meta.label}
           </Button>
@@ -265,7 +277,10 @@ export function CourierShipmentControl({
               </>
             ) : null}
 
-            <FormField label="Delivery instruction" hint="Optional; sent to the courier.">
+            <FormField
+              label="Delivery instruction"
+              hint="Optional; sent to the courier."
+            >
               <Input
                 value={instruction}
                 onChange={(event) => setInstruction(event.target.value)}
@@ -276,7 +291,11 @@ export function CourierShipmentControl({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
               Cancel
             </Button>
             <Button

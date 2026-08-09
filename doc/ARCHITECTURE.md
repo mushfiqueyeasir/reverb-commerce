@@ -1,8 +1,8 @@
-# Platform Architecture
+# Reverb Commerce Architecture
 
 ## Overview
 
-The platform uses one shared application repository while giving every client
+Reverb Commerce uses one shared application repository while giving every client
 an isolated production deployment and isolated Supabase project.
 
 ```mermaid

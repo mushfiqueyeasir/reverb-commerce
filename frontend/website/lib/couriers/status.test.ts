@@ -4,9 +4,7 @@ import { mappedOrderStatus, shouldAdvanceOrderStatus } from "./status";
 describe("courier status mapping", () => {
   it("maps Pathao transit events without mapping failures or returns", () => {
     expect(mappedOrderStatus("pathao", "order.in-transit")).toBe("shipped");
-    expect(mappedOrderStatus("pathao", "order.at-sorting-hub")).toBe(
-      "shipped",
-    );
+    expect(mappedOrderStatus("pathao", "order.at-sorting-hub")).toBe("shipped");
     expect(mappedOrderStatus("pathao", "order.delivered")).toBe("delivered");
     expect(mappedOrderStatus("pathao", "order.returned")).toBeNull();
   });

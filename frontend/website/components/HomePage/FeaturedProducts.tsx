@@ -82,6 +82,8 @@ export default function FeaturedProducts({
               discount={product.discount}
               href={product.href}
               stock={product.stock}
+              sizingMode={product.sizingMode}
+              sizeChart={product.sizeChart}
             />
           ))}
         </div>

@@ -83,20 +83,24 @@ export async function POST(request: NextRequest) {
     const { data: courierEventData } = shipment
       ? await supabase
           .from("courier_events")
-          .select("event_name, courier_status, message, provider_time, created_at")
+          .select(
+            "event_name, courier_status, message, provider_time, created_at",
+          )
           .eq("shipment_id", shipment.id)
           .order("provider_time", { ascending: false, nullsFirst: false })
           .limit(10)
       : { data: [] };
     const courierEvents =
-      (courierEventData as Pick<
-        CourierEventRow,
-        | "event_name"
-        | "courier_status"
-        | "message"
-        | "provider_time"
-        | "created_at"
-      >[] | null) ?? [];
+      (courierEventData as
+        | Pick<
+            CourierEventRow,
+            | "event_name"
+            | "courier_status"
+            | "message"
+            | "provider_time"
+            | "created_at"
+          >[]
+        | null) ?? [];
 
     const delivery = (o.delivery ?? {}) as OrderDelivery;
     const name =

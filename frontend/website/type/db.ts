@@ -52,6 +52,7 @@ export interface ProductRow {
   current_price: number;
   description: { html?: string } | null;
   size_chart: ProductSizeChartRow[] | null;
+  sizing_mode: "none" | "required";
   status: "active" | "draft" | "archived";
   product_type: string | null;
   sort: number;
@@ -75,7 +76,6 @@ export interface ProductVariantRow {
   size: string | null;
   color: string | null;
   sku: string | null;
-  price_override: number | null;
   stock_quantity: number;
   low_stock_threshold: number;
   created_at: string;

@@ -102,7 +102,10 @@ export async function getCourierSettingsForAdmin(): Promise<CourierSettingsPubli
     activeProvider:
       COURIER_PROVIDERS.find((provider) => providers[provider].active) ?? null,
     providers: Object.fromEntries(
-      COURIER_PROVIDERS.map((provider) => [provider, toPublic(providers[provider])]),
+      COURIER_PROVIDERS.map((provider) => [
+        provider,
+        toPublic(providers[provider]),
+      ]),
     ) as Record<CourierProvider, CourierProviderSettingsPublic>,
   };
 }
@@ -120,19 +123,21 @@ export async function saveCourierSettingsRow(
     const next = input.providers.find((item) => item.provider === provider);
     if (!next) return [];
     const existing = current[provider];
-    return [{
-      provider,
-      sandbox: provider === "steadfast" ? false : next.sandbox,
-      client_id: clean(next.clientId),
-      client_secret: keep(next.clientSecret, existing.client_secret),
-      username: clean(next.username),
-      password: keep(next.password, existing.password),
-      api_key: clean(next.apiKey),
-      secret_key: keep(next.secretKey, existing.secret_key),
-      access_token: keep(next.accessToken, existing.access_token),
-      pickup_store_id: clean(next.pickupStoreId),
-      webhook_secret: keep(next.webhookSecret, existing.webhook_secret),
-    }];
+    return [
+      {
+        provider,
+        sandbox: provider === "steadfast" ? false : next.sandbox,
+        client_id: clean(next.clientId),
+        client_secret: keep(next.clientSecret, existing.client_secret),
+        username: clean(next.username),
+        password: keep(next.password, existing.password),
+        api_key: clean(next.apiKey),
+        secret_key: keep(next.secretKey, existing.secret_key),
+        access_token: keep(next.accessToken, existing.access_token),
+        pickup_store_id: clean(next.pickupStoreId),
+        webhook_secret: keep(next.webhookSecret, existing.webhook_secret),
+      },
+    ];
   });
 
   const server = await createSupabaseServerClient();
@@ -141,7 +146,11 @@ export async function saveCourierSettingsRow(
     p_active_provider: input.activeProvider,
   });
   if (error) {
-    if (/courier_settings|schema cache|does not exist|save_courier_settings/i.test(error.message)) {
+    if (
+      /courier_settings|schema cache|does not exist|save_courier_settings/i.test(
+        error.message,
+      )
+    ) {
       return {
         error:
           "Courier settings tables are missing. Apply migration 0017_courier_integrations.sql, then try again.",
@@ -152,14 +161,16 @@ export async function saveCourierSettingsRow(
   return {};
 }
 
-export function courierSettingsReady(settings: CourierProviderSettings): boolean {
+export function courierSettingsReady(
+  settings: CourierProviderSettings,
+): boolean {
   if (settings.provider === "pathao") {
     return Boolean(
       settings.client_id &&
-        settings.client_secret &&
-        settings.username &&
-        settings.password &&
-        settings.pickup_store_id,
+      settings.client_secret &&
+      settings.username &&
+      settings.password &&
+      settings.pickup_store_id,
     );
   }
   if (settings.provider === "steadfast") {

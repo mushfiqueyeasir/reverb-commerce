@@ -5,15 +5,16 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, canWrite } from "@/lib/admin/auth";
 import { writeAuditLog } from "@/lib/admin/auditLog";
 import { ORDER_TRANSITIONS } from "@/lib/admin/format";
-import {
-  RESTOCK_ON_DELETE_STATUSES,
-} from "@/lib/admin/orderStock";
+import { RESTOCK_ON_DELETE_STATUSES } from "@/lib/admin/orderStock";
 import { getSiteSettings } from "@/utility/getSettings";
 import { paymentMethodLabel } from "@/lib/payments/paymentLabels";
 import type { InvoiceData } from "@/lib/admin/invoicePdf";
 import type { OrderItemRow, OrderRow, OrderStatus } from "@/type/db";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getCourierSettings, courierSettingsReady } from "@/lib/couriers/settings";
+import {
+  getCourierSettings,
+  courierSettingsReady,
+} from "@/lib/couriers/settings";
 import { courierAdapter } from "@/lib/couriers/registry";
 import { COURIER_META } from "@/lib/couriers/metadata";
 import { CourierApiError } from "@/lib/couriers/http";
@@ -32,7 +33,8 @@ export async function searchCourierAreas(
   query: string,
 ): Promise<{ data?: CourierArea[]; error?: string }> {
   const s = await requireAdminSession();
-  if (!canWrite(s.role)) return { error: "You do not have permission to do this." };
+  if (!canWrite(s.role))
+    return { error: "You do not have permission to do this." };
   const settings = await getCourierSettings();
   const active = Object.values(settings).find((item) => item.active);
   if (!active || active.provider !== "redx") return { data: [] };
@@ -41,7 +43,10 @@ export async function searchCourierAreas(
       data: await courierAdapter("redx").listAreas(active, query.trim()),
     };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Could not load REDX areas." };
+    return {
+      error:
+        error instanceof Error ? error.message : "Could not load REDX areas.",
+    };
   }
 }
 
@@ -50,7 +55,8 @@ export async function createCourierShipment(
   input: CreateShipmentInput,
 ): Promise<{ error?: string }> {
   const s = await requireAdminSession();
-  if (!canWrite(s.role)) return { error: "You do not have permission to do this." };
+  if (!canWrite(s.role))
+    return { error: "You do not have permission to do this." };
 
   const admin = createSupabaseAdminClient();
   const { data: order, error: orderError } = await admin
@@ -58,7 +64,8 @@ export async function createCourierShipment(
     .select("*")
     .eq("id", orderId)
     .maybeSingle();
-  if (orderError || !order) return { error: orderError?.message ?? "Order not found." };
+  if (orderError || !order)
+    return { error: orderError?.message ?? "Order not found." };
 
   const o = order as OrderRow;
   if (!(["confirmed", "processing"] as OrderStatus[]).includes(o.status)) {
@@ -72,7 +79,9 @@ export async function createCourierShipment(
   const active = Object.values(settings).find((item) => item.active);
   if (!active) return { error: "Activate a courier in Settings first." };
   if (!courierSettingsReady(active)) {
-    return { error: `${COURIER_META[active.provider].label} configuration is incomplete.` };
+    return {
+      error: `${COURIER_META[active.provider].label} configuration is incomplete.`,
+    };
   }
 
   const weightKg = Number(input.weightKg);
@@ -82,7 +91,10 @@ export async function createCourierShipment(
   ) {
     return { error: "Parcel weight must be between 0.5 and 10 kg." };
   }
-  if (active.provider === "redx" && (!input.deliveryAreaId || !input.deliveryAreaName)) {
+  if (
+    active.provider === "redx" &&
+    (!input.deliveryAreaId || !input.deliveryAreaName)
+  ) {
     return { error: "Select a REDX delivery area." };
   }
 
@@ -92,8 +104,10 @@ export async function createCourierShipment(
     .eq("order_id", orderId);
   if (itemsError) return { error: itemsError.message };
   const recipientName =
-    [o.delivery?.firstName, o.delivery?.lastName].filter(Boolean).join(" ").trim() ||
-    "Customer";
+    [o.delivery?.firstName, o.delivery?.lastName]
+      .filter(Boolean)
+      .join(" ")
+      .trim() || "Customer";
   const recipientPhone = o.delivery?.phone?.trim() ?? "";
   const recipientAddress = [
     o.delivery?.address,
@@ -104,7 +118,9 @@ export async function createCourierShipment(
     .filter(Boolean)
     .join(", ");
   if (!recipientPhone || !recipientAddress) {
-    return { error: "The order needs a recipient phone number and delivery address." };
+    return {
+      error: "The order needs a recipient phone number and delivery address.",
+    };
   }
 
   const itemRows = (items ?? []) as Pick<
@@ -114,7 +130,9 @@ export async function createCourierShipment(
   const itemQuantity = itemRows.reduce((sum, item) => sum + item.quantity, 0);
   const itemDescription = itemRows
     .map((item) =>
-      [item.title, item.size, item.color, `x${item.quantity}`].filter(Boolean).join(" "),
+      [item.title, item.size, item.color, `x${item.quantity}`]
+        .filter(Boolean)
+        .join(" "),
     )
     .join(", ")
     .slice(0, 500);
@@ -128,7 +146,10 @@ export async function createCourierShipment(
     declaredValue: total,
     itemQuantity: Math.max(1, itemQuantity),
     itemDescription,
-    weightKg: active.provider === "steadfast" ? Math.max(0.5, weightKg || 0.5) : weightKg,
+    weightKg:
+      active.provider === "steadfast"
+        ? Math.max(0.5, weightKg || 0.5)
+        : weightKg,
     instruction: input.instruction?.trim() || null,
     deliveryAreaId: input.deliveryAreaId?.trim() || null,
     deliveryAreaName: input.deliveryAreaName?.trim() || null,
@@ -151,7 +172,7 @@ export async function createCourierShipment(
       error:
         reserveError?.code === "23505"
           ? "This order has already been sent to a courier."
-          : reserveError?.message ?? "Could not reserve the shipment.",
+          : (reserveError?.message ?? "Could not reserve the shipment."),
     };
   }
   const { data: shipment, error: shipmentError } = await admin
@@ -241,7 +262,11 @@ export async function createCourierShipment(
       },
     });
   } catch (error) {
-    if (error instanceof CourierApiError && error.status >= 400 && error.status < 500) {
+    if (
+      error instanceof CourierApiError &&
+      error.status >= 400 &&
+      error.status < 500
+    ) {
       await admin
         .from("order_shipments")
         .delete()
@@ -262,7 +287,9 @@ export async function createCourierShipment(
     }
     return {
       error:
-        error instanceof Error ? error.message : "Could not create the courier shipment.",
+        error instanceof Error
+          ? error.message
+          : "Could not create the courier shipment.",
     };
   }
 
@@ -275,7 +302,8 @@ export async function refreshCourierShipment(
   orderId: string,
 ): Promise<{ error?: string }> {
   const s = await requireAdminSession();
-  if (!canWrite(s.role)) return { error: "You do not have permission to do this." };
+  if (!canWrite(s.role))
+    return { error: "You do not have permission to do this." };
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin
     .from("order_shipments")
@@ -284,11 +312,14 @@ export async function refreshCourierShipment(
     .maybeSingle();
   if (error || !data) return { error: error?.message ?? "Shipment not found." };
   const shipment = data as OrderShipmentRow;
-  if (!shipment.external_id) return { error: "This shipment has no courier tracking ID yet." };
+  if (!shipment.external_id)
+    return { error: "This shipment has no courier tracking ID yet." };
   const settings = await getCourierSettings();
   const providerSettings = settings[shipment.provider];
   if (!courierSettingsReady(providerSettings)) {
-    return { error: `${COURIER_META[shipment.provider].label} credentials are unavailable.` };
+    return {
+      error: `${COURIER_META[shipment.provider].label} credentials are unavailable.`,
+    };
   }
   try {
     const result = await courierAdapter(shipment.provider).getStatus(

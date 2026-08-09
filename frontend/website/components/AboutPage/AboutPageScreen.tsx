@@ -344,51 +344,95 @@ function CraftSection({ config }: { config: Record<string, unknown> }) {
 }
 
 function CtaSection({ config }: { config: Record<string, unknown> }) {
+  const eyebrow = cfgStr(config, "eyebrow");
+  const title = cfgStr(config, "title");
+  const body = cfgStr(config, "body");
+
   return (
-    <section className="mx-auto max-w-[1600px] px-6 md:px-10">
-      <div className="relative overflow-hidden rounded-[2rem] border border-border bg-card px-8 py-14 md:px-16 md:py-20">
+    <section className="mx-auto max-w-[1600px] px-6 pt-4 md:px-10 md:pt-8">
+      <div className="relative isolate overflow-hidden rounded-[2rem] border border-primary/25 bg-card text-foreground shadow-[0_35px_100px_-55px_rgb(var(--primary-rgb)/0.7)] md:rounded-[2.75rem]">
         <div
-          className="pointer-events-none absolute -right-20 top-0 h-64 w-64 rounded-full opacity-40"
+          className="pointer-events-none absolute inset-0 opacity-[0.07]"
           style={{
             background:
-              "radial-gradient(circle, rgb(var(--primary-rgb) / 0.35) 0%, transparent 70%)",
+              "linear-gradient(rgb(var(--primary-rgb) / 0.65) 1px, transparent 1px), linear-gradient(90deg, rgb(var(--primary-rgb) / 0.65) 1px, transparent 1px)",
+            backgroundSize: "42px 42px",
           }}
           aria-hidden
         />
-        <div className="relative max-w-2xl">
-          {cfgStr(config, "eyebrow") ? (
-            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">
-              {cfgStr(config, "eyebrow")}
-            </p>
-          ) : null}
-          {cfgStr(config, "title") ? (
-            <h2 className="mt-3 font-display text-4xl font-bold tracking-tight md:text-5xl">
-              {cfgStr(config, "title")}
-            </h2>
-          ) : null}
-          {cfgStr(config, "body") ? (
-            <p className="mt-5 text-base leading-relaxed text-muted-foreground">
-              {cfgStr(config, "body")}
-            </p>
-          ) : null}
-          <div className="mt-8 flex flex-wrap gap-3">
-            {cfgStr(config, "cta_primary_label") ? (
-              <Link
-                href={cfgStr(config, "cta_primary_url", "/product")}
-                className="group inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-primary-foreground transition hover:brightness-110"
-              >
-                {cfgStr(config, "cta_primary_label")}
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Link>
+
+        <div
+          className="pointer-events-none absolute -right-12 -top-20 size-72 rounded-full blur-3xl md:size-[28rem]"
+          style={{
+            background:
+              "radial-gradient(circle, rgb(var(--primary-rgb) / 0.45) 0%, transparent 68%)",
+          }}
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute -bottom-12 left-[42%] hidden font-display text-[12rem] font-black leading-none tracking-[-0.08em] text-primary/[0.055] lg:block"
+          aria-hidden
+        >
+          RIDE
+        </div>
+
+        <div className="relative grid lg:grid-cols-[minmax(0,1fr)_22rem]">
+          <div className="px-7 py-12 sm:px-10 md:px-14 md:py-16 lg:px-16 lg:py-20">
+            {eyebrow ? (
+              <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.32em] text-primary sm:text-[11px]">
+                <span className="size-2 rounded-full bg-primary shadow-[0_0_18px_rgb(var(--primary-rgb)/0.9)]" />
+                {eyebrow}
+                <span className="h-px w-12 bg-primary/45" />
+              </div>
             ) : null}
-            {cfgStr(config, "cta_secondary_label") ? (
-              <Link
-                href={cfgStr(config, "cta_secondary_url", "/reviews")}
-                className="inline-flex items-center gap-2 rounded-full border border-border px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-foreground transition hover:border-primary hover:text-primary"
-              >
-                {cfgStr(config, "cta_secondary_label")}
-              </Link>
+            {title ? (
+              <h2 className="mt-5 max-w-4xl font-display text-[clamp(2.6rem,6vw,5.75rem)] font-bold leading-[0.9] tracking-[-0.055em] text-foreground">
+                {title}
+              </h2>
             ) : null}
+            {body ? (
+              <p className="mt-7 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base sm:leading-8 md:text-lg">
+                {body}
+              </p>
+            ) : null}
+
+            <div className="mt-10 flex items-center gap-4 font-mono text-[9px] uppercase tracking-[0.28em] text-muted-foreground/70 sm:text-[10px]">
+              <span>Built for motion</span>
+              <span className="h-px flex-1 bg-border" />
+              <span>VE / 04</span>
+            </div>
+          </div>
+
+          <div className="relative flex flex-col justify-end border-t border-border bg-background/35 p-6 backdrop-blur-sm sm:p-8 lg:border-l lg:border-t-0 lg:p-10">
+            <div className="mb-auto hidden lg:block">
+              <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                Your next move
+              </div>
+              <div className="mt-4 h-px w-full bg-border" />
+            </div>
+
+            <div className="space-y-3">
+              {cfgStr(config, "cta_primary_label") ? (
+                <Link
+                  href={cfgStr(config, "cta_primary_url", "/product")}
+                  className="group flex min-h-16 items-center justify-between rounded-2xl bg-primary px-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary-foreground transition duration-300 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_18px_45px_-22px_rgb(var(--primary-rgb)/0.9)] sm:px-6 sm:text-[12px]"
+                >
+                  {cfgStr(config, "cta_primary_label")}
+                  <span className="grid size-9 place-items-center rounded-full bg-primary-foreground/15 transition-transform duration-300 group-hover:translate-x-1">
+                    <ArrowRight className="size-4" />
+                  </span>
+                </Link>
+              ) : null}
+              {cfgStr(config, "cta_secondary_label") ? (
+                <Link
+                  href={cfgStr(config, "cta_secondary_url", "/reviews")}
+                  className="group flex min-h-14 items-center justify-between rounded-2xl border border-border px-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground/75 transition duration-300 hover:border-primary/60 hover:bg-primary/5 hover:text-primary sm:px-6 sm:text-[11px]"
+                >
+                  {cfgStr(config, "cta_secondary_label")}
+                  <ArrowRight className="size-4 opacity-50 transition-transform group-hover:translate-x-1 group-hover:opacity-100" />
+                </Link>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>

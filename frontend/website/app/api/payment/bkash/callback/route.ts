@@ -133,7 +133,10 @@ export async function GET(request: NextRequest) {
       const processingAge = current?.updated_at
         ? Date.now() - new Date(current.updated_at).getTime()
         : 0;
-      if (current?.payment_status === "processing" && processingAge >= 120_000) {
+      if (
+        current?.payment_status === "processing" &&
+        processingAge >= 120_000
+      ) {
         recoveryOnly = true;
       } else {
         return redirectTo(request, "/checkout", {
@@ -177,7 +180,10 @@ export async function GET(request: NextRequest) {
       }
       await supabase
         .from("orders")
-        .update({ payment_status: "failed", updated_at: new Date().toISOString() })
+        .update({
+          payment_status: "failed",
+          updated_at: new Date().toISOString(),
+        })
         .eq("id", order.id)
         .eq("payment_status", "processing");
       await removeUnpaidOrder(supabase, order.id);
@@ -272,7 +278,7 @@ export async function GET(request: NextRequest) {
           shippingLabel: `bKash · ${deliveryZoneLabel(zone)}`,
           items: orderItems.map((item) => ({
             title: item.title ?? "Product",
-            size: item.size ?? "",
+            size: item.size,
             quantity: item.quantity,
             unitPrice: Number(item.unit_price) || 0,
             imageUrl: item.product_id

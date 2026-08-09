@@ -89,7 +89,9 @@ export function ImageUploader({
           size: file.size,
         });
         if (!authorization.path || !authorization.signedUrl) {
-          toast.error(`Upload failed: ${authorization.error || "Unknown error"}`);
+          toast.error(
+            `Upload failed: ${authorization.error || "Unknown error"}`,
+          );
           continue;
         }
 

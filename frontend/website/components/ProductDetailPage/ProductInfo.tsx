@@ -19,6 +19,7 @@ import { useWishlistStore } from "@/store/wishlistStore";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
 import { trackAddToCart } from "@/utility/analytics/facebookPixelEvents";
 import { cn } from "@/lib/utils";
+import { getProductSizeOptions } from "@/lib/products/variants";
 import {
   Dialog,
   DialogContent,
@@ -32,20 +33,25 @@ interface ProductInfoProps {
   stock?: ProductStock[];
 }
 
-const FALLBACK_SIZES = ["M", "L", "XL", "2XL"] as const;
-
 export default function ProductInfo({ product, stock }: ProductInfoProps) {
-  const sizeOptions =
-    stock && stock.length > 0 ? stock.map((s) => s.size) : [...FALLBACK_SIZES];
+  const isSized = product.sizingMode === "required";
+  const sizeOptions = isSized
+    ? getProductSizeOptions(product.sizeChart ?? [], stock ?? [])
+    : [];
 
-  const isFullyOutOfStock = (() => {
-    if (!stock || stock.length === 0) return true;
-    return stock.reduce((sum, item) => sum + (item.quantity || 0), 0) === 0;
-  })();
+  const stockForSize = (size: string) =>
+    stock?.find((item) => item.size === size);
+
+  const isFullyOutOfStock = isSized
+    ? sizeOptions.every((size) => (stockForSize(size)?.quantity ?? 0) <= 0)
+    : (stock?.[0]?.quantity ?? 0) <= 0;
 
   const getInitialSize = (): string | null => {
-    if (isFullyOutOfStock) return null;
-    return stock?.find((s) => s.quantity > 0)?.size ?? null;
+    if (!isSized || isFullyOutOfStock) return null;
+    return (
+      sizeOptions.find((size) => (stockForSize(size)?.quantity ?? 0) > 0) ??
+      null
+    );
   };
 
   const [selectedSize, setSelectedSize] = useState<string | null>(
@@ -60,23 +66,24 @@ export default function ProductInfo({ product, stock }: ProductInfoProps) {
   const router = useRouter();
 
   const hasSizeChart = (product.sizeChart?.length ?? 0) > 0;
-  const selectedSizeStock = selectedSize
-    ? stock?.find((s) => s.size === selectedSize)
-    : null;
-  const maxQuantity = selectedSizeStock?.quantity || 0;
-  const isInCart = selectedSize
-    ? isItemInCart(product.id, selectedSize)
-    : false;
+  const selectedVariant = isSized
+    ? selectedSize
+      ? stockForSize(selectedSize)
+      : null
+    : stock?.[0];
+  const maxQuantity = selectedVariant?.quantity || 0;
+  const effectivePrice = product.currentPrice;
+  const isInCart = selectedVariant ? isItemInCart(selectedVariant.id) : false;
 
   useEffect(() => {
-    if (!selectedSize) {
+    if (!selectedVariant) {
       setQuantity(0);
     } else if (maxQuantity === 0) {
       setQuantity(0);
     } else if (quantity > maxQuantity || quantity === 0) {
       setQuantity(1);
     }
-  }, [selectedSize, maxQuantity, quantity]);
+  }, [selectedVariant, maxQuantity, quantity]);
 
   const handleQuantityChange = (delta: number) => {
     setQuantity((prev) => {
@@ -88,31 +95,33 @@ export default function ProductInfo({ product, stock }: ProductInfoProps) {
   };
 
   const handleAddToCart = () => {
-    if (!selectedSize || maxQuantity === 0 || quantity === 0) return;
+    if (!selectedVariant || maxQuantity === 0 || quantity === 0) return;
     addItem({
       id: product.id,
+      variantId: selectedVariant.id,
       title: product.title,
       image: product.image,
-      currentPrice: product.currentPrice,
+      currentPrice: effectivePrice,
       originalPrice: product.originalPrice,
-      size: selectedSize,
+      size: selectedVariant.size,
       quantity,
     });
-    trackAddToCart(product.id, product.currentPrice, code, quantity);
+    trackAddToCart(product.id, effectivePrice, code, quantity);
   };
 
   const handleBuyNow = () => {
-    if (!selectedSize || maxQuantity === 0 || quantity === 0) return;
+    if (!selectedVariant || maxQuantity === 0 || quantity === 0) return;
     addItem({
       id: product.id,
+      variantId: selectedVariant.id,
       title: product.title,
       image: product.image,
-      currentPrice: product.currentPrice,
+      currentPrice: effectivePrice,
       originalPrice: product.originalPrice,
-      size: selectedSize,
+      size: selectedVariant.size,
       quantity,
     });
-    trackAddToCart(product.id, product.currentPrice, code, quantity);
+    trackAddToCart(product.id, effectivePrice, code, quantity);
     router.push("/cart");
   };
 
@@ -144,56 +153,62 @@ export default function ProductInfo({ product, stock }: ProductInfoProps) {
         <p className="text-sm text-muted-foreground">Tax included.</p>
       </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <label className="block text-sm font-normal text-foreground">
-            Size
-          </label>
-          {hasSizeChart && (
-            <button
-              type="button"
-              onClick={() => setSizeGuideOpen(true)}
-              className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground underline-offset-4 transition hover:text-primary hover:underline"
-            >
-              <Ruler className="size-3.5" />
-              Size chart
-            </button>
+      {isSized && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <label className="block text-sm font-normal text-foreground">
+              Size
+            </label>
+            {hasSizeChart && (
+              <button
+                type="button"
+                onClick={() => setSizeGuideOpen(true)}
+                className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground underline-offset-4 transition hover:text-primary hover:underline"
+              >
+                <Ruler className="size-3.5" />
+                Size chart
+              </button>
+            )}
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            {sizeOptions.map((size) => {
+              const sizeStock = stockForSize(size);
+              const isAvailable = (sizeStock?.quantity || 0) > 0;
+              const isSelected = selectedSize === size;
+
+              return (
+                <button
+                  key={size}
+                  type="button"
+                  onClick={() => isAvailable && setSelectedSize(size)}
+                  disabled={!isAvailable}
+                  className={cn(
+                    "size-12 rounded-full border text-sm font-medium transition-colors",
+                    isSelected
+                      ? "border-foreground bg-foreground text-background"
+                      : isAvailable
+                        ? "border-border bg-card text-foreground hover:border-foreground"
+                        : "cursor-not-allowed border-border/10 bg-black/5 text-foreground/30",
+                  )}
+                  title={!isAvailable ? "Out of stock" : undefined}
+                >
+                  {size}
+                </button>
+              );
+            })}
+          </div>
+          {!selectedSize && isFullyOutOfStock && (
+            <p className="mt-2 text-xs text-red-500">
+              All sizes are out of stock
+            </p>
           )}
         </div>
+      )}
 
-        <div className="flex flex-wrap gap-3">
-          {sizeOptions.map((size) => {
-            const sizeStock = stock?.find((s) => s.size === size);
-            const isAvailable = (sizeStock?.quantity || 0) > 0;
-            const isSelected = selectedSize === size;
-
-            return (
-              <button
-                key={size}
-                type="button"
-                onClick={() => isAvailable && setSelectedSize(size)}
-                disabled={!isAvailable}
-                className={cn(
-                  "size-12 rounded-full border text-sm font-medium transition-colors",
-                  isSelected
-                    ? "border-foreground bg-foreground text-background"
-                    : isAvailable
-                      ? "border-border bg-card text-foreground hover:border-foreground"
-                      : "cursor-not-allowed border-border/10 bg-black/5 text-foreground/30",
-                )}
-                title={!isAvailable ? "Out of stock" : undefined}
-              >
-                {size}
-              </button>
-            );
-          })}
-        </div>
-        {!selectedSize && isFullyOutOfStock && (
-          <p className="mt-2 text-xs text-red-500">
-            All sizes are out of stock
-          </p>
-        )}
-      </div>
+      {!isSized && isFullyOutOfStock && (
+        <p className="text-xs text-red-500">Out of stock</p>
+      )}
 
       <div className="space-y-3">
         <label className="block text-sm font-normal text-foreground">
@@ -223,10 +238,10 @@ export default function ProductInfo({ product, stock }: ProductInfoProps) {
             <Plus className="size-4" />
           </button>
         </div>
-        {selectedSize && maxQuantity > 0 && maxQuantity <= 5 && (
+        {selectedVariant && maxQuantity > 0 && maxQuantity <= 5 && (
           <p className="text-xs text-primary">Only {maxQuantity} left</p>
         )}
-        {selectedSize && maxQuantity === 0 && (
+        {selectedVariant && maxQuantity === 0 && (
           <p className="text-xs text-red-500">Out of stock</p>
         )}
       </div>
@@ -236,17 +251,19 @@ export default function ProductInfo({ product, stock }: ProductInfoProps) {
           type="button"
           onClick={handleAddToCart}
           disabled={
-            !selectedSize || isInCart || maxQuantity === 0 || quantity === 0
+            !selectedVariant || isInCart || maxQuantity === 0 || quantity === 0
           }
           className={cn(
             "w-full rounded-full border px-4 py-3.5 text-sm font-medium transition-colors duration-200",
-            !selectedSize || isInCart || maxQuantity === 0 || quantity === 0
+            !selectedVariant || isInCart || maxQuantity === 0 || quantity === 0
               ? "cursor-not-allowed border-border/10 bg-black/5 text-foreground/40"
               : "border-foreground text-foreground hover:bg-foreground hover:text-background",
           )}
         >
-          {!selectedSize
-            ? "Select a size"
+          {!selectedVariant
+            ? isSized
+              ? "Select a size"
+              : "Out of stock"
             : isInCart
               ? "Added to cart"
               : maxQuantity === 0
@@ -256,7 +273,7 @@ export default function ProductInfo({ product, stock }: ProductInfoProps) {
         <button
           type="button"
           onClick={handleBuyNow}
-          disabled={!selectedSize || maxQuantity === 0 || quantity === 0}
+          disabled={!selectedVariant || maxQuantity === 0 || quantity === 0}
           className="w-full rounded-full bg-primary px-4 py-3.5 text-sm font-medium text-white transition-colors duration-200 hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Buy it now

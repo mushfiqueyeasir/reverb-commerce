@@ -248,13 +248,13 @@ export async function saveSmtpSettings(
   const current = await getSmtpSettings();
   const needsVerification = Boolean(
     normalizedInput.enabled &&
-      (!current.enabled ||
-        normalizedInput.provider !== current.provider ||
-        normalizedInput.host !== current.host ||
-        normalizedInput.port !== current.port ||
-        normalizedInput.secure !== current.secure ||
-        normalizedInput.username !== current.username ||
-        normalizedInput.password),
+    (!current.enabled ||
+      normalizedInput.provider !== current.provider ||
+      normalizedInput.host !== current.host ||
+      normalizedInput.port !== current.port ||
+      normalizedInput.secure !== current.secure ||
+      normalizedInput.username !== current.username ||
+      normalizedInput.password),
   );
   if (needsVerification) {
     const verification = await verifySmtpSettings(normalizedInput);
@@ -359,27 +359,32 @@ export async function saveCourierSettings(
   }
 
   const current = await getCourierSettings();
-  const currentActive = Object.values(current).find((provider) => provider.active)
-    ?.provider;
+  const currentActive = Object.values(current).find(
+    (provider) => provider.active,
+  )?.provider;
   const requestedActive = input.activeProvider
-    ? input.providers.find((provider) => provider.provider === input.activeProvider)
+    ? input.providers.find(
+        (provider) => provider.provider === input.activeProvider,
+      )
     : null;
-  const previousActive = input.activeProvider ? current[input.activeProvider] : null;
+  const previousActive = input.activeProvider
+    ? current[input.activeProvider]
+    : null;
   const needsConnectionTest = Boolean(
     input.activeProvider &&
-      requestedActive &&
-      previousActive &&
-      (currentActive !== input.activeProvider ||
-        requestedActive.sandbox !== previousActive.sandbox ||
-        (requestedActive.clientId?.trim() || null) !== previousActive.client_id ||
-        (requestedActive.username?.trim() || null) !== previousActive.username ||
-        (requestedActive.apiKey?.trim() || null) !== previousActive.api_key ||
-        (requestedActive.pickupStoreId?.trim() || null) !==
-          previousActive.pickup_store_id ||
-        requestedActive.clientSecret?.trim() ||
-        requestedActive.password?.trim() ||
-        requestedActive.secretKey?.trim() ||
-        requestedActive.accessToken?.trim()),
+    requestedActive &&
+    previousActive &&
+    (currentActive !== input.activeProvider ||
+      requestedActive.sandbox !== previousActive.sandbox ||
+      (requestedActive.clientId?.trim() || null) !== previousActive.client_id ||
+      (requestedActive.username?.trim() || null) !== previousActive.username ||
+      (requestedActive.apiKey?.trim() || null) !== previousActive.api_key ||
+      (requestedActive.pickupStoreId?.trim() || null) !==
+        previousActive.pickup_store_id ||
+      requestedActive.clientSecret?.trim() ||
+      requestedActive.password?.trim() ||
+      requestedActive.secretKey?.trim() ||
+      requestedActive.accessToken?.trim()),
   );
   const providers = input.providers.map((provider) => ({
     ...provider,

@@ -1,8 +1,8 @@
 export interface OrderItemInput {
   product: string; // product id (uuid)
-  variantId?: string | null;
+  variantId: string;
   title?: string;
-  size: string;
+  size: string | null;
   color?: string | null;
   quantity: number;
   unitPrice: number;

@@ -40,14 +40,16 @@ export default async function SettingsPage() {
   await requireRole(["admin"]);
 
   const supabase = await createSupabaseServerClient();
-  const [{ data }, cms, smtp, bkash, courier, storageUsage] = await Promise.all([
-    supabase.from("site_settings").select("*").eq("id", 1).maybeSingle(),
-    readCmsBlob(),
-    getSmtpSettingsForAdmin(),
-    getBkashSettingsForAdmin(),
-    getCourierSettingsForAdmin(),
-    getStorageUsage(),
-  ]);
+  const [{ data }, cms, smtp, bkash, courier, storageUsage] = await Promise.all(
+    [
+      supabase.from("site_settings").select("*").eq("id", 1).maybeSingle(),
+      readCmsBlob(),
+      getSmtpSettingsForAdmin(),
+      getBkashSettingsForAdmin(),
+      getCourierSettingsForAdmin(),
+      getStorageUsage(),
+    ],
+  );
 
   const row = (data as SiteSettingsRow | null) ?? DEFAULTS;
   const settings: SiteSettingsRow = {
