@@ -13,7 +13,6 @@ reviewers.
 Environment secrets:
 
 ```text
-SUPABASE_ACCESS_TOKEN
 VERCEL_TOKEN
 BOOTSTRAP_ADMIN_PASSWORD
 ```
@@ -36,8 +35,8 @@ the application defaults.
 The Vercel GitHub App must have access to the repository. The workflow token
 must be allowed to push the final non-secret registry commit to `main`.
 
-Asset cleanup also reads `SUPABASE_ACCESS_TOKEN` as a repository or environment
-secret and derives each registered project's server key at runtime.
+Asset cleanup requires separate long-lived credentials. The temporary onboarding
+token is used only by the new-customer deployment run.
 
 ## Domain prerequisite
 
@@ -58,11 +57,19 @@ The alias receives a permanent redirect to the canonical hostname.
 
 Open Actions, select `Deploy New Customer`, and choose `Run workflow`.
 
-The workflow form asks for one value:
+The workflow form asks for two values:
 
 ```text
-https://www.example.com/
+Store URL:                         https://www.example.com/
+Temporary Supabase access token:  sbp_...
 ```
+
+Create the temporary token from the customer's Supabase account immediately
+before starting the workflow. It must remain valid while the Supabase project,
+schema, Storage, Auth, and administrator are configured. The workflow masks it
+before provisioning and never writes it to the client registry or Vercel.
+GitHub retains manual workflow inputs in run metadata, so never use a permanent
+Supabase token in this field. Revoke the temporary token after the run finishes.
 
 Run it from `main`. GitHub always displays its built-in branch selector for
 manual workflows, but the workflow rejects every branch except `main`.

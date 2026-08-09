@@ -7,6 +7,10 @@ on:
         description: "New store domain, for example https://www.example.com/"
         required: true
         type: string
+      supabase_access_token:
+        description: "Temporary Supabase Management API token"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -101,6 +105,11 @@ jobs:
         working-directory: backend
         run: npm ci
 
+      - name: Mask temporary Supabase token
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ inputs.supabase_access_token }}
+        run: echo "::add-mask::$SUPABASE_ACCESS_TOKEN"
+
       - name: Create and verify store
         id: provision
         working-directory: backend
@@ -109,7 +118,7 @@ jobs:
           PROVISION_MODE: resume
           RELEASE_SHA: ${{ github.sha }}
           RELEASE_REF: main
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_ACCESS_TOKEN: ${{ inputs.supabase_access_token }}
           SUPABASE_ORG_SLUG: ${{ vars.SUPABASE_ORG_SLUG }}
           SUPABASE_REGION: ${{ vars.SUPABASE_REGION || 'ap-southeast-1' }}
           SUPABASE_INSTANCE_SIZE: ${{ vars.SUPABASE_INSTANCE_SIZE }}
