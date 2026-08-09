@@ -17,6 +17,8 @@ export default function SortDropdown() {
 
   const getSortLabel = () => {
     switch (filters.sortBy) {
+      case "featured":
+        return "Featured";
       case "price-low":
         return "Price: Low to High";
       case "price-high":
@@ -26,11 +28,12 @@ export default function SortDropdown() {
       case "name-z-a":
         return "Name: Z-A";
       default:
-        return "Price: Low to High";
+        return "Featured";
     }
   };
 
   const sortOptions = [
+    { value: "featured", label: "Featured" },
     { value: "price-low", label: "Price: Low to High" },
     { value: "price-high", label: "Price: High to Low" },
     { value: "name-a-z", label: "Name: A-Z" },
@@ -50,8 +53,8 @@ export default function SortDropdown() {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-[min(16rem,calc(100vw-2rem))] p-0">
         <DropdownHeader
-          selectedCount={filters.sortBy !== "price-low" ? 1 : 0}
-          onReset={() => setSortBy("price-low")}
+          selectedCount={filters.sortBy !== "featured" ? 1 : 0}
+          onReset={() => setSortBy("featured")}
           label="selected"
         />
         <DropdownMenuSeparator />

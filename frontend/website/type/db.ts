@@ -34,6 +34,7 @@ export interface CategoryRow {
   description: string | null;
   image_path: string | null;
   sort: number;
+  is_default: boolean;
   created_at: string;
   updated_at: string;
 }

@@ -49,15 +49,17 @@ export default async function EditProductPage({
       .from("product_categories")
       .select("category_id")
       .eq("product_id", id),
-    supabase.from("categories").select("id, name").order("sort"),
+    supabase.from("categories").select("*").order("sort"),
   ]);
 
   if (!product) notFound();
   const row = product as ProductRow;
 
   const categories: CategoryOption[] = (
-    (allCategories ?? []) as Pick<CategoryRow, "id" | "name">[]
-  ).map((c) => ({ id: c.id, name: c.name }));
+    (allCategories ?? []) as Pick<CategoryRow, "id" | "name" | "is_default">[]
+  )
+    .filter((c) => !c.is_default)
+    .map((c) => ({ id: c.id, name: c.name }));
 
   const formData: ProductFormData = {
     id: row.id,

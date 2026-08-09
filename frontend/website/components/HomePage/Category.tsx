@@ -45,7 +45,11 @@ export default function Category({
           {categories.map((category, i) => (
             <Link
               key={category._id}
-              href={`/product?category=${category.categoryUrl.current}`}
+              href={
+                category.isDefault
+                  ? "/product"
+                  : `/product?category=${category.categoryUrl.current}`
+              }
               className={`group relative min-h-[240px] overflow-hidden rounded-3xl border border-border sm:min-h-[280px] ${spans[i % spans.length]}`}
             >
               {category.imageUrl ? (

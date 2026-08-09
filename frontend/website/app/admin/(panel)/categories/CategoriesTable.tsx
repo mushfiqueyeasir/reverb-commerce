@@ -15,6 +15,7 @@ export interface CategoryTableRow {
   name: string;
   slug: string;
   sort: number;
+  isDefault: boolean;
   imageUrl: string | null;
   productCount: number;
 }
@@ -33,8 +34,9 @@ export function CategoriesTable({
       items={data}
       sortable
       canReorder={canWrite}
+      canReorderItem={(item) => !item.isDefault}
       onReorder={reorderCategories}
-      hint="Drag the handle to reorder categories on the storefront."
+      hint="Drag categories to reorder them. The default category always remains first."
       searchPlaceholder="Search categories…"
       searchFilter={(item, q) =>
         item.name.toLowerCase().includes(q) ||
@@ -61,9 +63,12 @@ export function CategoriesTable({
       renderTitle={(item) => item.name}
       renderSubtitle={(item) => item.slug}
       renderMeta={(item) => (
-        <Badge variant="outline">
-          {item.productCount} product{item.productCount === 1 ? "" : "s"}
-        </Badge>
+        <>
+          {item.isDefault ? <Badge>Default</Badge> : null}
+          <Badge variant="outline">
+            {item.productCount} product{item.productCount === 1 ? "" : "s"}
+          </Badge>
+        </>
       )}
       renderTrailing={(item) => (
         <>
@@ -72,7 +77,7 @@ export function CategoriesTable({
               <Pencil className="size-4" />
             </Link>
           </Button>
-          {canWrite ? (
+          {canWrite && !item.isDefault ? (
             <ConfirmDialog
               trigger={
                 <Button

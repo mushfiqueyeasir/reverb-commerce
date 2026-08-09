@@ -39,6 +39,7 @@ export default function CategoryFilter({
     });
 
     return categories
+      .filter((category) => !category.isDefault)
       .map((category) => ({
         id: category.categoryUrl.current,
         name: category.categoryName,

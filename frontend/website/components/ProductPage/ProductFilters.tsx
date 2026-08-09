@@ -33,7 +33,7 @@ export default function ProductFilters({
     filters.priceRange.from !== null ||
     filters.priceRange.to !== null ||
     filters.searchQuery.trim().length > 0 ||
-    filters.sortBy !== "price-low";
+    filters.sortBy !== "featured";
 
   const handleResetAll = () => {
     resetFilters();

@@ -109,6 +109,7 @@ function RowContent<T extends AdminListItem>({
 
 function SortableRow<T extends AdminListItem>({
   item,
+  disabled,
   renderLeading,
   renderTitle,
   renderSubtitle,
@@ -116,6 +117,7 @@ function SortableRow<T extends AdminListItem>({
   renderTrailing,
 }: {
   item: T;
+  disabled?: boolean;
   renderLeading?: (item: T) => ReactNode;
   renderTitle: (item: T) => ReactNode;
   renderSubtitle?: (item: T) => ReactNode;
@@ -129,7 +131,7 @@ function SortableRow<T extends AdminListItem>({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: item.id });
+  } = useSortable({ id: item.id, disabled });
 
   return (
     <div
@@ -154,8 +156,9 @@ function SortableRow<T extends AdminListItem>({
         leading={
           <button
             type="button"
-            className="flex size-9 shrink-0 cursor-grab items-center justify-center rounded-xl text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground active:cursor-grabbing"
-            aria-label="Drag to reorder"
+            disabled={disabled}
+            className="flex size-9 shrink-0 cursor-grab items-center justify-center rounded-xl text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label={disabled ? "Position fixed" : "Drag to reorder"}
             {...attributes}
             {...listeners}
           >
@@ -210,6 +213,7 @@ export function AdminList<T extends AdminListItem>({
   items,
   sortable = false,
   canReorder = false,
+  canReorderItem,
   onReorder,
   selectable = false,
   selectedIds,
@@ -229,6 +233,7 @@ export function AdminList<T extends AdminListItem>({
   items: T[];
   sortable?: boolean;
   canReorder?: boolean;
+  canReorderItem?: (item: T) => boolean;
   onReorder?: (orderedIds: string[]) => Promise<{ error?: string } | void>;
   selectable?: boolean;
   selectedIds?: string[];
@@ -309,9 +314,21 @@ export function AdminList<T extends AdminListItem>({
     const oldIndex = rows.findIndex((i) => i.id === active.id);
     const newIndex = rows.findIndex((i) => i.id === over.id);
     if (oldIndex < 0 || newIndex < 0) return;
+    if (canReorderItem && !canReorderItem(rows[oldIndex])) return;
 
     const previous = rows;
     const next = arrayMove(rows, oldIndex, newIndex);
+    const movedFixedItem = canReorderItem
+      ? rows.some(
+          (item, index) =>
+            !canReorderItem(item) &&
+            next.findIndex((row) => row.id === item.id) !== index,
+        )
+      : false;
+    if (movedFixedItem) {
+      toast.error("This item has a fixed position.");
+      return;
+    }
     setRows(next);
 
     startTransition(async () => {
@@ -342,7 +359,12 @@ export function AdminList<T extends AdminListItem>({
       <div className="space-y-2">
         {filtered.map((item) =>
           enableDrag ? (
-            <SortableRow key={item.id} item={item} {...rowProps} />
+            <SortableRow
+              key={item.id}
+              item={item}
+              disabled={canReorderItem ? !canReorderItem(item) : false}
+              {...rowProps}
+            />
           ) : (
             <StaticRow
               key={item.id}

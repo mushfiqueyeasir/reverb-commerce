@@ -6,13 +6,12 @@ export function getMenuData(categories: Category[] = []): MenuType[] {
     {
       label: "Category",
       href: "/product",
-      items: [
-        { label: "All", href: "/product" },
-        ...categories.map((category) => ({
-          label: category.categoryName,
-          href: `/product?category=${encodeURIComponent(category.categoryUrl.current)}`,
-        })),
-      ],
+      items: categories.map((category) => ({
+        label: category.categoryName,
+        href: category.isDefault
+          ? "/product"
+          : `/product?category=${encodeURIComponent(category.categoryUrl.current)}`,
+      })),
     },
     {
       label: "About",

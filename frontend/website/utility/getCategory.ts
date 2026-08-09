@@ -9,6 +9,7 @@ function mapCategory(row: CategoryRow): Category {
     categoryName: row.name,
     categoryDescription: row.description,
     imageUrl: categoryImageUrl(row.image_path),
+    isDefault: row.is_default ?? false,
     categoryUrl: { current: row.slug },
   };
 }

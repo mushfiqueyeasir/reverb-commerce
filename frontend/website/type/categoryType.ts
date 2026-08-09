@@ -5,6 +5,7 @@ export interface Category {
   categoryName: string;
   categoryDescription?: string | null;
   imageUrl: string | null;
+  isDefault: boolean;
   categoryUrl: {
     current: string;
   };

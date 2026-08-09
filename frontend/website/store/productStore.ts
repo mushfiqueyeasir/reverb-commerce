@@ -9,7 +9,7 @@ interface ProductFilters {
   };
   categories: string[];
   searchQuery: string;
-  sortBy: "price-low" | "price-high" | "name-a-z" | "name-z-a";
+  sortBy: "featured" | "price-low" | "price-high" | "name-a-z" | "name-z-a";
 }
 
 interface ProductStore {
@@ -31,7 +31,7 @@ const initialFilters: ProductFilters = {
   },
   categories: [],
   searchQuery: "",
-  sortBy: "price-low",
+  sortBy: "featured",
 };
 
 export const useProductStore = create<ProductStore>((set, get) => ({

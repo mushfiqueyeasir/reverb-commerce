@@ -15,10 +15,19 @@ export default async function CategoriesPage() {
   const writable = canWrite(session.role);
   const supabase = await createSupabaseServerClient();
 
-  const [{ data: categories }, { data: links }] = await Promise.all([
+  const [categoriesResult, linksResult, productsResult] = await Promise.all([
     supabase.from("categories").select("*").order("sort", { ascending: true }),
     supabase.from("product_categories").select("category_id"),
+    supabase.from("products").select("id", { count: "exact", head: true }),
   ]);
+
+  if (categoriesResult.error) throw categoriesResult.error;
+  if (linksResult.error) throw linksResult.error;
+  if (productsResult.error) throw productsResult.error;
+
+  const categories = categoriesResult.data;
+  const links = linksResult.data;
+  const productCount = productsResult.count;
 
   const counts = new Map<string, number>();
   for (const link of (links ?? []) as { category_id: string }[]) {
@@ -31,8 +40,11 @@ export default async function CategoriesPage() {
       name: c.name,
       slug: c.slug,
       sort: c.sort,
+      isDefault: c.is_default ?? false,
       imageUrl: categoryImageUrl(c.image_path),
-      productCount: counts.get(c.id) ?? 0,
+      productCount: c.is_default
+        ? (productCount ?? 0)
+        : (counts.get(c.id) ?? 0),
     }),
   );
 

@@ -11,12 +11,14 @@ export default async function NewProductPage() {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("categories")
-    .select("id, name")
+    .select("*")
     .order("sort", { ascending: true });
 
   const categories: CategoryOption[] = (
-    (data ?? []) as Pick<CategoryRow, "id" | "name">[]
-  ).map((c) => ({ id: c.id, name: c.name }));
+    (data ?? []) as Pick<CategoryRow, "id" | "name" | "is_default">[]
+  )
+    .filter((c) => !c.is_default)
+    .map((c) => ({ id: c.id, name: c.name }));
 
   return (
     <div>

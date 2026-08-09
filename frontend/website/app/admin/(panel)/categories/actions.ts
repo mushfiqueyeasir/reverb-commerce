@@ -56,11 +56,14 @@ export async function saveCategory(
     updated_at: new Date().toISOString(),
   };
 
-  const { data, error } = await supabase
-    .from("categories")
-    .upsert(payload)
-    .select("id")
-    .single();
+  const { data, error } = input.id
+    ? await supabase
+        .from("categories")
+        .update(payload)
+        .eq("id", input.id)
+        .select("id")
+        .single()
+    : await supabase.from("categories").insert(payload).select("id").single();
 
   if (error) return { error: error.message };
 
@@ -90,9 +93,13 @@ export async function deleteCategory(
   const supabase = await createSupabaseServerClient();
   const { data: categoryRow } = await supabase
     .from("categories")
-    .select("name")
+    .select("name, is_default")
     .eq("id", id)
     .maybeSingle();
+
+  if (categoryRow?.is_default) {
+    return { error: "The default category cannot be deleted." };
+  }
 
   const { error } = await supabase.from("categories").delete().eq("id", id);
   if (error) return { error: error.message };
@@ -120,12 +127,23 @@ export async function reorderCategories(
   if (!orderedIds.length) return { error: "Invalid category order." };
 
   const supabase = await createSupabaseServerClient();
+  const { data: defaultCategory, error: defaultError } = await supabase
+    .from("categories")
+    .select("id")
+    .eq("is_default", true)
+    .single();
+
+  if (defaultError) return { error: defaultError.message };
+  if (orderedIds[0] !== defaultCategory.id) {
+    return { error: "The default category must remain first." };
+  }
+
   const now = new Date().toISOString();
 
-  for (let i = 0; i < orderedIds.length; i++) {
+  for (let i = 1; i < orderedIds.length; i++) {
     const { error } = await supabase
       .from("categories")
-      .update({ sort: (i + 1) * 10, updated_at: now })
+      .update({ sort: i * 10, updated_at: now })
       .eq("id", orderedIds[i]);
     if (error) return { error: error.message };
   }
