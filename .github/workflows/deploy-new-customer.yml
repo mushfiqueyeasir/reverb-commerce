@@ -56,7 +56,6 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: build-placeholder
           SITE_URL: ${{ inputs.site_url }}
           SECURITY_ENABLED: "true"
-          STORE_SETUP_MODE: "true"
         run: |
           npm ci
           npm test

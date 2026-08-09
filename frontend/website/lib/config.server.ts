@@ -11,7 +11,3 @@ export function getSupabaseAnonKey(): string {
 export function getSupabaseServiceRoleKey(): string {
   return process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ?? "";
 }
-
-export function isStoreSetupMode(): boolean {
-  return process.env.STORE_SETUP_MODE?.trim().toLowerCase() === "true";
-}

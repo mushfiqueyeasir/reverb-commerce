@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import type { Product } from "@/type/productType";
 import { appConfig } from "@/lib/config";
-import { isStoreSetupMode } from "@/lib/config.server";
 
 const FALLBACK_STORE_NAME = "Store";
 
@@ -82,7 +81,7 @@ export function buildProductMetadata(
       ...(imageUrl ? { images: [{ url: imageUrl, alt: product.title }] } : {}),
       card: "summary_large_image",
     },
-    robots: isStoreSetupMode() ? "noindex, nofollow" : "index, follow",
+    robots: "index, follow",
   };
 }
 

@@ -107,17 +107,6 @@ README.md
 token and service-role/server key are always blank. It is rejected before the
 registry commit if either privileged field contains a value.
 
-## Setup mode
-
-New deployments receive `STORE_SETUP_MODE=true`. While enabled:
-
-- Search engines are told not to index the site.
-- Checkout API requests return `503` and cannot create orders.
-- Administrators can replace sample content and integration settings.
-
-After onboarding, change `STORE_SETUP_MODE` to `false` in the customer's Vercel
-Production environment and redeploy.
-
 Before launch, replace placeholder legal text, products, reviews, branding,
 contact details, shipping, SMTP, payment, courier, analytics, and chat settings.
 

@@ -100,9 +100,6 @@ const lines = Object.entries(environment).map(
   ([name, value]) => `${name}=${JSON.stringify(value)}`,
 );
 lines.push('SECURITY_ENABLED="true"');
-lines.push(
-  `STORE_SETUP_MODE=${JSON.stringify(pulled.STORE_SETUP_MODE || "false")}`,
-);
 writeFileSync(absoluteOutputPath, `${lines.join("\n")}\n`);
 
 console.log(`Pulled ${manifest.id} environment to ${outputPath}.`);

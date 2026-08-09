@@ -2,7 +2,6 @@ import { Metadata } from "next";
 import type { SeoItemType } from "@/type/seoType";
 import { appConfig } from "@/lib/config";
 import { getSiteSettings } from "@/utility/getSettings";
-import { isStoreSetupMode } from "@/lib/config.server";
 
 export async function generateMetadata(
   seoContent: SeoItemType,
@@ -35,6 +34,6 @@ export async function generateMetadata(
       ...(imageUrl ? { images: [{ url: imageUrl }] } : {}),
       card: "summary_large_image",
     },
-    robots: isStoreSetupMode() ? "noindex, nofollow" : "index, follow",
+    robots: "index, follow",
   };
 }

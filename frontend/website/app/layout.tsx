@@ -8,7 +8,6 @@ import { generateMetadata as generateSeoMetadata } from "@/utility/generateMetad
 import { getBaseSeoItem } from "@/utility/getSeoSettings";
 import { getSiteSettings } from "@/utility/getSettings";
 import { StoreBrandProvider } from "@/components/providers/StoreBrandProvider";
-import { isStoreSetupMode } from "@/lib/config.server";
 
 // Settings / palette / SEO must always reflect the latest admin edits.
 export const dynamic = "force-dynamic";
@@ -46,10 +45,6 @@ export async function generateMetadata(): Promise<Metadata> {
       shortcut: settings.faviconUrl,
       apple: [{ url: settings.faviconUrl }],
     };
-  }
-
-  if (isStoreSetupMode()) {
-    metadata.robots = { index: false, follow: false };
   }
 
   return metadata;

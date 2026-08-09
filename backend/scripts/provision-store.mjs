@@ -707,7 +707,6 @@ async function setVercelEnvironment(config, projectId, projectUrl, keys) {
     ["SUPABASE_SERVICE_ROLE_KEY", keys.secretKey, "sensitive"],
     ["SITE_URL", config.siteUrl, "plain"],
     ["SECURITY_ENABLED", "true", "plain"],
-    ["STORE_SETUP_MODE", "true", "plain"],
   ].map(([key, value, type]) => ({ key, value, type, target: ["production"] }));
   const result = await vercelRequest(
     config,
@@ -944,7 +943,6 @@ function writeClientRegistry(config, state) {
     SUPABASE_ACCESS_TOKEN: "",
     SITE_URL: config.siteUrl,
     SECURITY_ENABLED: "true",
-    STORE_SETUP_MODE: "true",
   };
   const environmentBackup = {
     formatVersion: 2,
@@ -956,7 +954,7 @@ function writeClientRegistry(config, state) {
       [`frontend/website/.env.${config.clientId}`]: publicEnvironment,
     },
   };
-  const readme = `# ${config.displayName}\n\nProduction storefront: ${config.siteUrl}\n\nAdmin: ${config.siteUrl}/admin/login\n\nVercel project: \`${config.projectName}\`\n\nSupabase project: \`${state.projectRef}\`\n\nThe store is provisioned with sample content and \`STORE_SETUP_MODE=true\`. Replace placeholder content and disable setup mode before accepting orders.\n\nPrivileged values are intentionally blank in \`environment.backup.json\`. Pull local credentials through the approved environment tooling; never commit service-role keys, access tokens, or passwords.\n\n## Local development\n\n\`\`\`bash\ncd backend\nnpm run client:env:pull -- --client ${config.clientId}\n\ncd ../frontend/website\nnpm run dev:client -- ${config.clientId}\n\`\`\`\n`;
+  const readme = `# ${config.displayName}\n\nProduction storefront: ${config.siteUrl}\n\nAdmin: ${config.siteUrl}/admin/login\n\nVercel project: \`${config.projectName}\`\n\nSupabase project: \`${state.projectRef}\`\n\nThe store is provisioned with sample content. Replace placeholder content and integration settings before promoting the storefront.\n\nPrivileged values are intentionally blank in \`environment.backup.json\`. Pull local credentials through the approved environment tooling; never commit service-role keys, access tokens, or passwords.\n\n## Local development\n\n\`\`\`bash\ncd backend\nnpm run client:env:pull -- --client ${config.clientId}\n\ncd ../frontend/website\nnpm run dev:client -- ${config.clientId}\n\`\`\`\n`;
 
   writeFileSync(
     join(directory, "tenant.json"),

@@ -17,7 +17,6 @@ import { getBkashSettings, isBkashReady } from "@/lib/payments/bkashSettings";
 import { paymentMethodLabel } from "@/lib/payments/paymentLabels";
 import type { OrderFormData } from "@/type/orderType";
 import type { ProductImageRow } from "@/type/db";
-import { isStoreSetupMode } from "@/lib/config.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -56,15 +55,6 @@ async function failUnpaidOrder(
 }
 
 export async function POST(request: NextRequest) {
-  if (isStoreSetupMode()) {
-    return NextResponse.json(
-      {
-        error: "Checkout is unavailable while this store is being configured.",
-      },
-      { status: 503 },
-    );
-  }
-
   try {
     const body: OrderFormData = await request.json();
 
