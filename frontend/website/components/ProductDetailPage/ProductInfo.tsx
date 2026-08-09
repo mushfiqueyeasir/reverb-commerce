@@ -17,6 +17,7 @@ import type { TransformedProduct, ProductStock } from "@/type/productType";
 import { useCartStore } from "@/store/cartStore";
 import { useWishlistStore } from "@/store/wishlistStore";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
+import { useStoreName } from "@/components/providers/StoreBrandProvider";
 import { trackAddToCart } from "@/utility/analytics/facebookPixelEvents";
 import { cn } from "@/lib/utils";
 import { getProductSizeOptions } from "@/lib/products/variants";
@@ -34,6 +35,7 @@ interface ProductInfoProps {
 }
 
 export default function ProductInfo({ product, stock }: ProductInfoProps) {
+  const storeName = useStoreName();
   const isSized = product.sizingMode === "required";
   const sizeOptions = isSized
     ? getProductSizeOptions(product.sizeChart ?? [], stock ?? [])
@@ -128,7 +130,7 @@ export default function ProductInfo({ product, stock }: ProductInfoProps) {
   return (
     <div className="space-y-6">
       <p className="text-xs font-medium uppercase tracking-[0.24em] text-primary">
-        VE Gear
+        {storeName}
       </p>
       <h1 className="font-display text-3xl leading-tight tracking-tight text-foreground lg:text-4xl">
         {product.title}

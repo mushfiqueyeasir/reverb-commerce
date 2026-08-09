@@ -112,7 +112,7 @@ export function EditUserDialog({
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="user@ve-gear.com"
+              placeholder="user@store.example"
               className={adminInputClass}
             />
           </FormField>

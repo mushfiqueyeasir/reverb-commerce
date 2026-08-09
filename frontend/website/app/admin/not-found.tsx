@@ -8,7 +8,6 @@ export default function AdminNotFound() {
       primaryLabel="Dashboard"
       secondaryHref="/admin/login"
       secondaryLabel="Sign in"
-      footerNote="VE Gear Admin · Page not found"
     />
   );
 }

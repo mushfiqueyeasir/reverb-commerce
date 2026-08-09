@@ -5,8 +5,10 @@ import type { TransformedReview } from "@/type/reviewType";
 
 export default function ReviewPageScreen({
   reviews,
+  storeName,
 }: {
   reviews: TransformedReview[];
+  storeName: string;
 }) {
   const ratings = reviews
     .map((review) => Number(review.rating) || 0)
@@ -31,16 +33,16 @@ export default function ReviewPageScreen({
           <div>
             <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.32em] text-primary sm:text-[11px]">
               <span className="h-px w-10 bg-primary" />
-              Voices from the road
+              Customer stories
             </div>
             <h1 className="mt-5 max-w-5xl font-display text-[clamp(3.4rem,9vw,8.5rem)] font-bold leading-[0.82] tracking-[-0.065em] text-foreground">
-              Worn hard.
+              Used daily.
               <br />
               <span className="italic text-primary">Rated honestly.</span>
             </h1>
             <p className="mt-7 max-w-xl text-base leading-7 text-muted-foreground md:text-lg md:leading-8">
-              Real riders, real miles, and the pieces they keep reaching for. No
-              studio scripts. Just the VE Gear community in their own words.
+              Real experiences and the products customers keep reaching for. No
+              scripts. Just the {storeName} community in their own words.
             </p>
           </div>
 
@@ -86,8 +88,8 @@ export default function ReviewPageScreen({
             </h2>
           </div>
           <p className="max-w-sm text-sm leading-6 text-muted-foreground sm:text-right">
-            Fit checks, first rides, and honest reactions from people who put
-            the gear to work.
+            Product notes and honest reactions from people who put each item to
+            use.
           </p>
         </div>
 
@@ -105,7 +107,7 @@ export default function ReviewPageScreen({
               The first field note is coming soon.
             </p>
             <p className="mt-3 text-muted-foreground">
-              Check back for stories from the VE Gear community.
+              Check back for stories from the {storeName} community.
             </p>
           </div>
         )}

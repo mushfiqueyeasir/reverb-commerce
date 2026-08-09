@@ -5,7 +5,7 @@ interface CmsPageScreenProps {
 }
 
 export default function CmsPageScreen({
-  eyebrow = "VE Gear",
+  eyebrow = "Store",
   title,
   bodyHtml,
 }: CmsPageScreenProps) {

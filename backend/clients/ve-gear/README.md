@@ -1,8 +1,8 @@
-# VE Gear Client Backup
+# VE Gear Client Environment Inventory
 
-`environment.backup.json` is a plaintext repository backup of the local VE Gear
-environment files. The storefront, provisioning scripts, and Vercel deployment
-do not load it at runtime.
+`environment.backup.json` records environment variable names and non-secret
+values. Management tokens, service-role keys, passwords, private keys, and
+other secrets remain blank. The application does not load this file at runtime.
 
 Regenerate it after changing either local environment file:
 
@@ -11,10 +11,10 @@ cd backend
 npm run client:env:backup -- --client ve-gear
 ```
 
-The generated JSON preserves every variable from:
+The generated JSON inventories variables from:
 
 - `frontend/website/.env`
 - `frontend/website/.env.ve-gear`
 
-Continue configuring production values in Vercel. This file exists only for
-repository-based recovery on another development machine.
+Continue configuring production values in Vercel. Use `client:env:pull` with a
+Supabase Management API token to recreate a complete ignored local environment.

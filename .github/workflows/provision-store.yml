@@ -1,0 +1,262 @@
+name: Provision customer store
+
+on:
+  workflow_dispatch:
+    inputs:
+      client_id:
+        description: "Kebab-case customer ID"
+        required: true
+        type: string
+      store_name:
+        description: "Public store name"
+        required: true
+        type: string
+      site_url:
+        description: "Canonical HTTPS URL without a path"
+        required: true
+        type: string
+      alias_url:
+        description: "Optional HTTPS domain redirected to the canonical URL"
+        required: false
+        type: string
+      contact_email:
+        description: "Initial public contact email"
+        required: false
+        default: "support@example.invalid"
+        type: string
+      contact_phone:
+        description: "Initial public contact phone"
+        required: false
+        type: string
+      store_address:
+        description: "Initial public store address"
+        required: false
+        type: string
+      currency:
+        description: "Initial ISO currency code"
+        required: true
+        default: "BDT"
+        type: string
+      currency_symbol:
+        description: "Initial currency symbol"
+        required: true
+        default: "৳"
+        type: string
+      shipping_flat:
+        description: "Initial flat shipping charge"
+        required: true
+        default: "80"
+        type: string
+      free_shipping_threshold:
+        description: "Initial free-shipping threshold"
+        required: true
+        default: "1000"
+        type: string
+      supabase_region:
+        description: "Supabase region code"
+        required: true
+        default: "ap-southeast-1"
+        type: string
+      release_sha:
+        description: "Full commit SHA to deploy; blank uses the triggering commit"
+        required: false
+        type: string
+      mode:
+        description: "Provision a new store or resume a partial run"
+        required: true
+        default: "provision"
+        type: choice
+        options:
+          - provision
+          - resume
+      confirmation:
+        description: "Enter PROVISION followed by the client ID"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    name: Validate source and inputs
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout release
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_sha || github.sha }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/website/package-lock.json
+
+      - name: Validate confirmation
+        env:
+          CLIENT_ID: ${{ inputs.client_id }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          if [ "$CONFIRMATION" != "PROVISION $CLIENT_ID" ]; then
+            echo "Confirmation must equal: PROVISION $CLIENT_ID" >&2
+            exit 1
+          fi
+
+      - name: Validate backend
+        working-directory: backend
+        run: |
+          npm ci
+          npm test
+          npm run client:validate
+
+      - name: Validate storefront
+        working-directory: frontend/website
+        env:
+          SUPABASE_URL: https://build-placeholder.supabase.co
+          SUPABASE_ANON_KEY: build-placeholder
+          SUPABASE_SERVICE_ROLE_KEY: build-placeholder
+          SITE_URL: ${{ inputs.site_url }}
+          SECURITY_ENABLED: "true"
+          STORE_SETUP_MODE: "true"
+        run: |
+          npm ci
+          npm test
+          npm run lint
+          npm run build
+
+  provision:
+    name: Provision ${{ inputs.client_id }}
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: store-provisioning
+    permissions:
+      contents: write
+    concurrency:
+      group: provision-store-${{ inputs.client_id }}
+      cancel-in-progress: false
+    outputs:
+      production_url: ${{ steps.provision.outputs.production_url }}
+      supabase_project_ref: ${{ steps.provision.outputs.supabase_project_ref }}
+      vercel_project_id: ${{ steps.provision.outputs.vercel_project_id }}
+
+    steps:
+      - name: Checkout release
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Verify release is available
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha || github.sha }}
+        run: |
+          git cat-file -e "$RELEASE_SHA^{commit}"
+          git fetch origin main
+          git merge-base --is-ancestor "$RELEASE_SHA" origin/main
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install provisioning dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Create and verify store
+        id: provision
+        working-directory: backend
+        env:
+          CLIENT_ID: ${{ inputs.client_id }}
+          STORE_NAME: ${{ inputs.store_name }}
+          SITE_URL: ${{ inputs.site_url }}
+          ALIAS_URL: ${{ inputs.alias_url }}
+          CONTACT_EMAIL: ${{ inputs.contact_email }}
+          CONTACT_PHONE: ${{ inputs.contact_phone }}
+          STORE_ADDRESS: ${{ inputs.store_address }}
+          CURRENCY: ${{ inputs.currency }}
+          CURRENCY_SYMBOL: ${{ inputs.currency_symbol }}
+          SHIPPING_FLAT: ${{ inputs.shipping_flat }}
+          FREE_SHIPPING_THRESHOLD: ${{ inputs.free_shipping_threshold }}
+          PROVISION_MODE: ${{ inputs.mode }}
+          PROVISION_CONFIRMATION: ${{ inputs.confirmation }}
+          RELEASE_SHA: ${{ inputs.release_sha || github.sha }}
+          RELEASE_REF: main
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_ORG_SLUG: ${{ vars.SUPABASE_ORG_SLUG }}
+          SUPABASE_REGION: ${{ inputs.supabase_region }}
+          SUPABASE_INSTANCE_SIZE: ${{ vars.SUPABASE_INSTANCE_SIZE }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
+          VERCEL_GIT_REPOSITORY: ${{ vars.VERCEL_GIT_REPOSITORY || 'mushfiqueyeasir/reverb-commerce' }}
+          BOOTSTRAP_ADMIN_EMAIL: ${{ vars.BOOTSTRAP_ADMIN_EMAIL || 'mushfiqueyeasir@gmail.com' }}
+          BOOTSTRAP_ADMIN_PASSWORD: ${{ secrets.BOOTSTRAP_ADMIN_PASSWORD }}
+        run: npm run store:provision
+
+      - name: Validate generated registry
+        working-directory: backend
+        env:
+          CLIENT_ID: ${{ inputs.client_id }}
+        run: |
+          npm run client:validate
+          node -e '
+            const fs = require("node:fs");
+            const file = `clients/${process.env.CLIENT_ID}/environment.backup.json`;
+            const backup = JSON.parse(fs.readFileSync(file, "utf8"));
+            for (const source of Object.values(backup.sources)) {
+              if (source.SUPABASE_ACCESS_TOKEN !== "" || source.SUPABASE_SERVICE_ROLE_KEY !== "") {
+                throw new Error("Privileged backup fields must remain blank");
+              }
+            }
+          '
+
+      - name: Inspect registry diff
+        env:
+          CLIENT_ID: ${{ inputs.client_id }}
+        run: |
+          git diff --check -- "backend/clients/$CLIENT_ID"
+          if rg -n 'sbp_|sb_secret_|SUPABASE_SERVICE_ROLE_KEY"\s*:\s*"[^\"]+' "backend/clients/$CLIENT_ID"; then
+            echo "A privileged credential was detected in the generated registry." >&2
+            exit 1
+          fi
+
+      - name: Commit client registry to main
+        env:
+          CLIENT_ID: ${{ inputs.client_id }}
+          STORE_NAME: ${{ inputs.store_name }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git rebase origin/main
+          git add -- "backend/clients/$CLIENT_ID"
+          git diff --cached --check
+          git commit -m "Register client $CLIENT_ID [skip ci]"
+
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            if [ "$attempt" = "3" ]; then
+              echo "Unable to push the client registry after three attempts." >&2
+              exit 1
+            fi
+            git fetch origin main
+            git rebase origin/main
+          done
+
+      - name: Verify registry commit
+        env:
+          CLIENT_ID: ${{ inputs.client_id }}
+        run: |
+          git fetch origin main
+          git show "origin/main:backend/clients/$CLIENT_ID/tenant.json" >/dev/null
+          echo "Registered backend/clients/$CLIENT_ID on main." >> "$GITHUB_STEP_SUMMARY"

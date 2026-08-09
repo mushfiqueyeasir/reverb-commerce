@@ -48,10 +48,10 @@ function parseStats(config: Record<string, unknown>): AboutStatItem[] {
   const raw = config.items;
   if (!Array.isArray(raw) || !raw.length) {
     return [
-      { label: "Fabric", value: "240 GSM" },
-      { label: "Cotton", value: "100%" },
-      { label: "Fit", value: "Oversized" },
-      { label: "Focus", value: "Riders" },
+      { label: "Focus", value: "Quality" },
+      { label: "Design", value: "Considered" },
+      { label: "Service", value: "Reliable" },
+      { label: "Community", value: "Growing" },
     ];
   }
   return raw

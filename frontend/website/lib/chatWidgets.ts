@@ -7,7 +7,7 @@ export interface ChatWidgets {
   whatsappNumber: string;
   /**
    * Facebook Page ID or username for m.me (Meta retired the on-site Chat Plugin).
-   * Examples: 378400148906020 or vegearofficial
+   * Examples: 378400148906020 or storeofficial
    */
   messengerPageId: string;
 }

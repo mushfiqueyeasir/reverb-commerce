@@ -34,7 +34,7 @@ export default function ReviewCard({
   className,
 }: ReviewCardProps) {
   const rating = Math.min(5, Math.max(0, Math.round(review.rating ?? 0)));
-  const name = review.customerName?.trim() || "VE Gear customer";
+  const name = review.customerName?.trim() || "Store customer";
   const body = review.body?.trim();
   const hasImage = Boolean(review.image);
   const noteNumber = String(index + 1).padStart(2, "0");

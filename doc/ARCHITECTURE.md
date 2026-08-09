@@ -184,7 +184,7 @@ with linked orders are protected from cascading deletion.
 | `.client-secrets/<client-id>.env` | Supabase keys used for provisioning | No |
 | `frontend/website/.env.<client-id>` | Local client runtime environment | No |
 | Vercel environment | Production Supabase keys and site configuration | No |
-| GitHub Actions secret | Cleanup service-role keys by client ID | No |
+| GitHub Actions secret | Supabase Management API token | No |
 | Private database settings | SMTP, payment, courier credentials, active provider, webhook secrets | No |
 | Browser runtime | UI code and temporary signed upload URLs | No permanent keys |
 
@@ -275,10 +275,10 @@ flowchart TB
     dispatch[Manual Workflow Dispatch]
     discover[Read Active Client Folders]
     matrix[Dynamic Client Matrix]
-    secret[CLIENT_SUPABASE_CREDENTIALS]
+    secret[SUPABASE_ACCESS_TOKEN]
 
     subgraph workers[Up to Five Concurrent Client Jobs]
-        validate[Validate Tenant, URL, Project Ref, and JWT]
+        validate[Validate Tenant and Resolve Project Server Key]
         references[Collect All Referenced Paths with Pagination]
         objects[List All Storage Objects]
         protect[Exclude Referenced, Protected, and Recent Objects]
@@ -295,7 +295,7 @@ Cleanup safety rules:
 - Only clients with `status: active` are discovered.
 - At most five clients run concurrently.
 - One failed client does not stop other clients.
-- Credentials are validated against the client's Supabase project reference.
+- The Management API token resolves each registered project's server key at runtime.
 - Reference queries paginate to the exact row count.
 - Required query, storage listing, and deletion errors fail the client job.
 - Files newer than 24 hours are protected from deletion.

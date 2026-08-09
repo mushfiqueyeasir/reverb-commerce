@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import type { Product } from "@/type/productType";
 import { appConfig } from "@/lib/config";
-import { SeoContent } from "@/SeoContent/SeoContent";
+import { isStoreSetupMode } from "@/lib/config.server";
 
-const FALLBACK_IMAGE = "/images/seoThumbnail/home.png";
-const SITE_NAME = "VE Gear";
+const FALLBACK_STORE_NAME = "Store";
 
 export function htmlToPlainText(
   description: { html?: string } | null | undefined,
@@ -33,7 +32,7 @@ function truncate(text: string, max = 160): string {
 
 function absoluteUrl(pathOrUrl: string, baseUrl: string): string {
   if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
-  return new URL(pathOrUrl || FALLBACK_IMAGE, baseUrl).href;
+  return new URL(pathOrUrl, baseUrl).href;
 }
 
 export function getProductCanonicalUrl(slug: string): string {
@@ -41,30 +40,31 @@ export function getProductCanonicalUrl(slug: string): string {
   return `${baseUrl.replace(/\/$/, "")}/product/${slug}`;
 }
 
-export function buildProductMetadata(product: Product): Metadata {
+export function buildProductMetadata(
+  product: Product,
+  storeName = FALLBACK_STORE_NAME,
+): Metadata {
   const baseUrl = appConfig.siteUrl || "";
   const slug = product.slug.current;
   const url = getProductCanonicalUrl(slug);
-  const title = `${product.title} | ${SITE_NAME}`;
+  const title = `${product.title} | ${storeName}`;
   const plain = htmlToPlainText(product.description);
   const description =
-    truncate(plain) ||
-    `Shop ${product.title} at ${SITE_NAME}. Premium gear and essentials.`;
-  const imageUrl = absoluteUrl(product.image || FALLBACK_IMAGE, baseUrl);
+    truncate(plain) || `Shop ${product.title} at ${storeName}.`;
+  const imageUrl = product.image ? absoluteUrl(product.image, baseUrl) : null;
   const categoryNames = product.categories.map((c) => c.categoryName);
-  const developer = SeoContent.developer;
 
   return {
     title,
     description,
     keywords: [
       product.title,
-      SITE_NAME,
+      storeName,
       ...categoryNames,
       "Shop",
       "Buy Online",
     ],
-    metadataBase: new URL(baseUrl || "https://www.vegear.com"),
+    metadataBase: new URL(baseUrl),
     alternates: {
       canonical: url,
     },
@@ -72,43 +72,38 @@ export function buildProductMetadata(product: Product): Metadata {
       title,
       description,
       url,
-      siteName: SITE_NAME,
+      siteName: storeName,
       type: "website",
-      images: [
-        {
-          url: imageUrl,
-          alt: product.title,
-        },
-      ],
+      ...(imageUrl ? { images: [{ url: imageUrl, alt: product.title }] } : {}),
     },
     twitter: {
       title,
       description,
-      images: [{ url: imageUrl, alt: product.title }],
+      ...(imageUrl ? { images: [{ url: imageUrl, alt: product.title }] } : {}),
       card: "summary_large_image",
     },
-    robots: "index, follow",
-    creator: developer.name,
-    publisher: developer.name,
-    authors: [{ name: developer.name, url: developer.website }],
+    robots: isStoreSetupMode() ? "noindex, nofollow" : "index, follow",
   };
 }
 
 export function buildProductJsonLd(
   product: Product,
   currency = "BDT",
+  storeName = FALLBACK_STORE_NAME,
 ): Record<string, unknown> {
   const url = getProductCanonicalUrl(product.slug.current);
   const baseUrl = appConfig.siteUrl || "";
-  const imageUrl = absoluteUrl(product.image || FALLBACK_IMAGE, baseUrl);
+  const imageUrl = product.image ? absoluteUrl(product.image, baseUrl) : null;
   const gallery = [
     imageUrl,
     ...product.images.map((img) => absoluteUrl(img, baseUrl)),
   ];
-  const uniqueImages = Array.from(new Set(gallery.filter(Boolean)));
+  const uniqueImages = Array.from(
+    new Set(gallery.filter((image): image is string => Boolean(image))),
+  );
   const description =
     htmlToPlainText(product.description) ||
-    `Shop ${product.title} at ${SITE_NAME}.`;
+    `Shop ${product.title} at ${storeName}.`;
   const inStock = product.stock.some((item) => item.quantity > 0);
 
   return {
@@ -116,12 +111,12 @@ export function buildProductJsonLd(
     "@type": "Product",
     name: product.title,
     description,
-    image: uniqueImages,
+    ...(uniqueImages.length ? { image: uniqueImages } : {}),
     sku: product._id,
     url,
     brand: {
       "@type": "Brand",
-      name: SITE_NAME,
+      name: storeName,
     },
     ...(product.categories[0]
       ? { category: product.categories[0].categoryName }
@@ -137,7 +132,7 @@ export function buildProductJsonLd(
       itemCondition: "https://schema.org/NewCondition",
       seller: {
         "@type": "Organization",
-        name: SITE_NAME,
+        name: storeName,
       },
     },
   };

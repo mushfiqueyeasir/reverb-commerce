@@ -1,6 +1,7 @@
 import AdminShell from "@/components/admin/AdminShell";
 import { requireAdminSession, canWrite, isAdmin } from "@/lib/admin/auth";
 import { getSupabaseUrl } from "@/lib/config.server";
+import { getSiteSettings } from "@/utility/getSettings";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -13,7 +14,10 @@ export default async function PanelLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await requireAdminSession();
+  const [session, settings] = await Promise.all([
+    requireAdminSession(),
+    getSiteSettings(),
+  ]);
 
   return (
     <AdminShell
@@ -26,6 +30,9 @@ export default async function PanelLayout({
         canWrite: canWrite(session.role),
         isAdmin: isAdmin(session.role),
       }}
+      storeName={settings.store_name || "Store"}
+      logoUrl={settings.logoUrl}
+      faviconUrl={settings.faviconUrl}
     >
       {children}
     </AdminShell>

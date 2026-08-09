@@ -292,7 +292,7 @@ export async function GET(request: NextRequest) {
           promoCode: order.totals?.promo_code ?? null,
           total: Number(order.totals?.total) || 0,
           currencyLabel: settings.currency || "BDT",
-          storeName: settings.store_name || "VE Gear",
+          storeName: settings.store_name || "Store",
           logoUrl: settings.logoUrl,
           palette: settings.palette,
         });

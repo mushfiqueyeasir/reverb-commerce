@@ -21,7 +21,7 @@ type FooterLink = { label: string; href: string };
 
 export default function Footer({ settings }: FooterProps) {
   const pathname = usePathname();
-  const storeName = settings.store_name || "VE Gear";
+  const storeName = settings.store_name || "Store";
   const year = new Date().getFullYear();
   const socials = settings.socials ?? {};
 
@@ -103,8 +103,7 @@ export default function Footer({ settings }: FooterProps) {
               )}
             </Link>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              Heavyweight streetwear cut for riders. Built to move, made to last
-              past the ride home.
+              Browse products, discover new arrivals, and shop securely online.
             </p>
 
             <div className="mt-6 space-y-2 text-sm text-muted-foreground">
@@ -148,21 +147,8 @@ export default function Footer({ settings }: FooterProps) {
           <Col title="Legal" items={legalLinks} pathname={pathname} />
         </div>
 
-        <div className="mt-14 flex flex-col items-start justify-between gap-3 border-t border-border pt-8 font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground md:flex-row md:items-center">
-          <div>
-            © {year} {storeName} — Ride with style
-          </div>
-          <div>
-            Built by{" "}
-            <a
-              href="https://www.reverbsolution.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-foreground/80 transition hover:text-primary"
-            >
-              Reverb Solution
-            </a>
-          </div>
+        <div className="mt-14 border-t border-border pt-8 font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+          © {year} {storeName}
         </div>
       </div>
     </footer>

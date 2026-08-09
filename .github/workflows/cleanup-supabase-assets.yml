@@ -50,6 +50,7 @@ jobs:
     needs: discover
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    environment: store-provisioning
     strategy:
       fail-fast: false
       max-parallel: 5
@@ -79,7 +80,7 @@ jobs:
       - name: Run asset cleanup
         env:
           CLIENT_ID: ${{ matrix.client }}
-          CLIENT_SUPABASE_CREDENTIALS: ${{ secrets.CLIENT_SUPABASE_CREDENTIALS }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             npm run cleanup:assets:dry -- --client "$CLIENT_ID"

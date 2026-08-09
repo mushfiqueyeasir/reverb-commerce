@@ -73,7 +73,7 @@ function mapRow(row: SmtpRow): SmtpSettings {
     username: row.username?.trim() || null,
     hasPassword: Boolean(password),
     password,
-    fromName: row.from_name?.trim() || "VE Gear",
+    fromName: row.from_name?.trim() || "Store",
     fromEmail: row.from_email?.trim() || row.username?.trim() || null,
     notifyEmails: Array.isArray(row.notify_emails)
       ? row.notify_emails.map((e) => String(e).trim()).filter(Boolean)
@@ -228,7 +228,7 @@ export async function saveSmtpSettingsRow(
     secure: input.secure,
     username: input.username?.trim() || null,
     password,
-    from_name: input.fromName.trim() || "VE Gear",
+    from_name: input.fromName.trim() || "Store",
     from_email: input.fromEmail?.trim() || input.username?.trim() || null,
     notify_emails: input.notifyEmails.map((e) => e.trim()).filter(Boolean),
     updated_at: new Date().toISOString(),

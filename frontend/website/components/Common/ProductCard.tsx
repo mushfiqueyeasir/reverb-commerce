@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import ProductModal from "./ProductModal";
 import ImageLoader from "./ImageLoader";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
+import { useStoreName } from "@/components/providers/StoreBrandProvider";
 import { useWishlistStore } from "@/store/wishlistStore";
 import { cn } from "@/lib/utils";
 import type { ProductSizeChartRow, ProductStock } from "@/type/productType";
@@ -44,6 +45,7 @@ export default function ProductCard({
 }: ProductCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { format } = useCurrency();
+  const storeName = useStoreName();
   const isFavorite = useWishlistStore((s) => s.isFavorite(id));
   const toggleItem = useWishlistStore((s) => s.toggleItem);
 
@@ -150,7 +152,7 @@ export default function ProductCard({
               {title}
             </h3>
             <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-              VE Gear
+              {storeName}
             </p>
           </div>
           <div className="shrink-0 text-right">

@@ -27,40 +27,45 @@ export default function RichTextSection({
   if (!title && !subtitle && !body) return null;
 
   const isFabric = config?.variant === "fabric";
+  const imagePath =
+    typeof config?.image_path === "string" ? config.image_path : null;
   const fabricUrl =
-    brandingImageUrl("lovable/fabric-texture.jpg") ??
-    "/images/lovable/fabric-texture.jpg";
+    brandingImageUrl(imagePath) ?? "/images/lovable/fabric-texture.jpg";
 
   if (isFabric) {
     return (
       <section className="relative overflow-hidden py-24 md:py-40">
         <div className="mx-auto max-w-[1600px] px-6 md:px-10">
-          <div className="grid gap-10 lg:grid-cols-2 lg:gap-20">
-            <div className="relative">
-              <div className="relative aspect-[5/6] overflow-hidden rounded-3xl border border-border">
-                <Image
-                  src={fabricUrl}
-                  alt="240 GSM cotton fabric"
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
-                <div className="glass absolute bottom-4 left-4 right-4 flex items-start justify-between gap-3 rounded-2xl px-4 py-3 sm:bottom-6 sm:left-6 sm:right-6 sm:px-5 sm:py-4">
-                  <div className="min-w-0">
-                    <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-                      Fabric
+          <div
+            className={`grid gap-10 lg:gap-20 ${fabricUrl ? "lg:grid-cols-2" : ""}`}
+          >
+            {fabricUrl ? (
+              <div className="relative">
+                <div className="relative aspect-[5/6] overflow-hidden rounded-3xl border border-border">
+                  <Image
+                    src={fabricUrl}
+                    alt="Product detail"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
+                  <div className="glass absolute bottom-4 left-4 right-4 flex items-start justify-between gap-3 rounded-2xl px-4 py-3 sm:bottom-6 sm:left-6 sm:right-6 sm:px-5 sm:py-4">
+                    <div className="min-w-0">
+                      <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                        Fabric
+                      </div>
+                      <div className="mt-1 truncate font-display text-lg font-semibold sm:text-xl">
+                        240 GSM Cotton
+                      </div>
                     </div>
-                    <div className="mt-1 truncate font-display text-lg font-semibold sm:text-xl">
-                      240 GSM Cotton
+                    <div className="shrink-0 font-mono text-xs text-primary">
+                      // LAB 04
                     </div>
-                  </div>
-                  <div className="shrink-0 font-mono text-xs text-primary">
-                    // LAB 04
                   </div>
                 </div>
               </div>
-            </div>
+            ) : null}
 
             <div className="flex flex-col justify-center">
               <div className="mb-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.3em] text-muted-foreground">

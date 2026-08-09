@@ -3,6 +3,7 @@
 import { useCartStore } from "@/store/cartStore";
 import ImageLoader from "@/components/Common/ImageLoader";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
+import { useStoreName } from "@/components/providers/StoreBrandProvider";
 import { Plus, Minus, Trash2 } from "lucide-react";
 
 interface CartItemProps {
@@ -20,6 +21,7 @@ interface CartItemProps {
 export default function CartItem({ item }: CartItemProps) {
   const { updateQuantity, removeItem } = useCartStore();
   const { format } = useCurrency();
+  const storeName = useStoreName();
   const itemTotal = item.currentPrice * item.quantity;
 
   return (
@@ -36,7 +38,7 @@ export default function CartItem({ item }: CartItemProps) {
         </div>
         <div className="flex min-w-0 flex-1 flex-col justify-center">
           <p className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">
-            VE Gear
+            {storeName}
           </p>
           <h3 className="mb-1 truncate text-sm font-medium md:text-base">
             {item.title}

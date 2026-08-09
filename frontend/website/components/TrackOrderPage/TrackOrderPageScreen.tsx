@@ -99,7 +99,7 @@ export default function TrackOrderPageScreen() {
         </h1>
         <p className="mt-4 max-w-xl text-base text-muted-foreground">
           Enter the order number from your confirmation email or checkout
-          receipt (for example VE-1001).
+          receipt (for example ORD-1001).
         </p>
       </div>
 
@@ -112,7 +112,7 @@ export default function TrackOrderPageScreen() {
             id="orderNumber"
             name="orderNumber"
             label="Order number"
-            placeholder="VE-1001"
+            placeholder="ORD-1001"
             value={orderNumber}
             onChange={(e) => setOrderNumber(e.target.value.toUpperCase())}
             autoComplete="off"

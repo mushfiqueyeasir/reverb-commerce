@@ -36,7 +36,7 @@ function padPhotosForMarquee(
 
 function QuoteCard({ review }: { review: TransformedReview }) {
   const rating = Math.min(5, Math.max(0, Math.round(review.rating ?? 5)));
-  const name = review.customerName?.trim() || "VE Crew";
+  const name = review.customerName?.trim() || "Store customer";
   const body = review.body?.trim() || "Premium stitch, zero compromises.";
 
   return (
@@ -104,7 +104,7 @@ export default function ReviewSlider({
               ) : (
                 <>
                   Worn by the{" "}
-                  <span className="italic text-primary">riders</span>.
+                  <span className="italic text-primary">customers</span>.
                 </>
               )}
             </h2>

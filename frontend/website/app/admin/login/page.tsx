@@ -1,13 +1,13 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, ArrowUpRight, Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import StoreInput from "@/components/Common/Input";
 import { signInAdmin } from "@/app/admin/auth-audit-actions";
+import { useStoreName } from "@/components/providers/StoreBrandProvider";
 
 const PARTICLES = Array.from({ length: 14 });
 
@@ -48,7 +48,7 @@ function LoginForm() {
         required
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        placeholder="you@vegear.com"
+        placeholder="you@store.example"
       />
       <StoreInput
         id="password"
@@ -96,6 +96,8 @@ function FormSkeleton() {
 }
 
 export default function AdminLoginPage() {
+  const storeName = useStoreName();
+
   return (
     <div className="relative isolate flex min-h-[100dvh] w-full overflow-hidden bg-background">
       {/* Atmosphere — matches storefront hero */}
@@ -142,14 +144,9 @@ export default function AdminLoginPage() {
               className="animate-hero-in inline-flex items-center"
               style={{ animationDelay: "0.05s" }}
             >
-              <Image
-                src="/images/logo/logo-white.png"
-                alt="VE Gear"
-                width={400}
-                height={160}
-                priority
-                className="h-8 w-auto transition-[filter] [[data-theme=light]_&]:brightness-0 md:h-9"
-              />
+              <span className="font-display text-2xl font-bold tracking-tight text-foreground">
+                {storeName} Admin
+              </span>
             </Link>
 
             <div
@@ -173,8 +170,8 @@ export default function AdminLoginPage() {
               className="mt-5 max-w-md animate-hero-in text-sm leading-relaxed text-muted-foreground md:mt-6 md:text-base"
               style={{ animationDelay: "0.3s" }}
             >
-              Sign in to manage products, orders, and the VE Gear storefront —
-              same dark room as the riders see, just with the keys.
+              Sign in to manage products, orders, and the {storeName} storefront
+              — the same storefront, with the tools to manage it.
             </p>
 
             <Link

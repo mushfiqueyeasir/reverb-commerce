@@ -3,21 +3,21 @@
  * Kept as TipTap-friendly HTML (h2/h3, p, ul, a) for CMS storage.
  */
 
-export const ABOUT_PAGE_TITLE = "About VE Gear";
+export const ABOUT_PAGE_TITLE = "About Our Store";
 
 export const ABOUT_INTRO_HTML = `
-<p>VE Gear was built for riders who refuse to choose between performance and style. We make heavyweight streetwear that holds up on the road — and still looks sharp long after the engine cools.</p>
-<p>Every drop is cut from long-staple cotton, oversized for movement, and finished with the details that turn a tee into a daily uniform.</p>
+<p>This is placeholder content for the store story. Replace it with the people, purpose, and standards behind the business before launch.</p>
+<p>Explain what the store offers, how products are selected or made, and what customers can expect.</p>
 `.trim();
 
 export const TERMS_PAGE_TITLE = "Terms of Service";
 
 export const TERMS_BODY_HTML = `
 <p>Last updated: July 21, 2026</p>
-<p>Please read these Terms of Service (“Terms”) carefully before using the VE Gear website and services (the “Service”) operated by VE Gear (“we”, “us”, or “our”). By accessing or placing an order through the Service, you agree to these Terms. If you do not agree, please do not use the Service.</p>
+<p>Please read these Terms of Service (“Terms”) carefully before using this store website and services (the “Service”) operated by the Store (“we”, “us”, or “our”). By accessing or placing an order through the Service, you agree to these Terms. If you do not agree, please do not use the Service.</p>
 
 <h2>1. Who we are</h2>
-<p>VE Gear is an online store selling premium streetwear and rider essentials. For questions about these Terms, contact us at <a href="mailto:hello@vegear.com">hello@vegear.com</a> or through our <a href="/contact-us">Contact</a> page.</p>
+<p>We operate an online store. For questions about these Terms, contact us through our <a href="/contact-us">Contact</a> page.</p>
 
 <h2>2. Eligibility</h2>
 <p>You must be able to form a binding contract under the laws of Bangladesh to place an order. By using the Service, you confirm that the information you provide is accurate and that you will keep it up to date.</p>
@@ -41,7 +41,7 @@ export const TERMS_BODY_HTML = `
 <p>Returns and refunds are governed by our <a href="/refund-policy">Shipping &amp; Returns</a> policy. By ordering, you also agree to those rules.</p>
 
 <h2>8. Intellectual property</h2>
-<p>All content on the Service — including logos, product photography, copy, graphics, and design — is owned by VE Gear or our licensors. You may not copy, resell, or reuse our content without written permission.</p>
+<p>All content on the Service — including logos, product photography, copy, graphics, and design — is owned by the Store or our licensors. You may not copy, resell, or reuse our content without written permission.</p>
 
 <h2>9. Acceptable use</h2>
 <p>You agree not to use the Service to:</p>
@@ -58,7 +58,7 @@ export const TERMS_BODY_HTML = `
 <p>The Service is provided on an “as available” basis. To the fullest extent permitted by law, we disclaim warranties that the Service will be uninterrupted, error-free, or free of harmful components.</p>
 
 <h2>11. Limitation of liability</h2>
-<p>To the fullest extent permitted by law, VE Gear and its owners, employees, and partners are not liable for indirect, incidental, special, consequential, or punitive damages arising from your use of the Service or any product purchased through it. Our total liability for any claim related to an order is limited to the amount you paid for that order.</p>
+<p>To the fullest extent permitted by law, the Store and its owners, employees, and partners are not liable for indirect, incidental, special, consequential, or punitive damages arising from your use of the Service or any product purchased through it. Our total liability for any claim related to an order is limited to the amount you paid for that order.</p>
 
 <h2>12. Changes</h2>
 <p>We may update these Terms at any time. The “Last updated” date at the top will change when we do. Continued use of the Service after changes means you accept the revised Terms. For material changes, we will try to provide reasonable notice on the website.</p>
@@ -67,14 +67,14 @@ export const TERMS_BODY_HTML = `
 <p>These Terms are governed by the laws of Bangladesh. Disputes will be handled in the courts of competent jurisdiction in Bangladesh, unless applicable consumer law requires otherwise.</p>
 
 <h2>14. Contact</h2>
-<p>Questions about these Terms? Email <a href="mailto:hello@vegear.com">hello@vegear.com</a>.</p>
+<p>Questions about these Terms? Contact us through our <a href="/contact-us">Contact</a> page.</p>
 `.trim();
 
 export const PRIVACY_PAGE_TITLE = "Privacy Policy";
 
 export const PRIVACY_BODY_HTML = `
 <p>Last updated: July 21, 2026</p>
-<p>VE Gear (“we”, “us”, or “our”) respects your privacy. This Privacy Policy explains what information we collect when you use our website, how we use it, and the choices you have.</p>
+<p>The Store (“we”, “us”, or “our”) respects your privacy. This Privacy Policy explains what information we collect when you use our website, how we use it, and the choices you have.</p>
 
 <h2>1. Information we collect</h2>
 <p>We may collect:</p>
@@ -128,7 +128,7 @@ export const PRIVACY_BODY_HTML = `
 <li>Object to or restrict certain processing</li>
 <li>Withdraw consent where processing is based on consent</li>
 </ul>
-<p>To make a request, email <a href="mailto:hello@vegear.com">hello@vegear.com</a>. We may need to verify your identity before responding.</p>
+<p>To make a request, use our <a href="/contact-us">Contact</a> page. We may need to verify your identity before responding.</p>
 
 <h2>9. Children’s privacy</h2>
 <p>The Service is not directed at children under 13. We do not knowingly collect personal information from children. If you believe a child has provided us information, contact us and we will delete it.</p>
@@ -140,14 +140,14 @@ export const PRIVACY_BODY_HTML = `
 <p>We may update this Privacy Policy from time to time. The “Last updated” date will change when we do. Continued use of the Service after an update means you acknowledge the revised policy.</p>
 
 <h2>12. Contact</h2>
-<p>Privacy questions or requests: <a href="mailto:hello@vegear.com">hello@vegear.com</a>.</p>
+<p>For privacy questions or requests, use our <a href="/contact-us">Contact</a> page.</p>
 `.trim();
 
 export const REFUND_PAGE_TITLE = "Shipping & Returns";
 
 export const REFUND_BODY_HTML = `
 <p>Last updated: July 21, 2026</p>
-<p>This page explains how VE Gear fulfills orders and how returns work. If anything is unclear, reach us at <a href="mailto:hello@vegear.com">hello@vegear.com</a> or via <a href="/contact-us">Contact</a>.</p>
+<p>This page explains how the Store fulfills orders and how returns work. If anything is unclear, reach us through our <a href="/contact-us">Contact</a> page.</p>
 
 <h2>1. Fulfillment</h2>
 <p>Orders are currently fulfilled for <strong>local delivery / pickup in Bangladesh</strong>. There is <strong>no separate shipping charge</strong> at checkout for this local fulfillment model.</p>
@@ -178,7 +178,7 @@ export const REFUND_BODY_HTML = `
 
 <h2>6. How to start a return</h2>
 <ol>
-<li>Email <a href="mailto:hello@vegear.com">hello@vegear.com</a> or message us with your order ID, issue, and photos</li>
+<li>Contact us with your order ID, issue, and photos</li>
 <li>Wait for approval and return instructions</li>
 <li>Hand over the item as instructed so we can inspect condition and tags</li>
 </ol>
@@ -199,5 +199,5 @@ export const REFUND_BODY_HTML = `
 <p>If we enable nationwide courier shipping later, fees, timelines, and tracking details will be published on this page and at checkout. Until then, treat local fulfillment as the default.</p>
 
 <h2>10. Contact</h2>
-<p>Shipping or return questions: <a href="mailto:hello@vegear.com">hello@vegear.com</a>.</p>
+<p>For shipping or return questions, use our <a href="/contact-us">Contact</a> page.</p>
 `.trim();

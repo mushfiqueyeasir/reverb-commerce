@@ -62,7 +62,7 @@ async function createMailTransport(): Promise<MailSetup> {
   return {
     transporter,
     user,
-    fromName: smtp.fromName || "VE Gear",
+    fromName: smtp.fromName || "Store",
     fromEmail: (smtp.fromEmail || user).trim(),
     notifyEmails: smtp.notifyEmails.filter(isValidEmail),
   };

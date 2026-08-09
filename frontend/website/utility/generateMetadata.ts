@@ -1,13 +1,17 @@
 import { Metadata } from "next";
 import type { SeoItemType } from "@/type/seoType";
-import { SeoContent } from "@/SeoContent/SeoContent";
 import { appConfig } from "@/lib/config";
+import { getSiteSettings } from "@/utility/getSettings";
+import { isStoreSetupMode } from "@/lib/config.server";
 
-export function generateMetadata(seoContent: SeoItemType): Metadata {
+export async function generateMetadata(
+  seoContent: SeoItemType,
+): Promise<Metadata> {
   const { title, description, image, siteUrl, keywords, tags } = seoContent;
-  const developer = SeoContent.developer;
   const baseUrl = appConfig.siteUrl || siteUrl;
-  const imageUrl = new URL(image, baseUrl).href;
+  const imageUrl = image ? new URL(image, baseUrl).href : null;
+  const settings = await getSiteSettings();
+  const storeName = settings.store_name || "Store";
 
   return {
     title,
@@ -20,20 +24,17 @@ export function generateMetadata(seoContent: SeoItemType): Metadata {
     openGraph: {
       title,
       description,
-      images: [{ url: imageUrl }],
+      ...(imageUrl ? { images: [{ url: imageUrl }] } : {}),
       url: siteUrl,
-      siteName: "VE Gear",
+      siteName: storeName,
       type: "website",
     },
     twitter: {
       title,
       description,
-      images: [{ url: imageUrl }],
+      ...(imageUrl ? { images: [{ url: imageUrl }] } : {}),
       card: "summary_large_image",
     },
-    robots: "index, follow",
-    creator: developer.name,
-    publisher: developer.name,
-    authors: [{ name: developer.name, url: developer.website }],
+    robots: isStoreSetupMode() ? "noindex, nofollow" : "index, follow",
   };
 }

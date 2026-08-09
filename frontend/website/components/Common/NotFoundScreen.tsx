@@ -1,7 +1,9 @@
-import Image from "next/image";
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Home, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useStoreName } from "@/components/providers/StoreBrandProvider";
 
 const PARTICLES = Array.from({ length: 12 });
 
@@ -26,10 +28,11 @@ export default function NotFoundScreen({
   primaryLabel = "Back home",
   secondaryHref = "/product",
   secondaryLabel = "Shop collection",
-  footerNote = "VE Gear · Page not found",
+  footerNote,
   className,
 }: NotFoundScreenProps) {
   const standalone = variant === "standalone";
+  const storeName = useStoreName();
 
   return (
     <section
@@ -85,14 +88,9 @@ export default function NotFoundScreen({
             className="animate-hero-in inline-flex w-fit items-center"
             style={{ animationDelay: "0.05s" }}
           >
-            <Image
-              src="/images/logo/logo-white.png"
-              alt="VE Gear"
-              width={400}
-              height={160}
-              priority
-              className="h-8 w-auto transition-[filter] [[data-theme=light]_&]:brightness-0 md:h-9"
-            />
+            <span className="font-display text-2xl font-bold tracking-tight text-foreground">
+              {storeName}
+            </span>
           </Link>
         ) : null}
 
@@ -180,7 +178,7 @@ export default function NotFoundScreen({
             style={{ animationDelay: "0.5s" }}
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <span>{footerNote}</span>
+              <span>{footerNote || `${storeName} · Page not found`}</span>
               <Link
                 href="/contact-us"
                 className="transition hover:text-primary"

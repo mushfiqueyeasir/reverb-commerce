@@ -302,24 +302,23 @@ export interface BannerStatItem {
 }
 
 export const DEFAULT_BANNER_STATS: BannerStatItem[] = [
-  { label: "Weight", value: "240 GSM" },
-  { label: "Cotton", value: "100%" },
-  { label: "Fit", value: "Oversized" },
-  { label: "Origin", value: "Made for Riders" },
+  { label: "Focus", value: "Quality" },
+  { label: "Design", value: "Considered" },
+  { label: "Service", value: "Reliable" },
+  { label: "Collection", value: "Curated" },
 ];
 
 export const DEFAULT_BANNER_MARQUEE: string[] = [
-  "LIMITED DROP",
-  "PREMIUM COTTON",
-  "OVERSIZED FIT",
-  "240 GSM",
-  "MADE FOR RIDERS",
-  "SHIPPED WORLDWIDE",
-  "DROP 04 // LIVE",
+  "NEW ARRIVALS",
+  "QUALITY MATERIALS",
+  "THOUGHTFUL DESIGN",
+  "SECURE CHECKOUT",
+  "DEPENDABLE SERVICE",
+  "SHOP THE COLLECTION",
 ];
 
 export const DEFAULT_BANNER_DESCRIPTION =
-  "Heavyweight 240 GSM oversized streetwear. Cut for riders, engineered for the road, worn well past the ride home.";
+  "Discover thoughtfully selected products made for dependable everyday use.";
 
 export interface HomepageSectionRow {
   id: string;

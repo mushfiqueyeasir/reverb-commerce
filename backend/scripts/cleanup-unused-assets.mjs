@@ -7,8 +7,8 @@
  *   node scripts/cleanup-unused-assets.mjs --client ve-gear --dry-run
  *
  * Required environment variables:
- *   SUPABASE_URL (or SUPABASE_PROJECT_REF)
- *   SUPABASE_SERVICE_ROLE_KEY
+ *   Registered client: SUPABASE_ACCESS_TOKEN
+ *   Direct environment: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
  */
 
 import { createClient } from "@supabase/supabase-js";
@@ -21,6 +21,7 @@ import {
   repositoryRoot,
   validateClient,
 } from "./client-registry.mjs";
+import { maskSecret, requestJson } from "./provisioning-core.mjs";
 
 const BUCKETS = [
   "product-images",
@@ -35,7 +36,7 @@ const BUCKETS = [
 const MIN_AGE_MS = 24 * 60 * 60 * 1000;
 
 /** Seed / code-default assets — keep even if not currently referenced in DB. */
-const PROTECTED_PREFIXES = ["lovable/"];
+const PROTECTED_PREFIXES = ["lovable/", "store-template/"];
 
 const DELETE_BATCH = 100;
 const LIST_PAGE = 1000;
@@ -55,9 +56,12 @@ function decodeJwtPayload(token) {
 }
 
 function validateServiceRoleKey(key, projectRef) {
+  if (key.startsWith("sb_secret_")) return;
   const payload = decodeJwtPayload(key);
   if (payload.role !== "service_role") {
-    throw new Error(`Expected service_role JWT, received ${payload.role || "unknown"}`);
+    throw new Error(
+      `Expected service_role JWT, received ${payload.role || "unknown"}`,
+    );
   }
   if (projectRef && payload.ref !== projectRef) {
     throw new Error(
@@ -75,7 +79,39 @@ function projectRefFromUrl(url) {
   }
 }
 
-function loadClientServiceRoleKey(clientId) {
+async function loadManagedServiceRoleKey(projectRef) {
+  const accessToken = process.env.SUPABASE_ACCESS_TOKEN?.trim();
+  if (!accessToken) return "";
+  const baseUrl = `https://api.supabase.com/v1/projects/${projectRef}/api-keys`;
+  const response = await requestJson(baseUrl, { token: accessToken });
+  const keys = Array.isArray(response) ? response : (response?.keys ?? []);
+  const entry =
+    keys.find((key) => key.type === "secret" && key.name === "default") ??
+    keys.find((key) => key.type === "secret") ??
+    keys.find((key) => key.type === "legacy" && key.name === "service_role");
+  if (!entry) throw new Error(`Supabase has no server key for ${projectRef}`);
+  let key = String(entry.api_key ?? "").trim();
+  if (!key || key.includes("...")) {
+    if (!entry.id)
+      throw new Error(
+        `Supabase server key cannot be revealed for ${projectRef}`,
+      );
+    const revealed = await requestJson(
+      `${baseUrl}/${encodeURIComponent(entry.id)}?reveal=true`,
+      { token: accessToken },
+    );
+    key = String(revealed?.api_key ?? "").trim();
+  }
+  if (!key)
+    throw new Error(`Supabase returned an empty server key for ${projectRef}`);
+  maskSecret(key);
+  return key;
+}
+
+async function loadClientServiceRoleKey(clientId, projectRef) {
+  const managedKey = await loadManagedServiceRoleKey(projectRef);
+  if (managedKey) return managedKey;
+
   const credentialsJson = process.env.CLIENT_SUPABASE_CREDENTIALS?.trim();
   if (credentialsJson) {
     let credentials;
@@ -95,12 +131,14 @@ function loadClientServiceRoleKey(clientId) {
 
   const localPath = join(repositoryRoot, ".client-secrets", `${clientId}.env`);
   if (existsSync(localPath)) {
-    return String(parseEnvFile(localPath).SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
+    return String(
+      parseEnvFile(localPath).SUPABASE_SERVICE_ROLE_KEY ?? "",
+    ).trim();
   }
   throw new Error(`No cleanup credentials found for ${clientId}`);
 }
 
-function loadConfig() {
+async function loadConfig() {
   if (typeof args.client === "string") {
     const { manifest, manifestPath } = loadClient(args.client);
     const validationErrors = validateClient(manifest);
@@ -110,13 +148,18 @@ function loadConfig() {
       );
     }
     if (manifest.status !== "active") {
-      throw new Error(`Cleanup is disabled for ${manifest.id} (${manifest.status})`);
+      throw new Error(
+        `Cleanup is disabled for ${manifest.id} (${manifest.status})`,
+      );
     }
 
     const deploymentPath = join(dirname(manifestPath), "deployment.json");
     const deployment = JSON.parse(readFileSync(deploymentPath, "utf8"));
     const url = String(deployment.supabaseUrl ?? "").trim();
-    const serviceRoleKey = loadClientServiceRoleKey(manifest.id);
+    const serviceRoleKey = await loadClientServiceRoleKey(
+      manifest.id,
+      manifest.supabase.projectRef,
+    );
 
     if (url !== manifest.supabase.url) {
       throw new Error(
@@ -174,7 +217,11 @@ function collectFromCms(cms, referenced) {
   if (!cms || typeof cms !== "object") return;
 
   for (const banner of cms.banners ?? []) {
-    addPath(referenced.get("banner-images"), "banner-images", banner?.image_path);
+    addPath(
+      referenced.get("banner-images"),
+      "banner-images",
+      banner?.image_path,
+    );
     addPath(
       referenced.get("banner-images"),
       "banner-images",
@@ -236,11 +283,18 @@ function collectFromCms(cms, referenced) {
 function isMissingTableError(error) {
   return (
     error?.code === "PGRST205" ||
-    /could not find the table .* in the schema cache/i.test(error?.message ?? "")
+    /could not find the table .* in the schema cache/i.test(
+      error?.message ?? "",
+    )
   );
 }
 
-async function selectAllRows(supabase, table, columns, { optional = false } = {}) {
+async function selectAllRows(
+  supabase,
+  table,
+  columns,
+  { optional = false } = {},
+) {
   const rows = [];
   let total = null;
 
@@ -258,7 +312,8 @@ async function selectAllRows(supabase, table, columns, { optional = false } = {}
       throw new Error(`[${table}] reference query failed: ${error.message}`);
     }
     if (total == null) {
-      if (count == null) throw new Error(`[${table}] reference count is unavailable`);
+      if (count == null)
+        throw new Error(`[${table}] reference count is unavailable`);
       total = count;
     }
 
@@ -315,7 +370,11 @@ async function collectReferencedPaths(supabase) {
     addPath(referenced.get("product-images"), "product-images", row.path);
   }
   for (const row of categories) {
-    addPath(referenced.get("category-images"), "category-images", row.image_path);
+    addPath(
+      referenced.get("category-images"),
+      "category-images",
+      row.image_path,
+    );
   }
   for (const row of reviews) {
     addPath(referenced.get("review-images"), "review-images", row.image_path);
@@ -389,7 +448,8 @@ async function listAllObjects(supabase, bucket) {
         offset,
         sortBy: { column: "name", order: "asc" },
       });
-      if (error) throw new Error(`[${bucket}] list ${prefix || "/"}: ${error.message}`);
+      if (error)
+        throw new Error(`[${bucket}] list ${prefix || "/"}: ${error.message}`);
       if (!data?.length) break;
 
       for (const item of data) {
@@ -440,7 +500,7 @@ function isOldEnough(updatedAt) {
 }
 
 async function main() {
-  const config = loadConfig();
+  const config = await loadConfig();
   const url =
     config.url ||
     (config.projectRef ? `https://${config.projectRef}.supabase.co` : "");

@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 
 const DEFAULTS: SiteSettingsRow = {
   id: 1,
-  store_name: "VE-gear",
+  store_name: "Store",
   logo_path: null,
   invoice_logo_path: null,
   favicon_path: null,

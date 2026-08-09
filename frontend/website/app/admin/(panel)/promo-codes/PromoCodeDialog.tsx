@@ -123,7 +123,7 @@ export function PromoCodeDialog({
               id="promo_code"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
-              placeholder="VEGEAR10"
+              placeholder="STORE10"
               className={adminInputClass}
               autoComplete="off"
             />

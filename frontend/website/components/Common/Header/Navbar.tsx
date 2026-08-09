@@ -21,7 +21,7 @@ import { MenuType } from "@/type/menyType";
 
 interface NavbarProps {
   menuData: MenuType[];
-  logoUrl: string;
+  logoUrl: string | null;
   storeName: string;
 }
 
@@ -61,14 +61,20 @@ export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
             className="flex min-w-0 items-center gap-2"
             aria-label={storeName}
           >
-            <Image
-              src={logoUrl}
-              alt={storeName}
-              width={160}
-              height={40}
-              priority
-              className="h-7 w-auto sm:h-8"
-            />
+            {logoUrl ? (
+              <Image
+                src={logoUrl}
+                alt={storeName}
+                width={160}
+                height={40}
+                priority
+                className="h-7 w-auto sm:h-8"
+              />
+            ) : (
+              <span className="font-display text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+                {storeName}
+              </span>
+            )}
           </Link>
 
           <nav className="hidden items-center gap-10 md:flex">

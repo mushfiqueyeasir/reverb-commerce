@@ -247,7 +247,7 @@ export async function saveSmtpSettings(
     username: input.username?.trim() || null,
     host: input.host?.trim() || null,
     fromEmail,
-    fromName: input.fromName.trim() || "VE Gear",
+    fromName: input.fromName.trim() || "Store",
     notifyEmails,
     password: input.password?.trim() ? input.password : null,
   };

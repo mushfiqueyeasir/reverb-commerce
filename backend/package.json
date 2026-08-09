@@ -3,9 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test": "node --test scripts/*.test.mjs",
     "baseline:build": "node scripts/build-clean-baseline.mjs",
     "client:validate": "node scripts/validate-clients.mjs",
     "client:provision": "node scripts/provision-client.mjs",
+    "store:provision": "node scripts/provision-store.mjs",
     "client:env:pull": "node scripts/pull-client-env.mjs",
     "client:env:backup": "node scripts/build-client-env-backup.mjs",
     "client:cleanup:list": "node scripts/list-cleanup-clients.mjs",

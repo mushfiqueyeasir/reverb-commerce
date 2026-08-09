@@ -86,23 +86,24 @@ function asCraft(config: Record<string, unknown>): AboutCraftItem[] {
 }
 
 function HeroSection({ config }: { config: Record<string, unknown> }) {
-  const heroUrl =
-    imageUrl(config) ??
-    bannerImageUrl("lovable/hero-biker.jpg") ??
-    "/images/lovable/hero-biker.jpg";
-  const line1 = cfgStr(config, "headline_line1", "Not just ride.");
-  const line2 = cfgStr(config, "headline_line2", "Ride with style.");
+  const heroUrl = imageUrl(config);
+  const line1 = cfgStr(config, "headline_line1", "Designed with purpose.");
+  const line2 = cfgStr(config, "headline_line2", "Made for everyday life.");
 
   return (
     <section className="relative isolate min-h-[72vh] overflow-hidden md:min-h-[80vh]">
-      <Image
-        src={heroUrl}
-        alt="VE Gear — made for riders"
-        fill
-        priority
-        sizes="100vw"
-        className="object-cover object-center"
-      />
+      {heroUrl ? (
+        <Image
+          src={heroUrl}
+          alt="Store collection"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-card via-background to-primary/20" />
+      )}
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/55 to-background/25" />
       <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/30 to-transparent" />
 
@@ -175,21 +176,20 @@ function StatsSection({ config }: { config: Record<string, unknown> }) {
 }
 
 function StorySection({ config }: { config: Record<string, unknown> }) {
-  const lifestyleUrl =
-    imageUrl(config) ??
-    bannerImageUrl("lovable/void-oversized.jpg") ??
-    bannerImageUrl("lovable/hero-biker.jpg");
+  const lifestyleUrl = imageUrl(config);
   const bodyHtml = cfgStr(config, "body_html");
   const extra = cfgStr(config, "extra");
 
   return (
     <section className="mx-auto max-w-[1600px] px-6 py-20 md:px-10 md:py-28">
-      <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
+      <div
+        className={`grid items-center gap-12 lg:gap-20 ${lifestyleUrl ? "lg:grid-cols-2" : ""}`}
+      >
         {lifestyleUrl ? (
           <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-border">
             <Image
               src={lifestyleUrl}
-              alt="VE Gear oversized essentials"
+              alt="Store story"
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover"
@@ -266,15 +266,14 @@ function ValuesSection({ config }: { config: Record<string, unknown> }) {
 }
 
 function CraftSection({ config }: { config: Record<string, unknown> }) {
-  const fabricUrl =
-    imageUrl(config) ??
-    brandingImageUrl("lovable/fabric-texture.jpg") ??
-    "/images/lovable/fabric-texture.jpg";
+  const fabricUrl = imageUrl(config);
   const craft = asCraft(config);
 
   return (
     <section className="mx-auto max-w-[1600px] px-6 py-20 md:px-10 md:py-28">
-      <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
+      <div
+        className={`grid items-center gap-12 lg:gap-20 ${fabricUrl ? "lg:grid-cols-2" : ""}`}
+      >
         <div className="order-2 lg:order-1">
           {cfgStr(config, "eyebrow") ? (
             <div className="mb-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
@@ -315,29 +314,31 @@ function CraftSection({ config }: { config: Record<string, unknown> }) {
           ) : null}
         </div>
 
-        <div className="relative order-1 aspect-[5/6] overflow-hidden rounded-3xl border border-border lg:order-2">
-          <Image
-            src={fabricUrl}
-            alt={cfgStr(config, "fabric_value", "240 GSM cotton fabric")}
-            fill
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/50 to-transparent" />
-          <div className="glass absolute bottom-6 left-6 right-6 flex items-center justify-between rounded-2xl px-5 py-4">
-            <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-                {cfgStr(config, "fabric_label", "Fabric")}
+        {fabricUrl ? (
+          <div className="relative order-1 aspect-[5/6] overflow-hidden rounded-3xl border border-border lg:order-2">
+            <Image
+              src={fabricUrl}
+              alt={cfgStr(config, "fabric_value", "Product detail")}
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/50 to-transparent" />
+            <div className="glass absolute bottom-6 left-6 right-6 flex items-center justify-between rounded-2xl px-5 py-4">
+              <div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                  {cfgStr(config, "fabric_label", "Product")}
+                </div>
+                <div className="mt-1 font-display text-xl font-semibold">
+                  {cfgStr(config, "fabric_value", "Update this detail")}
+                </div>
               </div>
-              <div className="mt-1 font-display text-xl font-semibold">
-                {cfgStr(config, "fabric_value", "240 GSM Cotton")}
+              <div className="font-mono text-xs text-primary">
+                {cfgStr(config, "fabric_tag", "// DETAIL")}
               </div>
-            </div>
-            <div className="font-mono text-xs text-primary">
-              {cfgStr(config, "fabric_tag", "// LAB 04")}
             </div>
           </div>
-        </div>
+        ) : null}
       </div>
     </section>
   );
@@ -373,7 +374,7 @@ function CtaSection({ config }: { config: Record<string, unknown> }) {
           className="pointer-events-none absolute -bottom-12 left-[42%] hidden font-display text-[12rem] font-black leading-none tracking-[-0.08em] text-primary/[0.055] lg:block"
           aria-hidden
         >
-          RIDE
+          JOIN
         </div>
 
         <div className="relative grid lg:grid-cols-[minmax(0,1fr)_22rem]">
@@ -399,7 +400,7 @@ function CtaSection({ config }: { config: Record<string, unknown> }) {
             <div className="mt-10 flex items-center gap-4 font-mono text-[9px] uppercase tracking-[0.28em] text-muted-foreground/70 sm:text-[10px]">
               <span>Built for motion</span>
               <span className="h-px flex-1 bg-border" />
-              <span>VE / 04</span>
+              <span>ST / 04</span>
             </div>
           </div>
 

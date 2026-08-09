@@ -216,7 +216,7 @@ export function SettingsForm({
   const [smtpUsername, setSmtpUsername] = useState(initialSmtp.username ?? "");
   const [smtpPassword, setSmtpPassword] = useState("");
   const [smtpFromName, setSmtpFromName] = useState(
-    initialSmtp.fromName || "VE Gear",
+    initialSmtp.fromName || "Store",
   );
   const [smtpFromEmail, setSmtpFromEmail] = useState(
     initialSmtp.fromEmail ?? "",
@@ -358,7 +358,7 @@ export function SettingsForm({
         secure: smtpSecure,
         username: orNull(smtpUsername),
         password: smtpPassword.trim() ? smtpPassword : null,
-        fromName: smtpFromName.trim() || "VE Gear",
+        fromName: smtpFromName.trim() || "Store",
         fromEmail: orNull(smtpFromEmail),
         notifyEmails: smtpNotifyEmails
           .split(/[,;\n]+/)
@@ -515,7 +515,7 @@ export function SettingsForm({
                 <Input
                   value={storeName}
                   onChange={(e) => setStoreName(e.target.value)}
-                  placeholder="VE Gear"
+                  placeholder="Store"
                   className={adminInputClass}
                 />
               </FormField>
@@ -705,7 +705,7 @@ export function SettingsForm({
                     type="email"
                     value={contactEmail}
                     onChange={(e) => setContactEmail(e.target.value)}
-                    placeholder="hello@vegear.com"
+                    placeholder="hello@store.example"
                     className={adminInputClass}
                   />
                 </FormField>
@@ -1205,7 +1205,7 @@ export function SettingsForm({
                   <Input
                     value={smtpFromName}
                     onChange={(e) => setSmtpFromName(e.target.value)}
-                    placeholder="VE Gear"
+                    placeholder="Store"
                     className={adminInputClass}
                   />
                 </FormField>
@@ -1257,7 +1257,7 @@ export function SettingsForm({
                         secure: smtpSecure,
                         username: orNull(smtpUsername),
                         password: smtpPassword.trim() ? smtpPassword : null,
-                        fromName: smtpFromName.trim() || "VE Gear",
+                        fromName: smtpFromName.trim() || "Store",
                         fromEmail: orNull(smtpFromEmail),
                         notifyEmails: [],
                       });
@@ -1344,7 +1344,7 @@ export function SettingsForm({
             <Input
               value={currentSeo.title}
               onChange={(e) => updateCurrentSeo({ title: e.target.value })}
-              placeholder={`${SEO_PAGE_META[seoPage].label} | VE Gear`}
+              placeholder={`${SEO_PAGE_META[seoPage].label} | Store`}
               className={adminInputClass}
               maxLength={80}
             />
@@ -1372,13 +1372,13 @@ export function SettingsForm({
           </FormField>
           <FormField
             label="Keywords"
-            hint="Comma-separated phrases (e.g. VE Gear, streetwear, oversized tee)."
+            hint="Comma-separated phrases (e.g. Store, apparel, new arrivals)."
           >
             <Textarea
               value={currentSeo.keywords}
               onChange={(e) => updateCurrentSeo({ keywords: e.target.value })}
               rows={3}
-              placeholder="VE Gear, streetwear, rider essentials"
+              placeholder="Store, apparel, new arrivals"
               className={adminTextareaClass}
             />
           </FormField>

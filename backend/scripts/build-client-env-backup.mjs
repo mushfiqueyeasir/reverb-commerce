@@ -21,22 +21,30 @@ const sourcePaths = [
   join(websiteDirectory, `.env.${clientId}`),
 ];
 const sources = {};
+const sensitiveName =
+  /(?:ACCESS_TOKEN|SERVICE_ROLE_KEY|PASSWORD|PASS|PRIVATE_KEY|SECRET|TOKEN|API_KEY|CREDENTIALS?)$/i;
 
 for (const sourcePath of sourcePaths) {
   if (!existsSync(sourcePath)) {
     throw new Error(`Environment file not found: ${sourcePath}`);
   }
-  const relativePath = relative(repositoryRoot, sourcePath).replaceAll("\\", "/");
+  const relativePath = relative(repositoryRoot, sourcePath).replaceAll(
+    "\\",
+    "/",
+  );
   const parsed = parseEnv(readFileSync(sourcePath, "utf8"));
   sources[relativePath] = Object.fromEntries(
-    Object.entries(parsed).sort(([left], [right]) => left.localeCompare(right)),
+    Object.entries(parsed)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([name, value]) => [name, sensitiveName.test(name) ? "" : value]),
   );
 }
 
 const outputPath = join(clientsDirectory, clientId, "environment.backup.json");
 const backup = {
-  formatVersion: 1,
-  purpose: "Backup only; application runtime continues to use environment variables.",
+  formatVersion: 2,
+  purpose:
+    "Non-secret environment inventory. Privileged credentials intentionally remain blank.",
   clientId,
   sources,
 };

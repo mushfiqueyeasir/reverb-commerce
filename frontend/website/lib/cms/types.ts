@@ -68,90 +68,87 @@ export const SEO_PAGE_META: Record<
 };
 
 export const DEFAULT_SEO: CmsSeo = {
-  title: "VE Gear – Premium Gear & Essentials",
+  title: "Store | Shop Online",
   description:
-    "Shop premium gear and everyday essentials at VE Gear. Thoughtfully designed, high-quality pieces built to move with you.",
-  keywords:
-    "VE Gear, Premium Gear, Streetwear, Oversized Tee, Rider Essentials, Online Store",
+    "Browse products, discover new arrivals, and shop securely online.",
+  keywords: "Store, Online Shopping, New Arrivals, Quality Products",
   og_image_path: null,
 };
 
 export const DEFAULT_PAGES_SEO: Record<SeoPageKey, CmsSeo> = {
   home: { ...DEFAULT_SEO },
   about: {
-    title: "About Us | VE Gear",
+    title: "About Us | Store",
     description:
-      "Learn about VE Gear — modern design meets everyday performance. Premium, dependable essentials with quality materials.",
-    keywords: "VE Gear, About VE Gear, Brand Story, Quality Gear",
+      "Learn about our store, values, and commitment to quality products and service.",
+    keywords: "Store, About Us, Brand Story, Quality Products",
     og_image_path: null,
   },
   product: {
-    title: "Shop | VE Gear",
+    title: "Shop | Store",
     description:
-      "Explore the VE Gear collection of premium gear and essentials. Shop the latest drops, featured pieces, and best sellers.",
-    keywords: "VE Gear, Shop, Collections, Best Sellers, Online Store",
+      "Explore our collection and shop new arrivals, featured products, and best sellers.",
+    keywords: "Store, Shop, Collections, Best Sellers, Online Store",
     og_image_path: null,
   },
   contact: {
-    title: "Contact Us | VE Gear",
+    title: "Contact Us | Store",
     description:
-      "Get in touch with VE Gear for customer support, inquiries, or feedback.",
-    keywords: "VE Gear, Contact, Customer Support",
+      "Get in touch with our store for customer support, inquiries, or feedback.",
+    keywords: "Store, Contact, Customer Support",
     og_image_path: null,
   },
   reviews: {
-    title: "Customer Reviews | VE Gear",
+    title: "Customer Reviews | Store",
     description:
-      "Read authentic customer reviews and see real photos from the VE Gear community.",
-    keywords: "VE Gear, Customer Reviews, Testimonials",
+      "Read authentic customer reviews and see what customers say about their purchases.",
+    keywords: "Store, Customer Reviews, Testimonials",
     og_image_path: null,
   },
   cart: {
-    title: "Shopping Cart | VE Gear",
-    description: "Review your selected items in your VE Gear shopping cart.",
-    keywords: "VE Gear, Shopping Cart",
+    title: "Shopping Cart | Store",
+    description: "Review the selected items in your shopping cart.",
+    keywords: "Store, Shopping Cart",
     og_image_path: null,
   },
   wishlist: {
-    title: "Favorites | VE Gear",
+    title: "Favorites | Store",
     description:
-      "Your saved VE Gear favorites — kept on this device so you can come back anytime.",
-    keywords: "VE Gear, Favorites, Wishlist",
+      "Your saved favorites are kept on this device so you can come back anytime.",
+    keywords: "Store, Favorites, Wishlist",
     og_image_path: null,
   },
   checkout: {
-    title: "Checkout | VE Gear",
-    description:
-      "Complete your purchase at VE Gear with a fast, secure checkout.",
-    keywords: "VE Gear, Checkout, Secure Checkout",
+    title: "Checkout | Store",
+    description: "Complete your purchase with a fast, secure checkout.",
+    keywords: "Store, Checkout, Secure Checkout",
     og_image_path: null,
   },
   track: {
-    title: "Track Order | VE Gear",
-    description:
-      "Track your VE Gear order status by entering your order number.",
-    keywords: "VE Gear, Track Order, Order Status, Order Tracking",
+    title: "Track Order | Store",
+    description: "Track your order status by entering your order number.",
+    keywords: "Store, Track Order, Order Status, Order Tracking",
     og_image_path: null,
   },
   privacy: {
-    title: "Privacy Policy | VE Gear",
+    title: "Privacy Policy | Store",
     description:
-      "Read the VE Gear privacy policy to understand how we collect, use, and protect your personal information.",
-    keywords: "VE Gear, Privacy Policy, Data Protection",
+      "Read our privacy policy to understand how we collect, use, and protect personal information.",
+    keywords: "Store, Privacy Policy, Data Protection",
     og_image_path: null,
   },
   terms: {
-    title: "Terms and Conditions | VE Gear",
+    title: "Terms and Conditions | Store",
     description:
-      "Read the VE Gear terms and conditions covering accounts, products, pricing, shipping, and returns.",
-    keywords: "VE Gear, Terms of Service, Terms and Conditions",
+      "Read our terms and conditions covering products, pricing, shipping, and returns.",
+    keywords: "Store, Terms of Service, Terms and Conditions",
     og_image_path: null,
   },
   refund: {
-    title: "Shipping & Return Policy | VE Gear",
+    title: "Shipping & Return Policy | Store",
     description:
-      "Learn about VE Gear shipping and return policy, delivery times, and order tracking.",
-    keywords: "VE Gear, Shipping Policy, Return Policy, Refund Policy",
+      "Learn about our shipping and return policy, delivery times, and order tracking.",
+    keywords: "Store, Shipping Policy, Return Policy, Refund Policy",
     og_image_path: null,
   },
 };

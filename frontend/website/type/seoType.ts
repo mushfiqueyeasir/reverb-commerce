@@ -8,12 +8,6 @@ export interface SeoItemType {
   copyright?: string;
 }
 
-export interface DeveloperInfo {
-  name: string;
-  website: string;
-  email?: string;
-}
-
 export interface SeoContentType {
   baseSeo: SeoItemType;
   aboutUsSeo: SeoItemType;
@@ -27,5 +21,4 @@ export interface SeoContentType {
   privacyPolicySeo: SeoItemType;
   termsOfServiceSeo: SeoItemType;
   refundPolicySeo: SeoItemType;
-  developer: DeveloperInfo;
 }

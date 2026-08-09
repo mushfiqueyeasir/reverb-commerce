@@ -5,49 +5,43 @@ const siteUrl = appConfig.siteUrl;
 
 export const SeoContent: SeoContentType = {
   baseSeo: {
-    title: "VE Gear – Premium Gear & Essentials",
+    title: "Store | Shop Online",
     description:
-      "Shop premium gear and everyday essentials at VE Gear. Thoughtfully designed, high-quality pieces built to move with you.",
-    image: "/images/seoThumbnail/home.png",
+      "Browse products, discover new arrivals, and shop securely online.",
+    image: "",
     siteUrl: `${siteUrl}`,
     keywords: [
-      "VE Gear",
-      "Premium Gear",
-      "Everyday Essentials",
-      "Performance Wear",
+      "Store",
+      "Online Shopping",
+      "New Arrivals",
       "Online Store",
-      "Quality Gear",
-      "Modern Design",
-      "Lifestyle Brand",
+      "Quality Products",
     ],
   },
   aboutUsSeo: {
-    title: "About Us | VE Gear",
+    title: "About Us | Store",
     description:
-      "Learn about VE Gear - where modern design meets everyday performance. Discover our mission to craft premium, dependable essentials with quality materials and contemporary design.",
-    image: "/images/seoThumbnail/home.png",
+      "Learn about our store, our values, and our commitment to quality products and service.",
+    image: "",
     siteUrl: `${siteUrl}/about-us`,
     keywords: [
-      "VE Gear",
-      "About VE Gear",
-      "Modern Design",
-      "Quality Gear",
-      "Contemporary Design",
-      "Everyday Essentials",
+      "Store",
+      "About Us",
+      "Quality Products",
       "Brand Story",
       "Brand Mission",
     ],
   },
   productSeo: {
-    title: "Shop | VE Gear",
+    title: "Shop | Store",
     description:
-      "Explore the VE Gear collection of premium gear and essentials. Shop the latest drops, featured pieces, and best sellers.",
-    image: "/images/seoThumbnail/home.png",
+      "Explore our collection and shop new arrivals, featured products, and best sellers.",
+    image: "",
     siteUrl: `${siteUrl}/product`,
     keywords: [
-      "VE Gear",
+      "Store",
       "Collections",
-      "Premium Gear",
+      "Products",
       "New Drops",
       "Featured Products",
       "Online Shopping",
@@ -55,13 +49,13 @@ export const SeoContent: SeoContentType = {
     ],
   },
   cartSeo: {
-    title: "Shopping Cart | VE Gear",
+    title: "Shopping Cart | Store",
     description:
-      "Review your selected items in your VE Gear shopping cart. Continue shopping or proceed to a secure checkout.",
-    image: "/images/seoThumbnail/home.png",
+      "Review your selected items, continue shopping, or proceed to secure checkout.",
+    image: "",
     siteUrl: `${siteUrl}/cart`,
     keywords: [
-      "VE Gear",
+      "Store",
       "Shopping Cart",
       "Online Shopping",
       "E-commerce",
@@ -69,27 +63,26 @@ export const SeoContent: SeoContentType = {
     ],
   },
   wishlistSeo: {
-    title: "Favorites | VE Gear",
+    title: "Favorites | Store",
     description:
-      "Your saved VE Gear favorites — kept on this device so you can come back anytime.",
-    image: "/images/seoThumbnail/home.png",
+      "Your saved favorites are kept on this device so you can come back anytime.",
+    image: "",
     siteUrl: `${siteUrl}/wishlist`,
     keywords: [
-      "VE Gear",
+      "Store",
       "Favorites",
       "Wishlist",
       "Saved Products",
-      "Streetwear",
+      "Online Shopping",
     ],
   },
   checkoutSeo: {
-    title: "Checkout | VE Gear",
-    description:
-      "Complete your purchase at VE Gear with a fast, secure checkout.",
-    image: "/images/seoThumbnail/home.png",
+    title: "Checkout | Store",
+    description: "Complete your purchase with a fast, secure checkout.",
+    image: "",
     siteUrl: `${siteUrl}/checkout`,
     keywords: [
-      "VE Gear",
+      "Store",
       "Checkout",
       "Secure Checkout",
       "Online Payment",
@@ -97,27 +90,27 @@ export const SeoContent: SeoContentType = {
     ],
   },
   contactUsSeo: {
-    title: "Contact Us | VE Gear",
+    title: "Contact Us | Store",
     description:
-      "Get in touch with VE Gear. Have questions? Contact us for customer support, inquiries, or feedback.",
-    image: "/images/seoThumbnail/home.png",
+      "Get in touch with our store for customer support, inquiries, or feedback.",
+    image: "",
     siteUrl: `${siteUrl}/contact-us`,
     keywords: [
-      "VE Gear",
-      "Contact VE Gear",
+      "Store",
+      "Contact Store",
       "Customer Support",
       "Inquiries",
       "Customer Service",
     ],
   },
   reviewsSeo: {
-    title: "Customer Reviews | VE Gear",
+    title: "Customer Reviews | Store",
     description:
-      "Read authentic customer reviews and see real photos from the VE Gear community. Discover what customers say about quality, comfort, and design.",
-    image: "/images/seoThumbnail/home.png",
+      "Read authentic customer reviews and see what customers say about their purchases.",
+    image: "",
     siteUrl: `${siteUrl}/reviews`,
     keywords: [
-      "VE Gear",
+      "Store",
       "Customer Reviews",
       "Product Reviews",
       "Customer Testimonials",
@@ -125,13 +118,13 @@ export const SeoContent: SeoContentType = {
     ],
   },
   trackOrderSeo: {
-    title: "Track Order | VE Gear",
+    title: "Track Order | Store",
     description:
-      "Track your VE Gear order status by entering your order number from checkout or your confirmation email.",
-    image: "/images/seoThumbnail/home.png",
+      "Track your order status using the order details from checkout or your confirmation email.",
+    image: "",
     siteUrl: `${siteUrl}/track-order`,
     keywords: [
-      "VE Gear",
+      "Store",
       "Track Order",
       "Order Status",
       "Order Tracking",
@@ -139,13 +132,13 @@ export const SeoContent: SeoContentType = {
     ],
   },
   privacyPolicySeo: {
-    title: "Privacy Policy | VE Gear",
+    title: "Privacy Policy | Store",
     description:
-      "Read the VE Gear privacy policy to understand how we collect, use, and protect your personal information.",
-    image: "/images/seoThumbnail/home.png",
+      "Read our privacy policy to understand how we collect, use, and protect personal information.",
+    image: "",
     siteUrl: `${siteUrl}/privacy-policy`,
     keywords: [
-      "VE Gear",
+      "Store",
       "Privacy Policy",
       "Data Protection",
       "Privacy",
@@ -155,13 +148,13 @@ export const SeoContent: SeoContentType = {
     ],
   },
   termsOfServiceSeo: {
-    title: "Terms and Conditions | VE Gear",
+    title: "Terms and Conditions | Store",
     description:
-      "Read the VE Gear terms and conditions covering accounts, products, pricing, shipping, returns, and intellectual property.",
-    image: "/images/seoThumbnail/home.png",
+      "Read our terms and conditions covering products, pricing, shipping, returns, and intellectual property.",
+    image: "",
     siteUrl: `${siteUrl}/terms-of-service`,
     keywords: [
-      "VE Gear",
+      "Store",
       "Terms and Conditions",
       "Terms of Service",
       "User Agreement",
@@ -170,23 +163,18 @@ export const SeoContent: SeoContentType = {
     ],
   },
   refundPolicySeo: {
-    title: "Shipping & Return Policy | VE Gear",
+    title: "Shipping & Return Policy | Store",
     description:
-      "Learn about VE Gear shipping and return policy. Find information about shipping options, delivery times, order tracking, and returns.",
-    image: "/images/seoThumbnail/home.png",
+      "Learn about our shipping and return policy, delivery times, order tracking, and returns.",
+    image: "",
     siteUrl: `${siteUrl}/refund-policy`,
     keywords: [
-      "VE Gear",
+      "Store",
       "Shipping Policy",
       "Return Policy",
       "Refund Policy",
       "Order Tracking",
       "Shipping Fees",
     ],
-  },
-  developer: {
-    name: "Mushfique Yeasir",
-    website: "https://mushfique-yeasir.netlify.app/",
-    email: "mushfiqueyeasir@gmail.com",
   },
 };

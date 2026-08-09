@@ -66,9 +66,15 @@ function readOpenGroups(): Record<NavItem["group"], boolean> {
 
 export default function AdminShell({
   session,
+  storeName,
+  logoUrl,
+  faviconUrl,
   children,
 }: {
   session: AdminContextValue;
+  storeName: string;
+  logoUrl: string | null;
+  faviconUrl: string | null;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -200,19 +206,19 @@ export default function AdminShell({
           compact && "justify-center px-2",
         )}
       >
-        {compact ? (
+        {compact && (faviconUrl || logoUrl) ? (
           <Image
-            src="/images/logo/favicon.png"
-            alt="VE Gear"
+            src={faviconUrl || logoUrl!}
+            alt={storeName}
             width={64}
             height={64}
             className={cn("size-7", logoToneClass)}
           />
-        ) : (
+        ) : !compact && logoUrl ? (
           <div>
             <Image
-              src="/images/logo/logo-white.png"
-              alt="VE Gear"
+              src={logoUrl}
+              alt={storeName}
               width={400}
               height={160}
               className={cn("h-6 w-auto", logoToneClass)}
@@ -220,6 +226,17 @@ export default function AdminShell({
             <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
               Admin
             </p>
+          </div>
+        ) : (
+          <div className={cn(compact && "text-center")}>
+            <p className="truncate font-display text-sm font-bold text-foreground">
+              {compact ? storeName.charAt(0).toUpperCase() || "S" : storeName}
+            </p>
+            {!compact ? (
+              <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
+                Admin
+              </p>
+            ) : null}
           </div>
         )}
       </div>

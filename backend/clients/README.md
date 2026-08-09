@@ -1,54 +1,49 @@
-# Client registry
+# Client Registry
 
-Each directory contains non-secret desired and deployed state for one
-storefront. Raw credentials remain in ignored local files and deployment
-secret stores; they must never be committed or imported by browser code.
+Each directory contains non-secret desired and deployed state for one isolated
+storefront. Runtime credentials remain in Supabase, Vercel, protected GitHub
+secrets, or ignored local files.
 
-## Add a client
+New clients are added by `.github/workflows/provision-store.yml` only after the
+Supabase project, Vercel deployment, domains, and smoke tests succeed.
 
-1. Copy an existing `tenant.json` into `backend/clients/<client-id>/tenant.json`.
-2. Run `npm run client:validate` from `backend`.
-3. Create `.client-secrets/<client-id>.env` at the repository root:
+Every generated directory contains:
 
-```dotenv
-SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
+```text
+tenant.json
+deployment.json
+environment.backup.json
+README.md
 ```
 
-4. Run the clean baseline in the empty Supabase project's SQL Editor.
-5. Configure SMTP and notification recipients in the Supabase-backed admin settings.
-6. Run `npm run client:provision -- --client <client-id>` from `backend`.
-7. Attach and verify the custom domain in Vercel.
+`environment.backup.json` stores public configuration and blank placeholders
+for privileged values. Never populate its access-token or service-role fields.
 
-Asset cleanup in GitHub Actions reads a repository secret named
-`CLIENT_SUPABASE_CREDENTIALS`. Store a JSON object keyed by client ID:
-
-```json
-{"client-id":{"serviceRoleKey":"..."}}
-```
-
-The `.client-secrets` directory is ignored by Git. Delete a client's local file
-after Vercel has stored the values if you do not need it for later rotation.
-
-Use `--adopt <existing-project-name>` when bringing an existing Vercel project
-under management. Use `npm run fleet:status` to query the latest production
-deployment for every registered client.
-
-## Debug a client locally
-
-Pull a tracked project's production configuration into an ignored local file:
+Validate the registry and inspect production deployment status with:
 
 ```text
 cd backend
-npm run client:env:pull -- --client ve-gear
+npm run client:validate
+npm run fleet:status
 ```
 
-Then run the shared frontend with that client's configuration:
+## Local development
+
+Set `SUPABASE_ACCESS_TOKEN` in your shell, or create ignored
+`.client-secrets/<client-id>.env`, then run:
 
 ```text
-cd frontend/website
-npm run dev:client -- ve-gear
+cd backend
+npm run client:env:pull -- --client <client-id>
+
+cd ../frontend/website
+npm run dev:client -- <client-id>
 ```
 
-This creates `frontend/website/.env.ve-gear`. It contains secrets and must stay
-local. Run the pull command again after rotating or changing Vercel variables.
+This creates ignored `frontend/website/.env.<client-id>`. Run the pull command
+again after rotating project keys or changing Vercel configuration.
+
+## Asset cleanup
+
+GitHub Actions uses `SUPABASE_ACCESS_TOKEN` to resolve each registered project's
+server key. No fleet-wide JSON map of service-role keys is required.

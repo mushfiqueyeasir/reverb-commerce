@@ -355,7 +355,7 @@ export function SectionForm({
                             onChange={(e) =>
                               updateStat(i, "value", e.target.value)
                             }
-                            placeholder="240 GSM"
+                            placeholder="Quality"
                             className={adminInputClass}
                           />
                         </FormField>

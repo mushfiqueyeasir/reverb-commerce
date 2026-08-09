@@ -25,16 +25,24 @@ export async function generateMetadata({
   params: ProductPageParams | Promise<ProductPageParams>;
 }): Promise<Metadata> {
   const slug = await resolveSlug(params);
+  const settings = await getSiteSettings();
+  const storeName = settings.store_name || "Store";
   if (!slug) {
-    return { title: "Product Not Found | VE Gear", robots: "noindex, follow" };
+    return {
+      title: `Product Not Found | ${storeName}`,
+      robots: "noindex, follow",
+    };
   }
 
   const product = await getProductBySlug(slug);
   if (!product) {
-    return { title: "Product Not Found | VE Gear", robots: "noindex, follow" };
+    return {
+      title: `Product Not Found | ${storeName}`,
+      robots: "noindex, follow",
+    };
   }
 
-  return buildProductMetadata(product);
+  return buildProductMetadata(product, storeName);
 }
 
 export default async function ProductDetailPage({
@@ -58,7 +66,11 @@ export default async function ProductDetailPage({
   }
 
   const transformedProduct = transformProduct(product);
-  const jsonLd = buildProductJsonLd(product, settings.currency || "BDT");
+  const jsonLd = buildProductJsonLd(
+    product,
+    settings.currency || "BDT",
+    settings.store_name || "Store",
+  );
 
   return (
     <>

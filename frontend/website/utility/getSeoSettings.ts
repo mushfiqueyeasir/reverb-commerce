@@ -85,6 +85,8 @@ export async function getSeoItem(page: SeoPageKey): Promise<SeoItemType> {
   try {
     const cms = await readCmsBlob();
     const fromPages = cms.pages_seo?.[page];
+    const homeImage =
+      cms.pages_seo?.home?.og_image_path || cms.seo?.og_image_path || null;
     const seo: CmsSeo =
       page === "home"
         ? {
@@ -95,6 +97,7 @@ export async function getSeoItem(page: SeoPageKey): Promise<SeoItemType> {
         : {
             ...DEFAULT_PAGES_SEO[page],
             ...fromPages,
+            og_image_path: fromPages?.og_image_path || homeImage,
           };
 
     return toSeoItem(seo, path, fallback);

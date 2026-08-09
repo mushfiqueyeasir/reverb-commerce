@@ -91,14 +91,14 @@ function shell(opts: {
   const { title, intro, payload, footerNote } = opts;
   const currency = payload.currencyLabel || "BDT";
   const year = new Date().getFullYear();
-  const storeName = payload.storeName?.trim() || "VE Gear";
+  const storeName = payload.storeName?.trim() || "Store";
   const colors = payload.palette ?? DEFAULT_PALETTE;
   const logo = payload.logoUrl?.trim();
 
   const headerBrand = logo
     ? `<img src="${escapeHtml(logo)}" alt="${escapeHtml(storeName)}" width="160" style="display:block;margin:0 auto;max-width:160px;height:auto;" />`
     : `<div style="font-size:22px;font-weight:700;letter-spacing:-0.03em;color:${colors.foreground};">${escapeHtml(storeName)}</div>
-       <div style="margin-top:6px;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:${colors.primary};">Premium Gear</div>`;
+       <div style="margin-top:6px;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:${colors.primary};">Online Store</div>`;
 
   return `<!doctype html>
 <html>
@@ -205,7 +205,7 @@ function shell(opts: {
 }
 
 export function buildCustomerOrderEmailHtml(payload: OrderEmailPayload) {
-  const store = payload.storeName?.trim() || "VE Gear";
+  const store = payload.storeName?.trim() || "Store";
   return shell({
     title: "Order received",
     intro: `Hi ${payload.customerName}, thanks for shopping with ${store}. We've received your order and will process it shortly.`,
@@ -215,7 +215,7 @@ export function buildCustomerOrderEmailHtml(payload: OrderEmailPayload) {
 }
 
 export function buildOwnerOrderEmailHtml(payload: OrderEmailPayload) {
-  const store = payload.storeName?.trim() || "VE Gear";
+  const store = payload.storeName?.trim() || "Store";
   return shell({
     title: "New order received",
     intro: `A customer just placed order ${payload.orderNumber}. Review the details below and process the order.`,

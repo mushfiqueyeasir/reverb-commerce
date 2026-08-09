@@ -28,8 +28,8 @@ export interface PalettePreset {
 
 export const PALETTE_PRESETS: PalettePreset[] = [
   {
-    id: "ve-gear",
-    name: "VE Gear",
+    id: "default",
+    name: "Default",
     palette: { ...DEFAULT_PALETTE },
   },
   {

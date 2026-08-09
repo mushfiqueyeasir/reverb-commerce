@@ -390,7 +390,7 @@ release:
   desiredVersion: v1.0.0
 
 schema:
-  desiredVersion: "0019"
+  desiredVersion: "0022"
 
 vercel:
   projectId: prj_example

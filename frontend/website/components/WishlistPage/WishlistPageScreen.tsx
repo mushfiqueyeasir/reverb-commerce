@@ -4,12 +4,14 @@ import Link from "next/link";
 import { Heart, Trash2 } from "lucide-react";
 import ImageLoader from "@/components/Common/ImageLoader";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
+import { useStoreName } from "@/components/providers/StoreBrandProvider";
 import { useWishlistStore } from "@/store/wishlistStore";
 import { toast } from "sonner";
 
 export default function WishlistPageScreen() {
   const { items, removeItem, clear } = useWishlistStore();
   const { format } = useCurrency();
+  const storeName = useStoreName();
 
   if (items.length === 0) {
     return (
@@ -113,7 +115,7 @@ export default function WishlistPageScreen() {
                     {item.title}
                   </h3>
                   <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                    VE Gear
+                    {storeName}
                   </p>
                 </div>
                 <div className="shrink-0 text-right">

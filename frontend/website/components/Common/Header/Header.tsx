@@ -11,8 +11,7 @@ interface HeaderProps {
 
 export default function Header({ categories, settings }: HeaderProps) {
   const menuData = getMenuData(categories);
-  const logoUrl = settings.logoUrl || "/images/logo/logo-white.png";
-  const storeName = settings.store_name || "VE Gear";
+  const storeName = settings.store_name || "Store";
 
   return (
     <Suspense
@@ -20,7 +19,11 @@ export default function Header({ categories, settings }: HeaderProps) {
         <div className="absolute inset-x-0 top-0 z-50 h-16 sm:h-20 md:fixed" />
       }
     >
-      <Navbar menuData={menuData} logoUrl={logoUrl} storeName={storeName} />
+      <Navbar
+        menuData={menuData}
+        logoUrl={settings.logoUrl}
+        storeName={storeName}
+      />
     </Suspense>
   );
 }
