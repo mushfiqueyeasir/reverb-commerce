@@ -64,6 +64,38 @@ export function validateClientId(value) {
   return value;
 }
 
+function titleFromClientId(clientId) {
+  return clientId
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+export function deriveStoreDefaults(siteUrl, clientExists = () => false) {
+  const hostname = new URL(siteUrl).hostname.toLowerCase();
+  const withoutWww = hostname.startsWith("www.") ? hostname.slice(4) : hostname;
+  const labels = withoutWww.split(".").filter(Boolean);
+  if (labels.length < 2) throw new Error("SITE_URL must use a public domain");
+
+  let clientId = labels[0].replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
+  if (clientExists(clientId)) {
+    clientId = withoutWww.replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
+  }
+
+  const aliasUrl = hostname.startsWith("www.")
+    ? `https://${withoutWww}`
+    : labels.length === 2
+      ? `https://www.${hostname}`
+      : "";
+  return {
+    clientId: validateClientId(clientId),
+    displayName: titleFromClientId(clientId),
+    aliasUrl,
+    contactEmail: `support@${withoutWww}`,
+  };
+}
+
 export function generateDatabasePassword() {
   return `${randomBytes(24).toString("base64url")}Aa1!`;
 }

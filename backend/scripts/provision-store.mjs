@@ -9,6 +9,7 @@ import {
 import { basename, join } from "node:path";
 import {
   buildPlaceholderAssets,
+  deriveStoreDefaults,
   generateDatabasePassword,
   HttpError,
   maskSecret,
@@ -61,43 +62,43 @@ function summary(markdown) {
 }
 
 function getConfig() {
-  const clientId = validateClientId(required("CLIENT_ID"));
-  const mode = optional("PROVISION_MODE", "provision");
+  const siteUrl = normalizeHttpsUrl(required("SITE_URL"), "SITE_URL");
+  const derived = deriveStoreDefaults(siteUrl, (clientId) =>
+    existsSync(join(clientsDirectory, clientId)),
+  );
+  const clientId = validateClientId(optional("CLIENT_ID", derived.clientId));
+  const mode = optional("PROVISION_MODE", "resume");
   if (!new Set(["provision", "resume"]).has(mode)) {
     throw new Error("PROVISION_MODE must be provision or resume");
   }
-  const siteUrl = normalizeHttpsUrl(required("SITE_URL"), "SITE_URL");
   const aliasInput = optional("ALIAS_URL");
-  const aliasUrl = aliasInput ? normalizeHttpsUrl(aliasInput, "ALIAS_URL") : "";
+  const aliasUrl = aliasInput
+    ? normalizeHttpsUrl(aliasInput, "ALIAS_URL")
+    : derived.aliasUrl;
   if (aliasUrl === siteUrl)
     throw new Error("ALIAS_URL must differ from SITE_URL");
   const releaseSha = required("RELEASE_SHA").toLowerCase();
   if (!/^[0-9a-f]{40}$/.test(releaseSha))
     throw new Error("RELEASE_SHA must be a full Git commit SHA");
-  const confirmation = required("PROVISION_CONFIRMATION");
-  if (confirmation !== `PROVISION ${clientId}`) {
-    throw new Error(`PROVISION_CONFIRMATION must equal PROVISION ${clientId}`);
-  }
-
   const config = {
     clientId,
     mode,
-    displayName: required("STORE_NAME"),
+    displayName: optional("STORE_NAME", derived.displayName),
     siteUrl,
     aliasUrl,
-    contactEmail: optional("CONTACT_EMAIL", "support@example.invalid"),
+    contactEmail: optional("CONTACT_EMAIL", derived.contactEmail),
     contactPhone: optional("CONTACT_PHONE"),
     storeAddress: optional("STORE_ADDRESS"),
     currency: optional("CURRENCY", "BDT"),
     currencySymbol: optional("CURRENCY_SYMBOL", "৳"),
-    shippingFlat: numericString("SHIPPING_FLAT", "0"),
-    freeShippingThreshold: numericString("FREE_SHIPPING_THRESHOLD", "0"),
+    shippingFlat: numericString("SHIPPING_FLAT", "80"),
+    freeShippingThreshold: numericString("FREE_SHIPPING_THRESHOLD", "1000"),
     supabaseToken: required("SUPABASE_ACCESS_TOKEN"),
-    supabaseOrganizationSlug: required("SUPABASE_ORG_SLUG"),
-    supabaseRegion: required("SUPABASE_REGION"),
+    supabaseOrganizationSlug: optional("SUPABASE_ORG_SLUG"),
+    supabaseRegion: optional("SUPABASE_REGION", "ap-southeast-1"),
     supabaseInstanceSize: optional("SUPABASE_INSTANCE_SIZE"),
     vercelToken: required("VERCEL_TOKEN"),
-    vercelTeamId: required("VERCEL_TEAM_ID"),
+    vercelTeamId: optional("VERCEL_TEAM_ID"),
     gitRepository: optional(
       "VERCEL_GIT_REPOSITORY",
       "mushfiqueyeasir/reverb-commerce",
@@ -169,6 +170,22 @@ async function supabaseRequest(config, path, options = {}) {
     token: config.supabaseToken,
     ...options,
   });
+}
+
+async function resolveSupabaseOrganization(config) {
+  if (config.supabaseOrganizationSlug) return;
+  const response = await supabaseRequest(config, "/v1/organizations");
+  const organizations = Array.isArray(response)
+    ? response
+    : (response?.organizations ?? []);
+  const organization = organizations[0];
+  if (!organization?.slug) {
+    throw new Error(
+      "The Supabase token does not have access to an organization",
+    );
+  }
+  config.supabaseOrganizationSlug = organization.slug;
+  console.log(`Using Supabase organization ${organization.slug}.`);
 }
 
 async function listSupabaseProjects(config) {
@@ -587,10 +604,27 @@ async function configureAuthAndAdmin(
 
 function vercelUrl(config, path, parameters = {}) {
   const url = new URL(`${VERCEL_API}${path}`);
-  url.searchParams.set("teamId", config.vercelTeamId);
+  if (config.vercelTeamId) {
+    url.searchParams.set("teamId", config.vercelTeamId);
+  }
   for (const [name, value] of Object.entries(parameters))
     url.searchParams.set(name, value);
   return url.toString();
+}
+
+async function resolveVercelTeam(config) {
+  if (config.vercelTeamId) return;
+  const response = await requestJson(`${VERCEL_API}/v2/teams?limit=100`, {
+    token: config.vercelToken,
+  });
+  const teams = Array.isArray(response) ? response : (response?.teams ?? []);
+  const team = teams[0];
+  if (team?.id) {
+    config.vercelTeamId = team.id;
+    console.log(`Using Vercel team ${team.slug ?? team.name ?? team.id}.`);
+  } else {
+    console.log("Using the Vercel token's personal account scope.");
+  }
 }
 
 async function vercelRequest(config, path, options = {}, parameters = {}) {
@@ -946,6 +980,11 @@ async function main() {
   maskSecret(config.adminPassword);
   validateRegistryPreflight(config);
   console.log(`Provisioning ${config.clientId} from ${config.releaseSha}.`);
+
+  await Promise.all([
+    resolveSupabaseOrganization(config),
+    resolveVercelTeam(config),
+  ]);
 
   const [supabaseProjects, existingVercel] = await Promise.all([
     listSupabaseProjects(config),

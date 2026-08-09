@@ -4,7 +4,7 @@ Each directory contains non-secret desired and deployed state for one isolated
 storefront. Runtime credentials remain in Supabase, Vercel, protected GitHub
 secrets, or ignored local files.
 
-New clients are added by `.github/workflows/provision-store.yml` only after the
+New clients are added by `.github/workflows/deploy-new-customer.yml` only after the
 Supabase project, Vercel deployment, domains, and smoke tests succeed.
 
 Every generated directory contains:

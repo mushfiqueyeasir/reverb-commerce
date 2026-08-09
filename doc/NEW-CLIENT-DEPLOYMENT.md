@@ -1,6 +1,6 @@
 # New Client Store Provisioning
 
-New stores are created with the `Provision customer store` GitHub Actions
+New stores are created with the `Deploy New Customer` GitHub Actions
 workflow. The workflow creates isolated Supabase and Vercel projects, installs
 the current schema and sample content, connects Vercel DNS, verifies the store,
 and registers the client on `main`.
@@ -18,15 +18,20 @@ VERCEL_TOKEN
 BOOTSTRAP_ADMIN_PASSWORD
 ```
 
-Environment variables:
+Optional environment variables override automatic selection:
 
 ```text
 SUPABASE_ORG_SLUG
-SUPABASE_INSTANCE_SIZE          # optional
+SUPABASE_REGION
+SUPABASE_INSTANCE_SIZE
 VERCEL_TEAM_ID
-VERCEL_GIT_REPOSITORY           # defaults to mushfiqueyeasir/reverb-commerce
-BOOTSTRAP_ADMIN_EMAIL           # defaults to mushfiqueyeasir@gmail.com
+VERCEL_GIT_REPOSITORY
+BOOTSTRAP_ADMIN_EMAIL
 ```
+
+When organization or team IDs are absent, the workflow selects the first one
+available to the supplied tokens. The repository and administrator email use
+the application defaults.
 
 The Vercel GitHub App must have access to the repository. The workflow token
 must be allowed to push the final non-secret registry commit to `main`.
@@ -37,8 +42,8 @@ secret and derives each registered project's server key at runtime.
 ## Domain prerequisite
 
 The customer must own the domain and delegate it to Vercel DNS before the
-workflow can complete. The canonical and alias inputs must be HTTPS origins
-without paths, query strings, or fragments.
+workflow can complete. Supply an HTTPS origin without a path, query string, or
+fragment. The workflow derives its apex or `www` redirect alias.
 
 Example:
 
@@ -51,21 +56,20 @@ The alias receives a permanent redirect to the canonical hostname.
 
 ## Run the workflow
 
-Open Actions, select `Provision customer store`, and choose `Run workflow`.
+Open Actions, select `Deploy New Customer`, and choose `Run workflow`.
 
-Required customer inputs include:
+The workflow form asks for one value:
 
 ```text
-Client ID
-Store name
-Canonical site URL
-Currency and shipping defaults
-Supabase region
-Confirmation: PROVISION <client-id>
+https://www.example.com/
 ```
 
-Use `provision` for a new customer. Use `resume` only after a partial run of the
-same workflow left matching `store-<client-id>` resources.
+Run it from `main`. GitHub always displays its built-in branch selector for
+manual workflows, but the workflow rejects every branch except `main`.
+
+The client ID, store name, apex or `www` alias, support email, BDT defaults,
+Singapore Supabase region, release commit, and resume behavior are derived
+automatically. A partial run safely resumes matching resources.
 
 ## Created resources
 

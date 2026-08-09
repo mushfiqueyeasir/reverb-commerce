@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   buildPlaceholderAssets,
+  deriveStoreDefaults,
   normalizeHttpsUrl,
   renderSqlTemplate,
   sqlLiteral,
@@ -20,6 +21,25 @@ test("validates and normalizes provisioning identifiers", () => {
   assert.throws(() => normalizeHttpsUrl("http://example.com", "SITE_URL"));
   assert.throws(() =>
     normalizeHttpsUrl("https://example.com/path", "SITE_URL"),
+  );
+});
+
+test("derives store identity and aliases from one domain", () => {
+  assert.deepEqual(deriveStoreDefaults("https://www.sample-store.com"), {
+    clientId: "sample-store",
+    displayName: "Sample Store",
+    aliasUrl: "https://sample-store.com",
+    contactEmail: "support@sample-store.com",
+  });
+  assert.deepEqual(deriveStoreDefaults("https://sample-store.com"), {
+    clientId: "sample-store",
+    displayName: "Sample Store",
+    aliasUrl: "https://www.sample-store.com",
+    contactEmail: "support@sample-store.com",
+  });
+  assert.equal(
+    deriveStoreDefaults("https://www.sample-store.com", () => true).clientId,
+    "sample-store-com",
   );
 });
 
