@@ -26,6 +26,7 @@ import type { SiteSettingsRow } from "@/type/db";
 
 export interface SiteSettings extends SiteSettingsRow {
   logoUrl: string | null;
+  invoiceLogoUrl: string | null;
   faviconUrl: string | null;
   currencies: CurrencySettings;
   deliveryCharges: DeliveryCharges;
@@ -37,8 +38,10 @@ const FALLBACK: SiteSettings = {
   id: 1,
   store_name: "VE-gear",
   logo_path: null,
+  invoice_logo_path: null,
   favicon_path: null,
   logoUrl: null,
+  invoiceLogoUrl: null,
   faviconUrl: null,
   contact_email: null,
   contact_phone: null,
@@ -101,6 +104,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       announcement_url: announcement_url ?? null,
       favicon_path,
       logoUrl: brandingImageUrl(row.logo_path),
+      invoiceLogoUrl: brandingImageUrl(row.invoice_logo_path),
       faviconUrl: brandingImageUrl(favicon_path),
       palette: normalizePalette(cms.palette),
     };

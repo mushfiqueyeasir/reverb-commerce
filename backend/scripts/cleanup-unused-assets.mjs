@@ -296,7 +296,7 @@ async function collectReferencedPaths(supabase) {
     }),
     supabase
       .from("site_settings")
-      .select("logo_path, favicon_path, socials")
+      .select("logo_path, invoice_logo_path, favicon_path, socials")
       .limit(1)
       .maybeSingle(),
     selectAllRows(supabase, "homepage_sections", "config, body", {
@@ -341,6 +341,11 @@ async function collectReferencedPaths(supabase) {
       referenced.get("branding"),
       "branding",
       siteSettings.data.logo_path,
+    );
+    addPath(
+      referenced.get("branding"),
+      "branding",
+      siteSettings.data.invoice_logo_path,
     );
     addPath(
       referenced.get("branding"),

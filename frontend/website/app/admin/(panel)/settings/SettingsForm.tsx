@@ -127,6 +127,9 @@ export function SettingsForm({
   const [logo, setLogo] = useState<UploadedImage[]>(
     settings.logo_path ? [{ path: settings.logo_path }] : [],
   );
+  const [invoiceLogo, setInvoiceLogo] = useState<UploadedImage[]>(
+    settings.invoice_logo_path ? [{ path: settings.invoice_logo_path }] : [],
+  );
   const [favicon, setFavicon] = useState<UploadedImage[]>(
     settings.favicon_path ? [{ path: settings.favicon_path }] : [],
   );
@@ -324,6 +327,7 @@ export function SettingsForm({
     const input: SettingsInput = {
       store_name: storeName,
       logo_path: logo[0]?.path ?? null,
+      invoice_logo_path: invoiceLogo[0]?.path ?? null,
       favicon_path: favicon[0]?.path ?? null,
       contact_email: orNull(contactEmail),
       contact_phone: orNull(contactPhone),
@@ -541,6 +545,19 @@ export function SettingsForm({
                   />
                 </FormField>
               </div>
+              <FormField
+                label="Invoice / print logo"
+                hint="Optional. Upload a dark or colored transparent PNG suitable for white paper. The checkerboard confirms transparency. If omitted, invoices use the store name."
+              >
+                <ImageUploader
+                  bucket={BUCKETS.branding}
+                  value={invoiceLogo}
+                  onChange={setInvoiceLogo}
+                  label="Add print-safe invoice logo"
+                  enableCrop
+                  preview="wide"
+                />
+              </FormField>
             </TabsContent>
 
             <TabsContent value="colors" className="mt-0 space-y-6">

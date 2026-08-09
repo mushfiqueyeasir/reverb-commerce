@@ -72,6 +72,6 @@ customer mail.
 7. Confirm a courier-linked order cannot be cancelled, sent to a different provider, or deleted locally.
 8. Confirm `cleanup-abandoned-gateway-orders` is scheduled in `cron.job` every 15 minutes.
 
-New projects use `backend/supabase/baselines/v1_0018_clean.sql`, then apply
-`0019_payment_courier_concurrency.sql`. Existing projects apply migrations
-`0017` through `0019` in order; they do not rerun the baseline.
+New projects use `backend/supabase/baselines/v1_0018_clean.sql`, then apply all
+later migrations in numeric order. Existing projects apply only migrations not
+already present in their environment; they do not rerun the baseline.

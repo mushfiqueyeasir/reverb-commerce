@@ -244,6 +244,8 @@ export interface SiteSettingsRow {
   id: number;
   store_name: string;
   logo_path: string | null;
+  /** Present after 0021_invoice_print_logo migration is applied. */
+  invoice_logo_path?: string | null;
   /** Present after 0011_favicon migration is applied. */
   favicon_path?: string | null;
   contact_email: string | null;

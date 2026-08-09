@@ -16,6 +16,7 @@ const DEFAULTS: SiteSettingsRow = {
   id: 1,
   store_name: "VE-gear",
   logo_path: null,
+  invoice_logo_path: null,
   favicon_path: null,
   contact_email: null,
   contact_phone: null,

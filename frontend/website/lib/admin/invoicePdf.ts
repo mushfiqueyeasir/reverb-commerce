@@ -1,9 +1,4 @@
 import { jsPDF } from "jspdf";
-import {
-  DEFAULT_PALETTE,
-  normalizePalette,
-  type ThemePalette,
-} from "@/lib/theme/palette";
 
 export interface InvoiceLineItem {
   title: string;
@@ -23,8 +18,8 @@ export interface InvoiceData {
   storePhone: string | null;
   /** ASCII-safe currency label for PDF (e.g. BDT, USD). Avoid symbols like ৳. */
   currencyCode: string;
-  logoUrl: string | null;
-  palette: ThemePalette;
+  invoiceLogoUrl: string | null;
+  accentColor: string;
   customerName: string;
   phone: string | null;
   addressLines: string[];
@@ -40,6 +35,17 @@ export interface InvoiceData {
 
 type Rgb = [number, number, number];
 
+export interface InvoicePrintColors {
+  background: Rgb;
+  surface: Rgb;
+  card: Rgb;
+  foreground: Rgb;
+  muted: Rgb;
+  border: Rgb;
+  primary: Rgb;
+  primaryForeground: Rgb;
+}
+
 function hexToRgb(hex: string, fallback = "#000000"): Rgb {
   const raw = (hex || fallback).replace("#", "").trim();
   const full =
@@ -52,6 +58,51 @@ function hexToRgb(hex: string, fallback = "#000000"): Rgb {
   const n = Number.parseInt(full, 16);
   if (!Number.isFinite(n)) return hexToRgb(fallback);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function relativeLuminance(rgb: Rgb): number {
+  const [r, g, b] = rgb.map((channel) => {
+    const value = channel / 255;
+    return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function contrastRatio(a: Rgb, b: Rgb): number {
+  const light = Math.max(relativeLuminance(a), relativeLuminance(b));
+  const dark = Math.min(relativeLuminance(a), relativeLuminance(b));
+  return (light + 0.05) / (dark + 0.05);
+}
+
+function darken(rgb: Rgb, amount: number): Rgb {
+  return rgb.map((channel) =>
+    Math.max(0, Math.round(channel * (1 - amount))),
+  ) as Rgb;
+}
+
+export function getInvoicePrintColors(accentColor: string): InvoicePrintColors {
+  const white: Rgb = [255, 255, 255];
+  let primary = hexToRgb(accentColor, "#b42318");
+
+  for (
+    let step = 0;
+    contrastRatio(primary, white) < 4.5 && step < 8;
+    step += 1
+  ) {
+    primary = darken(primary, 0.12);
+  }
+
+  return {
+    background: white,
+    surface: [247, 248, 250],
+    card: [252, 252, 253],
+    foreground: [17, 24, 39],
+    muted: [75, 85, 99],
+    border: [209, 213, 219],
+    primary,
+    primaryForeground:
+      contrastRatio(primary, white) >= 4.5 ? white : [17, 24, 39],
+  };
 }
 
 function money(value: number, code: string): string {
@@ -105,6 +156,14 @@ async function loadImageAsDataUrl(url: string): Promise<{
     const res = await fetch(url, { mode: "cors" });
     if (!res.ok) return null;
     const blob = await res.blob();
+    if (
+      !blob.type.includes("png") &&
+      !blob.type.includes("jpeg") &&
+      !blob.type.includes("jpg")
+    ) {
+      return null;
+    }
+
     const dataUrl = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(String(reader.result));
@@ -112,22 +171,53 @@ async function loadImageAsDataUrl(url: string): Promise<{
       reader.readAsDataURL(blob);
     });
 
-    const dims = await new Promise<{ width: number; height: number }>(
-      (resolve, reject) => {
-        const img = new Image();
-        img.onload = () =>
-          resolve({ width: img.naturalWidth, height: img.naturalHeight });
-        img.onerror = reject;
-        img.src = dataUrl;
-      },
-    );
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 64;
+    canvas.height = 64;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (context) {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const pixels = context.getImageData(
+        0,
+        0,
+        canvas.width,
+        canvas.height,
+      ).data;
+      let visible = 0;
+      let nearWhite = 0;
+      for (let index = 0; index < pixels.length; index += 4) {
+        if (pixels[index + 3] < 24) continue;
+        visible += 1;
+        if (
+          pixels[index] > 235 &&
+          pixels[index + 1] > 235 &&
+          pixels[index + 2] > 235
+        ) {
+          nearWhite += 1;
+        }
+      }
+      if (visible > 0 && nearWhite / visible > 0.85) return null;
+    }
 
     const format: "PNG" | "JPEG" =
       blob.type.includes("png") || dataUrl.startsWith("data:image/png")
         ? "PNG"
         : "JPEG";
 
-    return { dataUrl, format, ...dims };
+    return {
+      dataUrl,
+      format,
+      width: image.naturalWidth,
+      height: image.naturalHeight,
+    };
   } catch {
     return null;
   }
@@ -136,15 +226,15 @@ async function loadImageAsDataUrl(url: string): Promise<{
 async function buildOrderInvoicePdf(
   data: InvoiceData,
 ): Promise<{ filename: string; blob: Blob }> {
-  const palette = normalizePalette(data.palette ?? DEFAULT_PALETTE);
-  const bg = hexToRgb(palette.background);
-  const surface = hexToRgb(palette.surface);
-  const card = hexToRgb(palette.card);
-  const fg = hexToRgb(palette.foreground);
-  const muted = hexToRgb(palette.mutedForeground);
-  const border = hexToRgb(palette.border);
-  const primary = hexToRgb(palette.primary);
-  const onPrimary = hexToRgb(palette.primaryForeground);
+  const colors = getInvoicePrintColors(data.accentColor);
+  const bg = colors.background;
+  const surface = colors.surface;
+  const card = colors.card;
+  const fg = colors.foreground;
+  const muted = colors.muted;
+  const border = colors.border;
+  const primary = colors.primary;
+  const onPrimary = colors.primaryForeground;
 
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
@@ -173,8 +263,9 @@ async function buildOrderInvoicePdf(
 
   // Logo / store name
   let headerBottom = margin + 18;
-  if (data.logoUrl) {
-    const logo = await loadImageAsDataUrl(data.logoUrl);
+  let logoDrawn = false;
+  if (data.invoiceLogoUrl) {
+    const logo = await loadImageAsDataUrl(data.invoiceLogoUrl);
     if (logo && logo.width > 0 && logo.height > 0) {
       const maxW = 42;
       const maxH = 14;
@@ -185,25 +276,25 @@ async function buildOrderInvoicePdf(
         drawH = maxH;
         drawW = drawH * ratio;
       }
-      doc.addImage(
-        logo.dataUrl,
-        logo.format,
-        margin,
-        margin + 2,
-        drawW,
-        drawH,
-        undefined,
-        "FAST",
-      );
-      headerBottom = margin + 2 + drawH + 4;
-    } else {
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(16);
-      doc.setTextColor(...fg);
-      doc.text(asciiSafe(data.storeName || "Store"), margin, margin + 10);
-      headerBottom = margin + 16;
+      try {
+        doc.addImage(
+          logo.dataUrl,
+          logo.format,
+          margin,
+          margin + 2,
+          drawW,
+          drawH,
+          undefined,
+          "FAST",
+        );
+        headerBottom = margin + 2 + drawH + 4;
+        logoDrawn = true;
+      } catch {
+        logoDrawn = false;
+      }
     }
-  } else {
+  }
+  if (!logoDrawn) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
     doc.setTextColor(...fg);

@@ -38,6 +38,7 @@ import type { SaveCourierSettingsInput } from "@/lib/couriers/types";
 export interface SettingsInput {
   store_name: string;
   logo_path: string | null;
+  invoice_logo_path: string | null;
   favicon_path: string | null;
   contact_email: string | null;
   contact_phone: string | null;
@@ -133,6 +134,7 @@ export async function saveSettings(
   const base = {
     store_name: input.store_name.trim(),
     logo_path: input.logo_path,
+    invoice_logo_path: input.invoice_logo_path,
     favicon_path: input.favicon_path,
     contact_email: input.contact_email,
     contact_phone: input.contact_phone,
@@ -167,6 +169,9 @@ export async function saveSettings(
     if (/favicon_path/i.test(error.message)) {
       delete payload.favicon_path;
     }
+    if (/invoice_logo_path/i.test(error.message)) {
+      delete payload.invoice_logo_path;
+    }
     if (/announcement_/i.test(error.message)) {
       delete payload.announcement_text;
       delete payload.announcement_active;
@@ -181,6 +186,7 @@ export async function saveSettings(
   if (error) {
     const minimal = { ...base } as Record<string, unknown>;
     delete minimal.favicon_path;
+    delete minimal.invoice_logo_path;
     const { error: fallbackError } = await supabase
       .from("site_settings")
       .update(minimal)
