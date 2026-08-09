@@ -1,4 +1,5 @@
 import { requireRole } from "@/lib/admin/auth";
+import { isHiddenAdminEmail } from "@/lib/admin/userVisibility";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -30,16 +31,18 @@ export default async function UsersPage() {
     });
   }
 
-  const rows: UserTableRow[] = (authData?.users ?? []).map((u) => {
-    const profile = profileMap.get(u.id);
-    return {
-      id: u.id,
-      email: u.email ?? "—",
-      full_name: profile?.full_name ?? null,
-      role: profile?.role ?? "viewer",
-      created_at: u.created_at,
-    };
-  });
+  const rows: UserTableRow[] = (authData?.users ?? [])
+    .filter((u) => !isHiddenAdminEmail(u.email))
+    .map((u) => {
+      const profile = profileMap.get(u.id);
+      return {
+        id: u.id,
+        email: u.email ?? "—",
+        full_name: profile?.full_name ?? null,
+        role: profile?.role ?? "viewer",
+        created_at: u.created_at,
+      };
+    });
 
   rows.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
 
