@@ -6,7 +6,6 @@ import { requireAdminSession, canWrite } from "@/lib/admin/auth";
 import { writeAuditLog } from "@/lib/admin/auditLog";
 import {
   RESTOCK_ON_DELETE_STATUSES,
-  restockVariantsForOrders,
 } from "@/lib/admin/orderStock";
 import type { OrderStatus } from "@/type/db";
 
@@ -57,31 +56,40 @@ export async function deleteCustomers(
     status: OrderStatus;
   }[];
 
+  if (orderRows.length) {
+    const { data: linkedShipments, error: shipmentError } = await supabase
+      .from("order_shipments")
+      .select("order_id")
+      .in(
+        "order_id",
+        orderRows.map((order) => order.id),
+      );
+    if (shipmentError) return { error: shipmentError.message };
+    if (linkedShipments?.length) {
+      return {
+        error:
+          "This customer has one or more courier-synced orders and cannot be deleted.",
+      };
+    }
+  }
+
   const restockIds = orderRows
     .filter((r) => RESTOCK_ON_DELETE_STATUSES.includes(r.status))
     .map((r) => r.id);
 
-  if (restockIds.length) {
-    const restock = await restockVariantsForOrders(supabase, restockIds);
-    if (restock.error) return { error: restock.error };
+  const { error: deleteCustomersError } = await supabase.rpc(
+    "delete_customers_safely",
+    { p_customer_ids: customerIdsFound },
+  );
+  if (deleteCustomersError) {
+    if (/courier-synced/i.test(deleteCustomersError.message)) {
+      return {
+        error:
+          "This customer has one or more courier-synced orders and cannot be deleted.",
+      };
+    }
+    return { error: deleteCustomersError.message };
   }
-
-  if (orderRows.length) {
-    const { error: deleteOrdersError } = await supabase
-      .from("orders")
-      .delete()
-      .in(
-        "id",
-        orderRows.map((r) => r.id),
-      );
-    if (deleteOrdersError) return { error: deleteOrdersError.message };
-  }
-
-  const { error: deleteCustomersError } = await supabase
-    .from("customers")
-    .delete()
-    .in("id", customerIdsFound);
-  if (deleteCustomersError) return { error: deleteCustomersError.message };
 
   const labels = customers
     .map((c) => c.name || c.phone || c.id.slice(0, 8))

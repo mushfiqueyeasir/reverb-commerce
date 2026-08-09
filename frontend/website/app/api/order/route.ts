@@ -15,16 +15,12 @@ import { appConfig } from "@/lib/config";
 import { createBkashPayment } from "@/lib/payments/bkash";
 import { getBkashSettings, isBkashReady } from "@/lib/payments/bkashSettings";
 import { paymentMethodLabel } from "@/lib/payments/paymentLabels";
-import { restockVariantsForOrders } from "@/lib/admin/orderStock";
 import type { OrderFormData } from "@/type/orderType";
 import type { ProductImageRow } from "@/type/db";
-import type { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
-
-type ServerClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
 function resolveZone(value: string | undefined): DeliveryZone {
   return value === "outside-dhaka" ? "outside-dhaka" : "inside-dhaka";
@@ -38,18 +34,9 @@ async function failUnpaidOrder(
   supabase: ReturnType<typeof createSupabaseAdminClient>,
   orderId: string,
 ) {
-  await supabase
-    .from("orders")
-    .update({
-      payment_status: "failed",
-      status: "cancelled",
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", orderId);
-
-  await restockVariantsForOrders(supabase as unknown as ServerClient, [
-    orderId,
-  ]);
+  await supabase.rpc("delete_unpaid_gateway_order", {
+    p_order_id: orderId,
+  });
 }
 
 export async function POST(request: NextRequest) {

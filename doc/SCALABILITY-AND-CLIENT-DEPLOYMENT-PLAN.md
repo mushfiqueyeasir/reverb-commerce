@@ -2,7 +2,7 @@
 
 **Owner:** Reverb Solution<br>
 **Status:** Architecture proposal
-**Last updated:** 06 August 2026
+**Last updated:** 09 August 2026
 
 ## 1. Executive Summary
 
@@ -39,7 +39,7 @@ Examples:
 
 Every Vercel project deploys from the same application codebase and receives different environment variables. The exact pinned commit may temporarily differ during controlled release waves.
 
-Every Supabase project receives the same schema migrations, but stores different client data, users, settings, products, orders, media, SMTP credentials, and payment credentials.
+Every Supabase project receives the same schema migrations, but stores different client data, users, settings, products, orders, media, SMTP credentials, payment credentials, and courier credentials.
 
 ```mermaid
 flowchart LR
@@ -116,6 +116,7 @@ Client count is not the only decision factor. Revenue per client, traffic, compl
 - Server actions.
 - Order placement logic.
 - bKash callbacks.
+- Courier API clients, shipment creation, status refresh, and authenticated webhooks.
 - Email delivery.
 - Supabase server and service-role clients.
 - SEO, sitemap, analytics, feeds, and middleware.
@@ -142,6 +143,7 @@ Examples:
 - `site_settings` is a singleton row with `id = 1`.
 - SMTP settings use one singleton row.
 - bKash settings use one singleton row.
+- Courier settings allow at most one active provider for new shipments.
 - Staff profiles have one global role.
 - Product slugs are globally unique.
 - Customer phone numbers are globally unique.
@@ -272,6 +274,7 @@ Create one Supabase project per client with:
 - Separate Storage buckets.
 - Separate service-role key.
 - Separate SMTP and payment settings.
+- Separate courier credentials, webhook secrets, shipment records, and event history.
 - Separate backup and restore policy.
 - Separate usage and capacity monitoring.
 
@@ -361,6 +364,7 @@ If the `backend/clients` folder is used, it must not contain:
 - Database passwords.
 - SMTP passwords.
 - bKash passwords or app secrets.
+- Courier API credentials or webhook secrets.
 - Vercel access tokens.
 - Supabase management tokens.
 - GitHub tokens.
@@ -386,7 +390,7 @@ release:
   desiredVersion: v1.0.0
 
 schema:
-  desiredVersion: "0016"
+  desiredVersion: "0019"
 
 vercel:
   projectId: prj_example
@@ -429,7 +433,8 @@ SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
 ```
 
-Any future server-side provider credentials should follow the same rule.
+Merchant-managed SMTP, payment, and courier credentials are read only by
+server-side code. They must never be returned to the browser after saving.
 
 Legacy file-based Gmail credentials and notification recipients should be removed rather than silently retained as fallbacks. The application must validate its complete environment schema during build/startup and fail with a safe, actionable configuration error.
 
@@ -445,8 +450,9 @@ The merchant can manage these values from the admin panel:
 - Chat provider settings.
 - SMTP sender configuration and recipients.
 - bKash configuration.
+- Pathao, Steadfast, and REDX credentials, webhook secrets, sandbox mode, and active-provider selection.
 
-SMTP and bKash secrets are currently stored in plaintext private database columns. Before external-client launch, choose and implement one supported model:
+SMTP, bKash, and courier secrets are currently stored in plaintext private database columns. Before external-client launch, choose and implement one supported model:
 
 - Store credentials as per-client Vercel secrets and make changes an operational support action.
 - Encrypt database-held credentials with a per-client key stored outside the database, and expose only audited server-side write/read operations.
@@ -473,7 +479,7 @@ flowchart LR
     VercelEnv[Vercel environment] -->|Runtime configuration| App[Client application]
     Database[Client Supabase] -->|Merchant settings| App
 
-    Git -. never stores .-> RuntimeSecrets[Service-role, SMTP, payment secrets]
+    Git -. never stores .-> RuntimeSecrets[Service-role, SMTP, payment, courier secrets]
 ```
 
 ## 9. White-Label Productization Work
@@ -510,6 +516,7 @@ The following areas must become configurable or generic:
 - Inside/Outside Dhaka as fixed delivery zones.
 - COD always enabled.
 - bKash as the only online payment method.
+- Pathao, Steadfast, and REDX as the supported courier integrations.
 - BDT, USD, and INR as the only supported currency labels.
 - Tee-specific variant and size-chart defaults.
 - Hardcoded tax and delivery copy.
@@ -522,7 +529,36 @@ Default Terms, Privacy, Refund, shipping, delivery, and return content must be a
 
 Demo catalog and seed data should not be applied to production client projects automatically.
 
-Some current historical migration files insert demo products, VE Gear branding, and default legal content. Before the first external client, create a versioned schema-only baseline. Existing projects retain and reconcile their historical ledger; new client projects start from the baseline and never execute covered demo migrations. Once this cutover is released, both the baseline and subsequent migration history remain immutable.
+Some historical migration files insert demo products, VE Gear branding, and default legal content. New client projects now start from the versioned schema-only baseline `backend/supabase/baselines/v1_0018_clean.sql` and never execute the covered demo migrations. Existing projects retain and reconcile their historical ledger. Both the baseline and subsequent production migration history remain immutable.
+
+### 9.5 Courier, payment, and email operations
+
+Each client can configure Pathao, Steadfast, and REDX independently. A partial
+unique index permits at most one active provider for new shipments, while
+existing `order_shipments` rows retain their original provider. Switching from
+Pathao to REDX therefore changes only future creation requests; Pathao webhooks
+and manual refresh remain valid for existing Pathao shipments.
+
+Shipment creation is an explicit staff action after approval. COD orders and paid
+online orders are eligible, but unpaid online orders are not. Provider-specific parcel weight
+and delivery-area requirements are validated before the API request. Once a
+shipment exists, database constraints and server actions block local
+cancellation, provider reassignment, order deletion, and customer cascade
+deletion.
+
+Provider callbacks require the configured webhook secret. Events have provider
+keys for idempotent ingestion, preserve raw status history, and use conservative
+mapping: only safe forward progress updates the main order status. Hold,
+failure, partial-delivery, return, approval-pending, and unknown states do not
+cancel, restock, or regress an order.
+
+Migration `0018` schedules abandoned unpaid gateway-order cleanup every 15
+minutes with a one-hour cutoff. Stock restoration and order deletion are
+transactional, paid/COD/courier-linked orders are excluded, and locked rows are
+skipped to avoid racing payment callbacks. Migration `0019` adds an explicit
+payment-processing claim, atomic shipment reservation, idempotent courier-event
+ingestion, and monotonic status advancement. SMTP configuration includes a live
+server-side login test so invalid credentials can be rejected before launch.
 
 ## 10. Database Migration Strategy
 
@@ -540,10 +576,10 @@ Each Supabase project must maintain the authoritative migration ledger, includin
 
 ### 10.2 Baseline cutover model
 
-Before the first external client:
+For the current baseline and future releases:
 
 1. Reconcile VE Gear and record its actual historical migration state.
-2. Generate and verify a schema-only `v1` baseline with no demo catalog, VE Gear content, credentials, or client legal text.
+2. Verify the schema-only `v1_0018_clean.sql` baseline contains no demo catalog, VE Gear content, credentials, or client legal text.
 3. Record the historical migrations covered by that baseline, including their checksums.
 4. Provision every new client from the versioned baseline.
 5. Mark covered migrations as applied in that client's database-local ledger.
@@ -693,11 +729,13 @@ Recommended flow:
 12. Deploy a pinned stable release to its temporary Vercel URL.
 13. Attach and verify the production domain while maintenance/noindex protection remains active.
 14. Configure Supabase auth redirects and payment callbacks for the production domain.
-15. Configure payment, email, analytics, and chat settings.
-16. Configure backups, monitoring, and storage cleanup.
-17. Run storefront, admin, checkout, payment-callback, email, sitemap, and storage smoke tests through the production domain.
-18. Remove maintenance/noindex protection.
-19. Mark the client active in the deployment registry.
+15. Configure payment, email, courier, analytics, and chat settings.
+16. Register unique courier webhook secrets and verify shipment creation, manual refresh, and a signed webhook for every enabled provider.
+17. Confirm the abandoned-payment `pg_cron` job is installed and scheduled every 15 minutes.
+18. Configure backups, monitoring, and storage cleanup.
+19. Run storefront, admin, checkout, payment-callback, email, courier, sitemap, and storage smoke tests through the production domain.
+20. Remove maintenance/noindex protection.
+21. Mark the client active in the deployment registry.
 
 ```mermaid
 flowchart TD
@@ -784,6 +822,9 @@ Monitor:
 - Supabase database, auth, and storage availability.
 - Checkout completion rate.
 - bKash payment success and callback failures.
+- Courier shipment-creation, webhook-authentication, and status-refresh failures by provider.
+- Courier events that do not map to a safe forward order transition.
+- Abandoned gateway-order cleanup job failures, run age, and deletion volume.
 - Email delivery failures.
 - Migration status.
 - Backup freshness.
@@ -808,7 +849,7 @@ Selling the product creates ongoing responsibility for merchant staff access and
 ### 17.1 Access controls
 
 - Require MFA for Reverb Solution accounts with access to Vercel, Supabase, GitHub, domains, backups, and payment configuration.
-- Require application-level MFA before external launch for merchant administrators and any role that can change users, payments, email credentials, or security settings.
+- Require application-level MFA before external launch for merchant administrators and any role that can change users, payments, email credentials, courier credentials, or security settings.
 - Replace the current six-character minimum with a stronger password policy.
 - Use named accounts rather than shared credentials.
 - Review merchant and Reverb Solution access regularly.
@@ -891,7 +932,7 @@ Responsibilities:
 | Infrastructure cost | Linear | Lower marginal cost |
 | Release effort | Requires fleet automation | One application deployment |
 | Custom domains and SEO | Natural | Requires host-to-tenant resolution |
-| Payment and SMTP isolation | Strong | Requires encrypted tenant secret handling |
+| Payment, SMTP, and courier isolation | Strong | Requires encrypted tenant secret handling |
 | Security complexity | Moderate | High |
 | Premium customization | Easier | Requires flags and careful compatibility |
 
@@ -937,7 +978,7 @@ flowchart LR
 - Secure order tracking with an opaque token or second verifier.
 - Add idempotency and rate limits to public commerce endpoints.
 - Remove automatic first-user administrator promotion.
-- Encrypt or externalize SMTP and bKash credentials.
+- Encrypt or externalize SMTP, bKash, and courier credentials.
 - Protect the production branch.
 - Disable destructive cleanup until it fails closed.
 - Reconcile the VE Gear database migration state.
@@ -995,7 +1036,7 @@ Evaluate shared tenancy only when:
 - [ ] Remove secrets from tracked files and history.
 - [ ] Add `.env*` and local config files to `.gitignore` safely.
 - [ ] Move all production secrets to Vercel/GitHub secret stores.
-- [ ] Encrypt or externalize SMTP and bKash credentials.
+- [ ] Encrypt or externalize SMTP, bKash, and courier credentials.
 
 ### Commerce safety
 

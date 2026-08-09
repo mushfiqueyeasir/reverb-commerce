@@ -66,6 +66,18 @@ export interface TrackOrderResult {
   paymentMethod: string;
   paymentStatus?: string;
   bkashTrxId?: string | null;
+  courier?: {
+    provider: "pathao" | "steadfast" | "redx";
+    trackingCode: string | null;
+    status: string | null;
+    message: string | null;
+    updatedAt: string | null;
+    events: {
+      status: string;
+      message: string | null;
+      time: string;
+    }[];
+  } | null;
   items: TrackOrderItem[];
   totals: {
     subtotal: number;

@@ -13,12 +13,27 @@ export default async function CustomersPage() {
   const [{ data: customers }, settings] = await Promise.all([
     supabase
       .from("customers")
-      .select("*")
+      .select("*, orders(order_shipments(id))")
       .order("total_spent", { ascending: false }),
     getSiteSettings(),
   ]);
   const symbol = settings.currency_symbol || "$";
-  const rows = (customers as CustomerRow[] | null) ?? [];
+  const rows = (
+    (customers as unknown as (CustomerRow & {
+      orders?: {
+        order_shipments?: { id: string } | { id: string }[] | null;
+      }[];
+    })[] | null) ?? []
+  ).map((customer) => ({
+    ...customer,
+    deletion_locked: Boolean(
+      customer.orders?.some((order) =>
+        Array.isArray(order.order_shipments)
+          ? order.order_shipments.length > 0
+          : Boolean(order.order_shipments),
+      ),
+    ),
+  }));
 
   return (
     <div>

@@ -1,5 +1,6 @@
 import "server-only";
 
+import nodemailer from "nodemailer";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export type SmtpProvider = "gmail" | "smtp";
@@ -134,6 +135,74 @@ export type SaveSmtpInput = {
   fromEmail: string | null;
   notifyEmails: string[];
 };
+
+function smtpErrorMessage(error: unknown, provider: SmtpProvider): string {
+  const details = error as {
+    code?: string;
+    responseCode?: number;
+    command?: string;
+  };
+  if (details.code === "EAUTH" || details.responseCode === 535) {
+    return provider === "gmail"
+      ? "Gmail rejected the credentials. Confirm the Gmail address, enable 2-Step Verification, and use a current 16-character App Password."
+      : "The SMTP server rejected the username or password.";
+  }
+  if (
+    details.code === "ETIMEDOUT" ||
+    details.code === "ECONNECTION" ||
+    details.code === "ECONNREFUSED"
+  ) {
+    return "Could not connect to the mail server. Check the SMTP host, port, TLS mode, and network access.";
+  }
+  return "Could not verify the email configuration with the mail server.";
+}
+
+/** Authenticate with the provider without sending an email. */
+export async function verifySmtpSettings(
+  input: SaveSmtpInput,
+): Promise<{ error?: string }> {
+  if (!input.enabled) return {};
+
+  const current = await getSmtpSettings();
+  const user = input.username?.trim() || "";
+  const pass =
+    (input.password ?? "").replace(/\s+/g, "").trim() ||
+    current.password ||
+    "";
+  if (!user || !pass) {
+    return { error: "SMTP username and password are required." };
+  }
+
+  const transporter =
+    input.provider === "smtp" && input.host?.trim()
+      ? nodemailer.createTransport({
+          host: input.host.trim(),
+          port: input.port > 0 ? input.port : 587,
+          secure: input.secure,
+          requireTLS: !input.secure,
+          auth: { user, pass },
+          connectionTimeout: 15_000,
+          greetingTimeout: 15_000,
+          socketTimeout: 20_000,
+        })
+      : nodemailer.createTransport({
+          service: "gmail",
+          auth: { user, pass },
+          connectionTimeout: 15_000,
+          greetingTimeout: 15_000,
+          socketTimeout: 20_000,
+          requireTLS: true,
+        });
+
+  try {
+    await transporter.verify();
+    return {};
+  } catch (error) {
+    return { error: smtpErrorMessage(error, input.provider) };
+  } finally {
+    transporter.close();
+  }
+}
 
 export async function saveSmtpSettingsRow(
   input: SaveSmtpInput,

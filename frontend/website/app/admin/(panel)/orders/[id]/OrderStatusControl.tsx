@@ -12,14 +12,18 @@ import { updateOrderStatus } from "../actions";
 export function OrderStatusControl({
   orderId,
   status,
+  shipmentLocked = false,
 }: {
   orderId: string;
   status: OrderStatus;
+  shipmentLocked?: boolean;
 }) {
   const { canWrite } = useAdmin();
   const [pending, startTransition] = useTransition();
   const [pendingStatus, setPendingStatus] = useState<OrderStatus | null>(null);
-  const next = ORDER_TRANSITIONS[status] ?? [];
+  const next = (ORDER_TRANSITIONS[status] ?? []).filter(
+    (nextStatus) => !(shipmentLocked && nextStatus === "cancelled"),
+  );
 
   const change = (to: OrderStatus) => {
     setPendingStatus(to);
@@ -52,7 +56,13 @@ export function OrderStatusControl({
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="space-y-3">
+      {shipmentLocked ? (
+        <p className="text-xs text-muted-foreground">
+          Courier-synced orders cannot be cancelled locally.
+        </p>
+      ) : null}
+      <div className="flex flex-wrap gap-2">
       {next.map((to) => {
         const isLoading = pending && pendingStatus === to;
         return (
@@ -69,6 +79,7 @@ export function OrderStatusControl({
           </Button>
         );
       })}
+      </div>
     </div>
   );
 }

@@ -25,9 +25,13 @@ import {
   paymentStatusLabel,
 } from "@/lib/payments/paymentLabels";
 import type { OrderRow, OrderItemRow } from "@/type/db";
+import type { CourierEventRow, OrderShipmentRow } from "@/type/db";
+import { getCourierSettings } from "@/lib/couriers/settings";
+import { COURIER_PROVIDERS } from "@/lib/couriers/metadata";
 import { DownloadInvoiceButton } from "@/components/admin/DownloadInvoiceButton";
 import { OrderNotes } from "./OrderNotes";
 import { OrderStatusControl } from "./OrderStatusControl";
+import { CourierShipmentControl } from "./CourierShipmentControl";
 
 export const dynamic = "force-dynamic";
 
@@ -42,9 +46,10 @@ export default async function OrderDetailPage({
   await requireAdminSession();
   const supabase = await createSupabaseServerClient();
 
-  const [{ data: order }, settings] = await Promise.all([
+  const [{ data: order }, settings, courierSettings] = await Promise.all([
     supabase.from("orders").select("*").eq("id", id).maybeSingle(),
     getSiteSettings(),
+    getCourierSettings(),
   ]);
 
   if (!order) notFound();
@@ -52,7 +57,7 @@ export default async function OrderDetailPage({
   const symbol = settings.currency_symbol || "$";
   const currencyCode = settings.currency || "BDT";
 
-  const [{ data: items }, customerRes] = await Promise.all([
+  const [{ data: items }, customerRes, shipmentRes] = await Promise.all([
     supabase
       .from("order_items")
       .select("*")
@@ -65,6 +70,11 @@ export default async function OrderDetailPage({
           .eq("id", o.customer_id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
+    supabase
+      .from("order_shipments")
+      .select("*")
+      .eq("order_id", id)
+      .maybeSingle(),
   ]);
 
   const orderItems = (items as OrderItemRow[] | null) ?? [];
@@ -72,6 +82,17 @@ export default async function OrderDetailPage({
     id: string;
     name: string | null;
   } | null;
+  const shipment = (shipmentRes.data as OrderShipmentRow | null) ?? null;
+  const { data: eventRows } = shipment
+    ? await supabase
+        .from("courier_events")
+        .select("*")
+        .eq("shipment_id", shipment.id)
+        .order("provider_time", { ascending: false, nullsFirst: false })
+    : { data: [] };
+  const courierEvents = (eventRows as CourierEventRow[] | null) ?? [];
+  const activeProvider =
+    COURIER_PROVIDERS.find((provider) => courierSettings[provider].active) ?? null;
 
   const customerName =
     [o.delivery?.firstName, o.delivery?.lastName].filter(Boolean).join(" ") ||
@@ -248,7 +269,25 @@ export default async function OrderDetailPage({
             <h2 className="mb-4 text-sm font-semibold text-foreground">
               Update status
             </h2>
-            <OrderStatusControl orderId={o.id} status={o.status} />
+            <OrderStatusControl
+              orderId={o.id}
+              status={o.status}
+              shipmentLocked={Boolean(shipment)}
+            />
+          </div>
+
+          <div className={card}>
+            <h2 className="mb-4 text-sm font-semibold text-foreground">
+              Courier shipment
+            </h2>
+            <CourierShipmentControl
+              orderId={o.id}
+              orderStatus={o.status}
+              activeProvider={activeProvider}
+              shipment={shipment}
+              events={courierEvents}
+              defaultAreaQuery={o.delivery?.city ?? ""}
+            />
           </div>
 
           <div className={card}>

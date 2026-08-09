@@ -50,11 +50,13 @@ async function createMailTransport(): Promise<MailSetup> {
           host: smtp.host,
           port: smtp.port,
           secure: smtp.secure,
+          requireTLS: !smtp.secure,
           auth: { user, pass },
         })
       : nodemailer.createTransport({
           service: "gmail",
           auth: { user, pass },
+          requireTLS: true,
         });
 
   return {

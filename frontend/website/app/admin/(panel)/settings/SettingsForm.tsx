@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { HardDrive, Loader2, Save } from "lucide-react";
+import { HardDrive, Loader2, MailCheck, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -58,13 +58,21 @@ import type {
   SmtpSettingsPublic,
 } from "@/lib/email/smtpSettings";
 import type { BkashSettingsPublic } from "@/lib/payments/bkashSettings";
+import type { CourierSettingsPublic } from "@/lib/couriers/types";
+import { COURIER_PROVIDERS } from "@/lib/couriers/metadata";
 import type { StorageUsage } from "@/lib/admin/storageUsage";
 import {
   saveSettings,
   saveSmtpSettings,
+  testSmtpSettings,
   saveBkashSettings,
+  saveCourierSettings,
   type SettingsInput,
 } from "./actions";
+import {
+  CourierSettings,
+  courierDraftFromPublic,
+} from "./CourierSettings";
 
 function orNull(v: string): string | null {
   const t = v.trim();
@@ -96,6 +104,8 @@ export function SettingsForm({
   palette: initialPalette,
   smtp: initialSmtp,
   bkash: initialBkash,
+  courier: initialCourier,
+  siteUrl,
   storageUsage,
 }: {
   settings: SiteSettingsRow;
@@ -107,10 +117,13 @@ export function SettingsForm({
   palette?: ThemePalette | null;
   smtp: SmtpSettingsPublic;
   bkash: BkashSettingsPublic;
+  courier: CourierSettingsPublic;
+  siteUrl: string;
   storageUsage: StorageUsage;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [testingSmtp, startSmtpTest] = useTransition();
   const [mainTab, setMainTab] = useState("store");
 
   const [storeName, setStoreName] = useState(settings.store_name ?? "");
@@ -223,6 +236,9 @@ export function SettingsForm({
   const [bkashAppSecret, setBkashAppSecret] = useState("");
   const [bkashHasPassword] = useState(initialBkash.hasPassword);
   const [bkashHasAppSecret] = useState(initialBkash.hasAppSecret);
+  const [courier, setCourier] = useState(() =>
+    courierDraftFromPublic(initialCourier),
+  );
 
   const setPaletteColor = (key: keyof ThemePalette, value: string) => {
     setPalette((prev) => ({ ...prev, [key]: value }));
@@ -333,12 +349,6 @@ export function SettingsForm({
     };
 
     startTransition(async () => {
-      const res = await saveSettings(input);
-      if (res?.error) {
-        toast.error(res.error);
-        return;
-      }
-
       const smtpRes = await saveSmtpSettings({
         enabled: smtpEnabled,
         provider: smtpProvider,
@@ -359,6 +369,12 @@ export function SettingsForm({
         return;
       }
 
+      const res = await saveSettings(input);
+      if (res?.error) {
+        toast.error(res.error);
+        return;
+      }
+
       const bkashRes = await saveBkashSettings({
         enabled: bkashEnabled,
         sandbox: bkashSandbox,
@@ -372,10 +388,58 @@ export function SettingsForm({
         return;
       }
 
+      const courierRes = await saveCourierSettings({
+        activeProvider: courier.activeProvider,
+        providers: COURIER_PROVIDERS.map((provider) => {
+          const draft = courier.providers[provider];
+          return {
+            provider,
+            sandbox: draft.sandbox,
+            clientId: orNull(draft.clientId),
+            clientSecret: orNull(draft.clientSecret),
+            username: orNull(draft.username),
+            password: orNull(draft.password),
+            apiKey: orNull(draft.apiKey),
+            secretKey: orNull(draft.secretKey),
+            accessToken: orNull(draft.accessToken),
+            pickupStoreId: orNull(draft.pickupStoreId),
+            webhookSecret: orNull(draft.webhookSecret),
+          };
+        }),
+      });
+      if (courierRes?.error) {
+        toast.error(courierRes.error);
+        return;
+      }
+
       toast.success("Settings saved");
       setSmtpPassword("");
       setBkashPassword("");
       setBkashAppSecret("");
+      setCourier((current) => ({
+        ...current,
+        providers: Object.fromEntries(
+          COURIER_PROVIDERS.map((provider) => {
+            const draft = current.providers[provider];
+            return [
+              provider,
+              {
+                ...draft,
+                clientSecret: "",
+                password: "",
+                secretKey: "",
+                accessToken: "",
+                hasClientSecret:
+                  draft.hasClientSecret || Boolean(draft.clientSecret),
+                hasPassword: draft.hasPassword || Boolean(draft.password),
+                hasSecretKey: draft.hasSecretKey || Boolean(draft.secretKey),
+                hasAccessToken:
+                  draft.hasAccessToken || Boolean(draft.accessToken),
+              },
+            ];
+          }),
+        ) as typeof current.providers,
+      }));
       router.refresh();
     });
   };
@@ -689,6 +753,9 @@ export function SettingsForm({
               <TabsTrigger value="delivery" className={subTabTriggerClass}>
                 Delivery
               </TabsTrigger>
+              <TabsTrigger value="couriers" className={subTabTriggerClass}>
+                Couriers
+              </TabsTrigger>
               <TabsTrigger value="payments" className={subTabTriggerClass}>
                 Payments
               </TabsTrigger>
@@ -801,6 +868,14 @@ export function SettingsForm({
                 <span className="text-foreground">{defaultCurrency}</span>
                 ).
               </p>
+            </TabsContent>
+
+            <TabsContent value="couriers" className="mt-0">
+              <CourierSettings
+                value={courier}
+                onChange={setCourier}
+                siteUrl={siteUrl}
+              />
             </TabsContent>
 
             <TabsContent value="payments" className="mt-0 space-y-5">
@@ -1143,6 +1218,51 @@ export function SettingsForm({
                   rows={3}
                 />
               </FormField>
+              <div className="flex flex-col gap-2 rounded-xl border border-border bg-card/50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    Verify mail server login
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Authenticates with the provider without sending an email.
+                    Saving also performs this check automatically.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="shrink-0 rounded-full"
+                  disabled={testingSmtp || pending || !smtpEnabled}
+                  onClick={() =>
+                    startSmtpTest(async () => {
+                      const result = await testSmtpSettings({
+                        enabled: true,
+                        provider: smtpProvider,
+                        host: orNull(smtpHost),
+                        port: Number(smtpPort) || 587,
+                        secure: smtpSecure,
+                        username: orNull(smtpUsername),
+                        password: smtpPassword.trim() ? smtpPassword : null,
+                        fromName: smtpFromName.trim() || "VE Gear",
+                        fromEmail: orNull(smtpFromEmail),
+                        notifyEmails: [],
+                      });
+                      if (result.error) {
+                        toast.error(result.error);
+                        return;
+                      }
+                      toast.success("Mail server authentication succeeded");
+                    })
+                  }
+                >
+                  {testingSmtp ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <MailCheck className="size-4" />
+                  )}
+                  Test connection
+                </Button>
+              </div>
             </TabsContent>
           </Tabs>
         </TabsContent>

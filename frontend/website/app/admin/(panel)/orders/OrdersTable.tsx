@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Download, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -25,6 +25,8 @@ import {
 import { cn } from "@/lib/utils";
 import { ORDER_STATUSES, type OrderStatus } from "@/type/db";
 import { deleteOrders, getOrdersInvoiceData } from "./actions";
+import { COURIER_META, type CourierProvider } from "@/lib/couriers/metadata";
+import { OrderQuickActions } from "./OrderQuickActions";
 
 export interface OrderTableRow {
   id: string;
@@ -33,21 +35,30 @@ export interface OrderTableRow {
   created_at: string;
   status: OrderStatus;
   total: number;
+  courier: CourierProvider | null;
+  courier_status: string | null;
+  deletion_locked: boolean;
+  delivery_city: string;
 }
 
 export function OrdersTable({
   data,
   symbol,
   canWrite,
+  activeProvider,
 }: {
   data: OrderTableRow[];
   symbol: string;
   canWrite: boolean;
+  activeProvider: CourierProvider | null;
 }) {
   const router = useRouter();
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [downloading, startDownload] = useTransition();
+  const hasLockedSelection = selectedIds.some(
+    (id) => data.find((item) => item.id === id)?.deletion_locked,
+  );
 
   const rows = useMemo(
     () =>
@@ -132,7 +143,7 @@ export function OrdersTable({
                   ? "Delete this order?"
                   : `Delete ${selectedIds.length} orders?`
               }
-              description="This permanently removes the selected orders and their line items. Stock is returned only for orders that are not yet shipped (pending, confirmed, or processing). This cannot be undone."
+              description="This permanently removes the selected orders and their line items. Orders sent to a courier cannot be deleted. Stock is returned only for orders that are not yet shipped."
               confirmLabel="Delete"
               action={async () => {
                 const res = await deleteOrders(selectedIds);
@@ -146,7 +157,7 @@ export function OrdersTable({
                   variant="outline"
                   size="sm"
                   className="h-9 rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive"
-                  disabled={selectedIds.length === 0}
+                  disabled={selectedIds.length === 0 || hasLockedSelection}
                 >
                   <Trash2 className="size-3.5" />
                   Delete
@@ -168,13 +179,33 @@ export function OrdersTable({
           >
             {item.status}
           </Badge>
+          {item.courier ? (
+            <Badge variant="outline" className="gap-1.5 capitalize">
+              <span className="grid size-4 place-items-center rounded-sm bg-white p-0.5">
+                <Image
+                  src={COURIER_META[item.courier].logo}
+                  alt=""
+                  width={14}
+                  height={14}
+                  className="max-h-full w-auto max-w-full"
+                />
+              </span>
+              {item.courier_status?.replaceAll("-", " ") ||
+                COURIER_META[item.courier].label}
+            </Badge>
+          ) : null}
           <Badge variant="secondary">{formatMoney(item.total, symbol)}</Badge>
         </>
       )}
       renderTrailing={(item) => (
-        <Button asChild variant="ghost" size="sm" className="rounded-full">
-          <Link href={`/admin/orders/${item.id}`}>View</Link>
-        </Button>
+        <OrderQuickActions
+          orderId={item.id}
+          status={item.status}
+          deliveryCity={item.delivery_city}
+          hasShipment={item.deletion_locked}
+          activeProvider={activeProvider}
+          canWrite={canWrite}
+        />
       )}
     />
   );

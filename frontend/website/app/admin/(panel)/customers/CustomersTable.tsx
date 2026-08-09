@@ -12,17 +12,22 @@ import { formatMoney } from "@/lib/admin/format";
 import type { CustomerRow } from "@/type/db";
 import { deleteCustomers } from "./actions";
 
+type CustomerTableRow = CustomerRow & { deletion_locked: boolean };
+
 export function CustomersTable({
   data,
   symbol,
   canWrite,
 }: {
-  data: CustomerRow[];
+  data: CustomerTableRow[];
   symbol: string;
   canWrite: boolean;
 }) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const hasLockedSelection = selectedIds.some(
+    (id) => data.find((item) => item.id === id)?.deletion_locked,
+  );
 
   return (
     <AdminList
@@ -45,7 +50,7 @@ export function CustomersTable({
                 ? "Delete this customer?"
                 : `Delete ${selectedIds.length} customers?`
             }
-            description="This permanently removes the selected customers and all of their order history. Stock is returned only for orders that are not yet shipped (pending, confirmed, or processing). This cannot be undone."
+            description="This permanently removes the selected customers and their order history. Customers with courier-synced orders cannot be deleted."
             confirmLabel="Delete"
             action={async () => {
               const res = await deleteCustomers(selectedIds);
@@ -59,7 +64,7 @@ export function CustomersTable({
                 variant="outline"
                 size="sm"
                 className="h-9 rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive"
-                disabled={selectedIds.length === 0}
+                disabled={selectedIds.length === 0 || hasLockedSelection}
               >
                 <Trash2 className="size-3.5" />
                 Delete

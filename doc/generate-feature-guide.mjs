@@ -46,7 +46,7 @@ const pages = [
             "Persistent wishlist and shopping cart without customer registration.",
             "Guest checkout with promo codes and configurable delivery charges.",
             "Cash on Delivery and optional bKash Tokenized Checkout.",
-            "Public order-status tracking and branded email confirmations.",
+            "Public order and courier tracking with branded email confirmations.",
           ],
         },
         {
@@ -67,10 +67,10 @@ const pages = [
           bullets: [
             "Central dashboard for orders, sales, customers and stock.",
             "Product, category, variant and inventory management.",
-            "Controlled order fulfilment from Pending to Delivered.",
+            "Quick approval plus Pathao, Steadfast and REDX fulfilment.",
             "Customer records, order history, reports and exports.",
             "Homepage, About, promotion, review and policy content tools.",
-            "Brand, delivery, currency, payment, email and analytics settings.",
+            "Brand, delivery, payment, courier, email and analytics settings.",
             "Staff roles, protected admin routes and detailed audit history.",
           ],
         },
@@ -79,7 +79,7 @@ const pages = [
           bullets: [
             "One connected system replaces separate catalog and order tools.",
             "Daily store operations can be completed without code changes.",
-            "Local payment and Dhaka delivery workflows are built in.",
+            "Local payment and Bangladesh courier workflows are built in.",
             "Campaign content and store appearance remain merchant-controlled.",
             "Commercial activity is visible through KPIs, charts and reports.",
             "Managed cloud services provide a practical path for growth.",
@@ -216,8 +216,9 @@ const pages = [
             "Merchant-controlled enable, sandbox and live modes.",
             "Hosted bKash payment redirect.",
             "Payment execution and status-query fallback.",
-            "Payment ID and transaction ID recording.",
-            "Paid, unpaid and failed payment states.",
+            "Race-safe finalization with payment and transaction IDs.",
+            "Failed payments removed immediately with stock restoration.",
+            "Hourly-expired unpaid orders cleaned every 15 minutes.",
             "Automatic return to order tracking after successful payment.",
           ],
         },
@@ -238,8 +239,9 @@ const pages = [
             "Progress through Pending, Confirmed, Processing, Shipped and Delivered.",
             "Separate cancelled-order presentation.",
             "Order date, delivery area and customer summary.",
-            "Payment method, payment state and bKash transaction ID.",
-            "Products, quantities, line totals, discount and delivery total.",
+            "Payment state, bKash transaction ID and courier tracking code.",
+            "Courier status, update message and recent event history.",
+            "Products, quantities, totals, discount and delivery charge.",
           ],
         },
       ],
@@ -304,12 +306,12 @@ const pages = [
           title: "Orders & fulfilment",
           bullets: [
             "Search by order number or customer and filter by status.",
-            "Controlled Pending-to-Delivered or Cancelled workflow.",
-            "Full customer, delivery, item, promo and payment detail.",
-            "Internal order notes.",
-            "Cancellation stock-return routines.",
-            "Multi-select and Select All Visible.",
-            "Bulk permanent deletion with confirmation and practical limits.",
+            "Quick Approve and Send to Courier actions on order cards.",
+            "Atomic Pathao, Steadfast or REDX shipment reservation.",
+            "One active provider for new shipments; old shipments stay linked.",
+            "Authenticated webhooks, manual refresh and event history.",
+            "Safe automatic progress to Processing, Shipped and Delivered.",
+            "Courier-linked orders cannot be cancelled, moved or deleted.",
           ],
         },
         {
@@ -369,7 +371,7 @@ const pages = [
       ],
       [
         {
-          title: "Brand & store settings",
+          title: "Brand, store & integration settings",
           bullets: [
             "Store name, logo, favicon, email, phone and address.",
             "Facebook, Instagram and X links.",
@@ -377,7 +379,8 @@ const pages = [
             "Live theme preview and reset option.",
             "BDT, USD and INR display settings.",
             "Inside/Outside Dhaka delivery pricing.",
-            "Announcement text and destination link.",
+            "Gmail/custom SMTP with live login verification.",
+            "Courier credentials, active provider and webhook setup.",
           ],
         },
         {
@@ -434,7 +437,8 @@ const pages = [
             "Next.js server components, route handlers and server actions.",
             "Node.js runtime for payments, email and privileged operations.",
             "bKash Tokenized Checkout API.",
-            "Gmail App Password or custom SMTP.",
+            "Pathao, Steadfast and REDX APIs with authenticated webhooks.",
+            "Gmail/custom SMTP with live server-login validation.",
             "Google Analytics, Google Tag Manager and Meta Pixel.",
             "WhatsApp and Facebook Messenger links.",
             "CSV feeds and downloadable business exports.",
@@ -462,6 +466,7 @@ const pages = [
             "Fresh uncached catalog, CMS and admin data.",
             "Parallel server-side data loading on key pages.",
             "Persistent cart, wishlist and optional delivery data.",
+            "Database cleanup every 15 minutes for abandoned gateway orders.",
             "GitHub Actions daily storage maintenance.",
             "Standard Node/Vercel-compatible build and deployment workflow.",
           ],
@@ -471,7 +476,7 @@ const pages = [
           bullets: [
             "Guest-first shopping with browser-based cart and wishlist.",
             "One administrator-selected display currency at a time.",
-            "Merchant-managed status tracking rather than courier GPS.",
+            "Courier webhook/manual-refresh status, not live GPS tracking.",
             "Staff-curated reviews and storefront content.",
             "Cash on Delivery and bKash payment methods.",
             "Ideal for apparel, accessories and focused retail catalogs.",
@@ -495,7 +500,7 @@ doc.setProperties({
   author: "Reverb Solution",
   creator: "Reverb Solution",
   keywords:
-    "Reverb Solution, ecommerce, Next.js, React, Supabase, bKash, admin panel",
+    "Reverb Solution, ecommerce, Next.js, React, Supabase, bKash, Pathao, Steadfast, REDX, SMTP, pg_cron, admin panel",
 });
 
 const pageWidth = doc.internal.pageSize.getWidth();

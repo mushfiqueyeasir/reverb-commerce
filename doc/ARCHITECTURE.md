@@ -101,10 +101,12 @@ flowchart LR
         auth[Authentication]
         database[(Postgres Database)]
         storage[(Object Storage)]
+        cron[pg_cron Scheduler]
     end
 
     payments[bKash]
     email[SMTP Provider]
+    couriers[Pathao / Steadfast / REDX]
 
     customer --> domain
     merchant --> domain
@@ -120,7 +122,58 @@ flowchart LR
     merchant -->|Image body using signed URL| storage
     server --> payments
     server --> email
+    actions -->|Create shipment / refresh status| couriers
+    couriers -->|Authenticated status webhook| server
+    cron -->|Delete expired unpaid gateway orders| database
 ```
+
+### Order, Payment, and Courier Workflow
+
+```mermaid
+sequenceDiagram
+    participant Customer
+    participant Store as Next.js Store
+    participant DB as Supabase Postgres
+    participant Payment as bKash
+    participant Merchant
+    participant Courier as Active Courier API
+
+    Customer->>Store: Submit checkout
+    Store->>DB: Create order and reserve stock
+    alt Cash on Delivery
+        Store-->>Customer: Confirm order
+    else Gateway payment
+        Store->>Payment: Create hosted payment
+        Payment-->>Store: Success or failure callback
+        Store->>DB: Confirm paid order or delete failed order
+        DB->>DB: Every 15 min delete unpaid gateway orders older than 1 hour
+    end
+    Merchant->>Store: Approve order
+    Merchant->>Store: Send to active courier
+    Store->>Courier: Create consignment
+    Store->>DB: Store provider, tracking ID, and event
+    Courier-->>Store: Authenticated status webhook
+    Store->>DB: Deduplicate event and safely advance status
+```
+
+Exactly one courier can be active for new shipments, or all courier creation can
+be disabled. Changing the active provider never migrates existing shipments:
+`order_shipments.provider` permanently records the provider used for that order,
+so old Pathao shipments continue to receive Pathao updates after REDX or
+Steadfast becomes active.
+
+Shipment creation is a deliberate merchant action available from both the order
+list and order detail page. Pending orders can be approved from their list card;
+confirmed or processing orders can then be sent to the active courier. COD
+orders are eligible; bKash orders must be paid. Pathao and REDX require parcel weight, while REDX also
+requires a provider delivery area.
+
+Courier updates preserve the detailed provider status and event history. Safe
+mapping only advances the main workflow to `processing`, `shipped`, or
+`delivered`. Hold, failure, partial-delivery, approval-pending, return, and
+unknown events never cancel, restock, or regress an order. Courier-linked orders
+cannot be locally cancelled, moved to another provider, or deleted; customers
+with linked orders are protected from cascading deletion.
 
 ### Runtime Security Boundary
 
@@ -132,6 +185,7 @@ flowchart LR
 | `frontend/website/.env.<client-id>` | Local client runtime environment | No |
 | Vercel environment | Production Supabase keys and site configuration | No |
 | GitHub Actions secret | Cleanup service-role keys by client ID | No |
+| Private database settings | SMTP, payment, courier credentials, active provider, webhook secrets | No |
 | Browser runtime | UI code and temporary signed upload URLs | No permanent keys |
 
 The anon key and service-role key are server-only environment variables. The
@@ -194,7 +248,22 @@ flowchart LR
 
 All Vercel projects build the same source code. Client differences come from
 the tenant's environment, database content, branding, domain, payment settings,
-email settings, and merchant-managed configuration.
+email settings, courier settings, and merchant-managed configuration.
+
+## Abandoned Gateway-Order Cleanup
+
+Migration `0018_abandoned_gateway_orders.sql` installs the database job
+`cleanup-abandoned-gateway-orders` using `pg_cron`. It runs every 15 minutes and
+deletes unpaid non-COD orders older than one hour. Explicitly failed or cancelled
+gateway attempts are removed immediately by the callback path.
+
+Deletion and variant-stock restoration execute in one transaction. Paid orders,
+COD orders, recent gateway orders, and courier-linked orders are excluded. The
+job uses row locking with `SKIP LOCKED`, allowing payment callbacks and cleanup
+to operate safely without processing the same order concurrently. Migration
+`0019_payment_courier_concurrency.sql` also claims an order as `processing`
+before contacting bKash, reserves courier shipments while holding the order row
+lock, and applies courier events through one transactional, monotonic RPC.
 
 ## Fleet Asset Cleanup
 

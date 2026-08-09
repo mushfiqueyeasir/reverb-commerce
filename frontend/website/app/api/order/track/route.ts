@@ -7,6 +7,7 @@ import type {
   OrderRow,
   OrderStatus,
 } from "@/type/db";
+import type { CourierEventRow, OrderShipmentRow } from "@/type/db";
 
 export const dynamic = "force-dynamic";
 
@@ -73,6 +74,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const { data: shipmentData } = await supabase
+      .from("order_shipments")
+      .select("*")
+      .eq("order_id", o.id)
+      .maybeSingle();
+    const shipment = (shipmentData as OrderShipmentRow | null) ?? null;
+    const { data: courierEventData } = shipment
+      ? await supabase
+          .from("courier_events")
+          .select("event_name, courier_status, message, provider_time, created_at")
+          .eq("shipment_id", shipment.id)
+          .order("provider_time", { ascending: false, nullsFirst: false })
+          .limit(10)
+      : { data: [] };
+    const courierEvents =
+      (courierEventData as Pick<
+        CourierEventRow,
+        | "event_name"
+        | "courier_status"
+        | "message"
+        | "provider_time"
+        | "created_at"
+      >[] | null) ?? [];
+
     const delivery = (o.delivery ?? {}) as OrderDelivery;
     const name =
       [delivery.firstName, delivery.lastName]
@@ -88,6 +113,20 @@ export async function POST(request: NextRequest) {
       paymentMethod: o.payment_method || "cod",
       paymentStatus: o.payment_status || "unpaid",
       bkashTrxId: o.bkash_trx_id ?? null,
+      courier: shipment
+        ? {
+            provider: shipment.provider,
+            trackingCode: shipment.tracking_code ?? shipment.external_id,
+            status: shipment.courier_status,
+            message: shipment.status_message,
+            updatedAt: shipment.last_event_at ?? shipment.updated_at,
+            events: courierEvents.map((event) => ({
+              status: event.courier_status ?? event.event_name,
+              message: event.message,
+              time: event.provider_time ?? event.created_at,
+            })),
+          }
+        : null,
       items: (
         (items as Pick<
           OrderItemRow,

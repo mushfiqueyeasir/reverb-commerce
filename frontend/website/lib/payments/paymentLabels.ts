@@ -10,6 +10,7 @@ export function paymentMethodLabel(method: string | null | undefined): string {
 export function paymentStatusLabel(status: string | null | undefined): string {
   const s = (status ?? "unpaid").toLowerCase();
   if (s === "paid") return "Paid";
+  if (s === "processing") return "Processing";
   if (s === "failed") return "Failed";
   return "Unpaid";
 }
@@ -23,6 +24,6 @@ export function normalizePaymentMethod(
 export function normalizePaymentStatus(
   value: string | null | undefined,
 ): PaymentStatus {
-  if (value === "paid" || value === "failed") return value;
+  if (value === "processing" || value === "paid" || value === "failed") return value;
   return "unpaid";
 }

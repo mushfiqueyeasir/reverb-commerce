@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { appConfig } from "@/lib/config";
-import { restockVariantsForOrders } from "@/lib/admin/orderStock";
 import { writeAuditLog } from "@/lib/admin/auditLog";
 import { executeBkashPayment, queryBkashPayment } from "@/lib/payments/bkash";
 import { sendOrderEmails } from "@/lib/email/sendOrderEmails";
@@ -14,16 +13,19 @@ import type {
   OrderRow,
   ProductImageRow,
 } from "@/type/db";
-import type { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
-type ServerClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
-
 function siteOrigin(request: NextRequest) {
   return (appConfig.siteUrl || request.nextUrl.origin).replace(/\/$/, "");
+}
+
+function isTerminalPaymentFailure(status: string | undefined): boolean {
+  return ["failed", "cancelled", "canceled"].includes(
+    (status ?? "").trim().toLowerCase(),
+  );
 }
 
 function redirectTo(
@@ -40,22 +42,13 @@ function redirectTo(
   return NextResponse.redirect(url);
 }
 
-async function markFailedAndRestock(
+async function removeUnpaidOrder(
   supabase: ReturnType<typeof createSupabaseAdminClient>,
   orderId: string,
 ) {
-  await supabase
-    .from("orders")
-    .update({
-      payment_status: "failed",
-      status: "cancelled",
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", orderId);
-
-  await restockVariantsForOrders(supabase as unknown as ServerClient, [
-    orderId,
-  ]);
+  await supabase.rpc("delete_unpaid_gateway_order", {
+    p_order_id: orderId,
+  });
 }
 
 export async function GET(request: NextRequest) {
@@ -96,7 +89,7 @@ export async function GET(request: NextRequest) {
 
   if (status !== "success" && status !== "completed") {
     if (order.payment_status !== "paid") {
-      await markFailedAndRestock(supabase, order.id);
+      await removeUnpaidOrder(supabase, order.id);
       await writeAuditLog({
         action: "update",
         entity: "order",
@@ -112,11 +105,53 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    let recoveryOnly = false;
+    const { data: claimedOrder, error: claimError } = await supabase
+      .from("orders")
+      .update({
+        payment_status: "processing",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", order.id)
+      .eq("payment_status", "unpaid")
+      .neq("status", "cancelled")
+      .select("id")
+      .maybeSingle();
+    if (claimError) throw claimError;
+    if (!claimedOrder) {
+      const { data: current } = await supabase
+        .from("orders")
+        .select("payment_status, bkash_trx_id, updated_at")
+        .eq("id", order.id)
+        .maybeSingle();
+      if (current?.payment_status === "paid" && current.bkash_trx_id) {
+        return redirectTo(request, "/track-order", {
+          order: order.order_number,
+          paid: "1",
+        });
+      }
+      const processingAge = current?.updated_at
+        ? Date.now() - new Date(current.updated_at).getTime()
+        : 0;
+      if (current?.payment_status === "processing" && processingAge >= 120_000) {
+        recoveryOnly = true;
+      } else {
+        return redirectTo(request, "/checkout", {
+          payment: "failed",
+          reason: "payment_processing",
+        });
+      }
+    }
+
     let result;
-    try {
-      result = await executeBkashPayment(paymentID);
-    } catch {
+    if (recoveryOnly) {
       result = await queryBkashPayment(paymentID);
+    } else {
+      try {
+        result = await executeBkashPayment(paymentID);
+      } catch {
+        result = await queryBkashPayment(paymentID);
+      }
     }
 
     const trxOk =
@@ -134,7 +169,18 @@ export async function GET(request: NextRequest) {
         result.statusCode === "0000");
 
     if (!paid) {
-      await markFailedAndRestock(supabase, order.id);
+      if (recoveryOnly || !isTerminalPaymentFailure(result.transactionStatus)) {
+        return redirectTo(request, "/checkout", {
+          payment: "failed",
+          reason: "payment_processing",
+        });
+      }
+      await supabase
+        .from("orders")
+        .update({ payment_status: "failed", updated_at: new Date().toISOString() })
+        .eq("id", order.id)
+        .eq("payment_status", "processing");
+      await removeUnpaidOrder(supabase, order.id);
       await writeAuditLog({
         action: "update",
         entity: "order",
@@ -152,7 +198,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    await supabase
+    const { data: completedOrder, error: completionError } = await supabase
       .from("orders")
       .update({
         status: "confirmed",
@@ -160,7 +206,14 @@ export async function GET(request: NextRequest) {
         bkash_trx_id: result.trxID ?? null,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", order.id);
+      .eq("id", order.id)
+      .eq("payment_status", "processing")
+      .neq("status", "cancelled")
+      .select("id")
+      .maybeSingle();
+    if (completionError || !completedOrder) {
+      throw completionError ?? new Error("Could not finalize the paid order.");
+    }
 
     // Send order emails only after successful payment
     try {
@@ -255,9 +308,7 @@ export async function GET(request: NextRequest) {
       paid: "1",
     });
   } catch {
-    if (order.payment_status !== "paid") {
-      await markFailedAndRestock(supabase, order.id);
-    }
+    // Keep uncertain captures reserved for a later provider-status recovery.
     return redirectTo(request, "/checkout", {
       payment: "failed",
       reason: "callback_error",

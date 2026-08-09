@@ -1,5 +1,6 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, isAdmin } from "@/lib/admin/auth";
@@ -17,13 +18,22 @@ import { normalizeDeliveryCharges, type DeliveryCharges } from "@/lib/delivery";
 import { normalizeChatWidgets, type ChatWidgets } from "@/lib/chatWidgets";
 import { normalizePalette, type ThemePalette } from "@/lib/theme/palette";
 import {
+  getSmtpSettings,
   saveSmtpSettingsRow,
+  verifySmtpSettings,
   type SaveSmtpInput,
 } from "@/lib/email/smtpSettings";
 import {
   saveBkashSettingsRow,
   type SaveBkashInput,
 } from "@/lib/payments/bkashSettings";
+import {
+  courierSettingsReady,
+  getCourierSettings,
+  saveCourierSettingsRow,
+} from "@/lib/couriers/settings";
+import { courierAdapter } from "@/lib/couriers/registry";
+import type { SaveCourierSettingsInput } from "@/lib/couriers/types";
 
 export interface SettingsInput {
   store_name: string;
@@ -221,16 +231,37 @@ export async function saveSmtpSettings(
       return { error: `Invalid notify email: ${email}` };
     }
   }
+  const fromEmail = input.fromEmail?.trim() || null;
+  if (fromEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fromEmail)) {
+    return { error: `Invalid sender email: ${fromEmail}` };
+  }
 
-  const res = await saveSmtpSettingsRow({
+  const normalizedInput: SaveSmtpInput = {
     ...input,
     username: input.username?.trim() || null,
     host: input.host?.trim() || null,
-    fromEmail: input.fromEmail?.trim() || null,
+    fromEmail,
     fromName: input.fromName.trim() || "VE Gear",
     notifyEmails,
     password: input.password?.trim() ? input.password : null,
-  });
+  };
+  const current = await getSmtpSettings();
+  const needsVerification = Boolean(
+    normalizedInput.enabled &&
+      (!current.enabled ||
+        normalizedInput.provider !== current.provider ||
+        normalizedInput.host !== current.host ||
+        normalizedInput.port !== current.port ||
+        normalizedInput.secure !== current.secure ||
+        normalizedInput.username !== current.username ||
+        normalizedInput.password),
+  );
+  if (needsVerification) {
+    const verification = await verifySmtpSettings(normalizedInput);
+    if (verification.error) return verification;
+  }
+
+  const res = await saveSmtpSettingsRow(normalizedInput);
   if (res.error) return res;
 
   await writeAuditLog({
@@ -247,6 +278,30 @@ export async function saveSmtpSettings(
 
   revalidatePath("/admin/settings");
   return {};
+}
+
+export async function testSmtpSettings(
+  input: SaveSmtpInput,
+): Promise<{ error?: string }> {
+  const s = await requireAdminSession();
+  if (!isAdmin(s.role)) {
+    return {
+      error: "You do not have permission to test notification settings.",
+    };
+  }
+  if (!input.username?.trim()) {
+    return { error: "SMTP username / email is required." };
+  }
+  if (input.provider === "smtp" && !input.host?.trim()) {
+    return { error: "SMTP host is required for custom SMTP." };
+  }
+  return verifySmtpSettings({
+    ...input,
+    enabled: true,
+    username: input.username.trim(),
+    host: input.host?.trim() || null,
+    password: input.password?.trim() ? input.password : null,
+  });
 }
 
 export async function saveBkashSettings(
@@ -292,5 +347,105 @@ export async function saveBkashSettings(
 
   revalidatePath("/admin/settings");
   revalidatePath("/checkout");
+  return {};
+}
+
+export async function saveCourierSettings(
+  input: SaveCourierSettingsInput,
+): Promise<{ error?: string }> {
+  const s = await requireAdminSession();
+  if (!isAdmin(s.role)) {
+    return { error: "You do not have permission to change courier settings." };
+  }
+
+  const current = await getCourierSettings();
+  const currentActive = Object.values(current).find((provider) => provider.active)
+    ?.provider;
+  const requestedActive = input.activeProvider
+    ? input.providers.find((provider) => provider.provider === input.activeProvider)
+    : null;
+  const previousActive = input.activeProvider ? current[input.activeProvider] : null;
+  const needsConnectionTest = Boolean(
+    input.activeProvider &&
+      requestedActive &&
+      previousActive &&
+      (currentActive !== input.activeProvider ||
+        requestedActive.sandbox !== previousActive.sandbox ||
+        (requestedActive.clientId?.trim() || null) !== previousActive.client_id ||
+        (requestedActive.username?.trim() || null) !== previousActive.username ||
+        (requestedActive.apiKey?.trim() || null) !== previousActive.api_key ||
+        (requestedActive.pickupStoreId?.trim() || null) !==
+          previousActive.pickup_store_id ||
+        requestedActive.clientSecret?.trim() ||
+        requestedActive.password?.trim() ||
+        requestedActive.secretKey?.trim() ||
+        requestedActive.accessToken?.trim()),
+  );
+  const providers = input.providers.map((provider) => ({
+    ...provider,
+    webhookSecret:
+      provider.webhookSecret ||
+      current[provider.provider].webhook_secret ||
+      randomBytes(24).toString("hex"),
+  }));
+
+  if (input.activeProvider && requestedActive && previousActive) {
+    const clean = (value: string | null) => value?.trim() || null;
+    const selected = {
+      ...previousActive,
+      active: true,
+      sandbox:
+        input.activeProvider === "steadfast" ? false : requestedActive.sandbox,
+      client_id: clean(requestedActive.clientId),
+      client_secret:
+        clean(requestedActive.clientSecret) ?? previousActive.client_secret,
+      username: clean(requestedActive.username),
+      password: clean(requestedActive.password) ?? previousActive.password,
+      api_key: clean(requestedActive.apiKey),
+      secret_key: clean(requestedActive.secretKey) ?? previousActive.secret_key,
+      access_token:
+        clean(requestedActive.accessToken) ?? previousActive.access_token,
+      pickup_store_id: clean(requestedActive.pickupStoreId),
+      webhook_secret:
+        clean(requestedActive.webhookSecret) ?? previousActive.webhook_secret,
+    };
+    if (!courierSettingsReady(selected)) {
+      const requirements = {
+        pathao:
+          "Pathao requires Client ID, Client Secret, username, password, and pickup store ID.",
+        steadfast: "Steadfast requires an API key and secret key.",
+        redx: "REDX requires an access token and pickup store ID.",
+      } as const;
+      return { error: requirements[input.activeProvider] };
+    }
+    if (needsConnectionTest) {
+      try {
+        await courierAdapter(input.activeProvider).testConnection(selected);
+      } catch (error) {
+        return {
+          error: `Could not activate ${input.activeProvider}: ${error instanceof Error ? error.message : "connection test failed"}`,
+        };
+      }
+    }
+  }
+
+  const activated = await saveCourierSettingsRow({
+    activeProvider: input.activeProvider,
+    providers,
+  });
+  if (activated.error) return activated;
+
+  await writeAuditLog({
+    actor: s,
+    action: "update",
+    entity: "settings",
+    summary: input.activeProvider
+      ? `Activated ${input.activeProvider} for new courier shipments`
+      : "Disabled courier shipment creation",
+    metadata: { activeProvider: input.activeProvider },
+  });
+
+  revalidatePath("/admin/settings");
+  revalidatePath("/admin/orders");
   return {};
 }

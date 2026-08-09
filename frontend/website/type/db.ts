@@ -128,7 +128,7 @@ export interface PromoCodeRow {
 }
 
 export type PaymentMethod = "cod" | "bkash";
-export type PaymentStatus = "unpaid" | "paid" | "failed";
+export type PaymentStatus = "unpaid" | "processing" | "paid" | "failed";
 
 export interface OrderRow {
   id: string;
@@ -155,6 +155,40 @@ export interface BkashSettingsRow {
   app_key: string | null;
   app_secret: string | null;
   updated_at: string;
+}
+
+export interface OrderShipmentRow {
+  id: string;
+  order_id: string;
+  provider: "pathao" | "steadfast" | "redx";
+  sync_state: "creating" | "synced" | "failed" | "unknown";
+  external_id: string | null;
+  tracking_code: string | null;
+  courier_status: string | null;
+  status_message: string | null;
+  delivery_area_id: string | null;
+  delivery_area_name: string | null;
+  parcel_weight: number | null;
+  request_payload: Record<string, unknown> | null;
+  response_payload: Record<string, unknown> | null;
+  last_event_at: string | null;
+  synced_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CourierEventRow {
+  id: string;
+  shipment_id: string;
+  provider: "pathao" | "steadfast" | "redx";
+  event_key: string;
+  event_name: string;
+  courier_status: string | null;
+  message: string | null;
+  provider_time: string | null;
+  payload: Record<string, unknown>;
+  created_at: string;
 }
 
 export interface OrderItemRow {

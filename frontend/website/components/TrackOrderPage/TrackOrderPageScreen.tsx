@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { Check, Loader2, PackageSearch, X } from "lucide-react";
 import Input from "@/components/Common/Input";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
@@ -17,6 +18,7 @@ import type { OrderStatus } from "@/type/db";
 import type { TrackOrderResult } from "@/type/orderType";
 import { trackOrder } from "@/utility/trackOrder";
 import { toast } from "sonner";
+import { COURIER_META } from "@/lib/couriers/metadata";
 
 const FLOW_STEPS: OrderStatus[] = [
   "pending",
@@ -221,6 +223,62 @@ export default function TrackOrderPageScreen() {
               </ol>
             )}
           </div>
+
+          {result.courier ? (
+            <div className="rounded-2xl border border-border bg-card/80 p-5 sm:p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-11 w-24 place-items-center rounded-lg bg-white px-2">
+                    <Image
+                      src={COURIER_META[result.courier.provider].logo}
+                      alt={`${COURIER_META[result.courier.provider].label} logo`}
+                      width={86}
+                      height={32}
+                      className="max-h-8 w-auto max-w-full"
+                    />
+                  </span>
+                  <div>
+                    <h3 className="font-display text-lg font-semibold">
+                      Courier tracking
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      {result.courier.trackingCode || "Tracking is being prepared"}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-left sm:text-right">
+                  <p className="text-sm font-medium capitalize text-foreground">
+                    {(result.courier.status || "processing").replaceAll("-", " ")}
+                  </p>
+                  {result.courier.updatedAt ? (
+                    <p className="text-xs text-muted-foreground">
+                      Updated {formatDateTime(result.courier.updatedAt)}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+              {result.courier.message ? (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  {result.courier.message}
+                </p>
+              ) : null}
+              {result.courier.events.length ? (
+                <ol className="mt-4 space-y-3 border-t border-border pt-4">
+                  {result.courier.events.slice(0, 5).map((event, index) => (
+                    <li key={`${event.time}-${event.status}-${index}`} className="text-sm">
+                      <p className="font-medium capitalize text-foreground">
+                        {event.status.replaceAll("-", " ")}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDateTime(event.time)}
+                        {event.message ? ` · ${event.message}` : ""}
+                      </p>
+                    </li>
+                  ))}
+                </ol>
+              ) : null}
+            </div>
+          ) : null}
 
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="rounded-2xl border border-border bg-card/80 p-5">
