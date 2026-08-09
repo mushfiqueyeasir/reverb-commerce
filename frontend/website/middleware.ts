@@ -33,21 +33,20 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data } = await supabase.auth.getClaims();
+  const authenticated = Boolean(data?.claims?.sub);
 
   const path = request.nextUrl.pathname;
   const isLogin = path === "/admin/login";
 
-  if (!user && !isLogin) {
+  if (!authenticated && !isLogin) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin/login";
     url.searchParams.set("redirect", path);
     return NextResponse.redirect(url);
   }
 
-  if (user && isLogin) {
+  if (authenticated && isLogin) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin";
     url.search = "";

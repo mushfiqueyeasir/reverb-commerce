@@ -7,6 +7,7 @@
     "client:validate": "node scripts/validate-clients.mjs",
     "client:provision": "node scripts/provision-client.mjs",
     "client:env:pull": "node scripts/pull-client-env.mjs",
+    "client:env:backup": "node scripts/build-client-env-backup.mjs",
     "client:cleanup:list": "node scripts/list-cleanup-clients.mjs",
     "fleet:status": "node scripts/fleet-status.mjs",
     "cleanup:assets": "node scripts/cleanup-unused-assets.mjs",

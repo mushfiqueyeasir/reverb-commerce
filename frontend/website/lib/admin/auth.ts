@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { UserRole } from "@/type/db";
@@ -10,26 +11,25 @@ export interface AdminSession {
 }
 
 // Loads the signed-in user and their profile role. Returns null if unauthenticated.
-export async function getAdminSession(): Promise<AdminSession | null> {
+export const getAdminSession = cache(async (): Promise<AdminSession | null> => {
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  const { data, error } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (error || !claims?.sub) return null;
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("role, full_name")
-    .eq("id", user.id)
+    .eq("id", claims.sub)
     .maybeSingle();
 
   return {
-    userId: user.id,
-    email: user.email ?? "",
+    userId: claims.sub,
+    email: typeof claims.email === "string" ? claims.email : "",
     role: (profile?.role as UserRole) ?? "viewer",
     fullName: (profile?.full_name as string | null) ?? null,
   };
-}
+});
 
 // Requires a signed-in user; redirects to login otherwise.
 export async function requireAdminSession(): Promise<AdminSession> {

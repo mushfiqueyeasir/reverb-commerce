@@ -1,6 +1,5 @@
 import { requireAdminSession, canWrite } from "@/lib/admin/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getSiteSettings } from "@/utility/getSettings";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { OrdersTable, type OrderTableRow } from "./OrdersTable";
 import type { OrderRow } from "@/type/db";
@@ -12,17 +11,21 @@ export const dynamic = "force-dynamic";
 export default async function OrdersPage() {
   const session = await requireAdminSession();
   const supabase = await createSupabaseServerClient();
-  const [{ data: orders }, settings, courierSettings] = await Promise.all([
+  const [{ data: orders }, { data: settings }, courierSettings] = await Promise.all([
     supabase
       .from("orders")
       .select(
         "id, order_number, status, delivery, totals, created_at, order_shipments(provider, courier_status)",
       )
       .order("created_at", { ascending: false }),
-    getSiteSettings(),
+    supabase
+      .from("site_settings")
+      .select("currency_symbol")
+      .eq("id", 1)
+      .maybeSingle(),
     getCourierSettings(),
   ]);
-  const symbol = settings.currency_symbol || "$";
+  const symbol = settings?.currency_symbol || "$";
   const activeProvider =
     COURIER_PROVIDERS.find((provider) => courierSettings[provider].active) ?? null;
 

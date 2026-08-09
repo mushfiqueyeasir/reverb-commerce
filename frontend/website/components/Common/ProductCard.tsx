@@ -69,13 +69,13 @@ export default function ProductCard({
               className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110"
             />
             {hoverImage && (
-              <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+              <div className="invisible absolute inset-0 bg-surface group-hover:visible">
                 <ImageLoader
                   src={hoverImage}
                   alt={title}
                   width={800}
                   height={1000}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                 />
               </div>
             )}

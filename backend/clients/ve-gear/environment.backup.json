@@ -1,0 +1,22 @@
+{
+  "formatVersion": 1,
+  "purpose": "Backup only; application runtime continues to use environment variables.",
+  "clientId": "ve-gear",
+  "sources": {
+    "frontend/website/.env": {
+      "SECURITY_ENABLED": "true",
+      "SITE_URL": "https://www.vegear.com",
+      "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6bnhtcWVoeXpxd3Fma2ZneHhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2MTAwMjEsImV4cCI6MjEwMDE4NjAyMX0.hSUiarEHBMko8PUolzNzimu5s8WOrB-YF67QSKgXAV4",
+      "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6bnhtcWVoeXpxd3Fma2ZneHhoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDYxMDAyMSwiZXhwIjoyMTAwMTg2MDIxfQ.3vluxV1eRYocWjnU8Ex56AglVyUKgdcmfp8Y8VEzBJQ",
+      "SUPABASE_URL": "https://lznxmqehyzqwqfkfgxxh.supabase.co"
+    },
+    "frontend/website/.env.ve-gear": {
+      "SECURITY_ENABLED": "true",
+      "SITE_URL": "https://www.vegear.com",
+      "SUPABASE_ACCESS_TOKEN": "sbp_118512412287f288aefe0fca2aa54f5916f7a3b6",
+      "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6bnhtcWVoeXpxd3Fma2ZneHhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2MTAwMjEsImV4cCI6MjEwMDE4NjAyMX0.hSUiarEHBMko8PUolzNzimu5s8WOrB-YF67QSKgXAV4",
+      "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6bnhtcWVoeXpxd3Fma2ZneHhoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDYxMDAyMSwiZXhwIjoyMTAwMTg2MDIxfQ.3vluxV1eRYocWjnU8Ex56AglVyUKgdcmfp8Y8VEzBJQ",
+      "SUPABASE_URL": "https://lznxmqehyzqwqfkfgxxh.supabase.co"
+    }
+  }
+}
