@@ -2,20 +2,6 @@ name: Cleanup unused Supabase assets
 
 on:
   workflow_dispatch:
-    inputs:
-      client:
-        description: "Client ID to clean, or all active clients"
-        required: false
-        default: "all"
-        type: string
-      dry_run:
-        description: "List orphans without deleting"
-        required: false
-        default: "true"
-        type: choice
-        options:
-          - "false"
-          - "true"
 
 permissions:
   contents: read
@@ -39,10 +25,8 @@ jobs:
       - name: Build client matrix
         id: clients
         working-directory: backend
-        env:
-          REQUESTED_CLIENT: ${{ inputs.client }}
         run: |
-          clients="$(node scripts/list-cleanup-clients.mjs --client "$REQUESTED_CLIENT")"
+          clients="$(node scripts/list-cleanup-clients.mjs --client all)"
           echo "clients=$clients" >> "$GITHUB_OUTPUT"
 
   cleanup:
@@ -50,7 +34,6 @@ jobs:
     needs: discover
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    environment: store-provisioning
     strategy:
       fail-fast: false
       max-parallel: 5
@@ -81,9 +64,5 @@ jobs:
         env:
           CLIENT_ID: ${{ matrix.client }}
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: |
-          if [ "${{ inputs.dry_run }}" = "true" ]; then
-            npm run cleanup:assets:dry -- --client "$CLIENT_ID"
-          else
-            npm run cleanup:assets -- --client "$CLIENT_ID"
-          fi
+          CLIENT_SUPABASE_CREDENTIALS: ${{ secrets.CLIENT_SUPABASE_CREDENTIALS }}
+        run: npm run cleanup:assets -- --client "$CLIENT_ID"
