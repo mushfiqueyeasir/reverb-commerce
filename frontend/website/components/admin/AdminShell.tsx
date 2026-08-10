@@ -26,8 +26,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { signOutAdmin } from "@/app/admin/auth-audit-actions";
+import { AdminScrollArea } from "./AdminScrollArea";
 
 const ROLE_LABEL: Record<string, string> = {
   admin: "Administrator",
@@ -62,6 +62,173 @@ function readOpenGroups(): Record<NavItem["group"], boolean> {
   } catch {
     return defaults;
   }
+}
+
+type OpenGroups = Record<NavItem["group"], boolean>;
+
+function AdminNavList({
+  compact,
+  items,
+  activeHref,
+  openGroups,
+  onToggleGroup,
+  onNavigate,
+}: {
+  compact: boolean;
+  items: NavItem[];
+  activeHref: string | null;
+  openGroups: OpenGroups;
+  onToggleGroup: (group: NavItem["group"]) => void;
+  onNavigate: () => void;
+}) {
+  return (
+    <AdminScrollArea className="min-h-0 flex-1">
+      <nav className="space-y-5 px-3 py-5">
+        {NAV_GROUPS.map((group) => {
+          const groupItems = items.filter((item) => item.group === group);
+          if (groupItems.length === 0) return null;
+          const isOpen = compact || openGroups[group];
+
+          return (
+            <div key={group}>
+              {!compact && (
+                <button
+                  type="button"
+                  onClick={() => onToggleGroup(group)}
+                  aria-expanded={isOpen}
+                  className="mb-1 flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-left transition hover:bg-foreground/5"
+                >
+                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                    {group}
+                  </span>
+                  <ChevronDown
+                    className={cn(
+                      "size-3.5 text-muted-foreground transition-transform",
+                      isOpen ? "rotate-0" : "-rotate-90",
+                    )}
+                  />
+                </button>
+              )}
+              {isOpen ? (
+                <div className="space-y-0.5">
+                  {groupItems.map((item) => {
+                    const active = activeHref === item.href;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={onNavigate}
+                        title={compact ? item.label : undefined}
+                        className={cn(
+                          "flex min-h-11 items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm font-medium transition-colors",
+                          active
+                            ? "bg-primary/15 text-primary"
+                            : "text-sidebar-foreground/70 hover:bg-foreground/5 hover:text-foreground",
+                          compact && "justify-center px-2",
+                        )}
+                      >
+                        <Icon name={item.icon} className="size-4 shrink-0" />
+                        {!compact && <span>{item.label}</span>}
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+      </nav>
+    </AdminScrollArea>
+  );
+}
+
+function AdminSidebar({
+  compact,
+  items,
+  activeHref,
+  openGroups,
+  onToggleGroup,
+  onNavigate,
+  storeName,
+  logoUrl,
+  faviconUrl,
+}: {
+  compact: boolean;
+  items: NavItem[];
+  activeHref: string | null;
+  openGroups: OpenGroups;
+  onToggleGroup: (group: NavItem["group"]) => void;
+  onNavigate: () => void;
+  storeName: string;
+  logoUrl: string | null;
+  faviconUrl: string | null;
+}) {
+  return (
+    <div className="flex h-full min-h-0 flex-col bg-sidebar text-sidebar-foreground">
+      <div
+        className={cn(
+          "flex h-16 shrink-0 items-center gap-2 border-b border-sidebar-border px-4",
+          compact && "justify-center px-2",
+        )}
+      >
+        {compact && (faviconUrl || logoUrl) ? (
+          <Image
+            src={faviconUrl || logoUrl!}
+            alt={storeName}
+            width={64}
+            height={64}
+            className={cn("size-7", logoToneClass)}
+          />
+        ) : !compact && logoUrl ? (
+          <div>
+            <Image
+              src={logoUrl}
+              alt={storeName}
+              width={400}
+              height={160}
+              className={cn("h-6 w-auto", logoToneClass)}
+            />
+            <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
+              Admin
+            </p>
+          </div>
+        ) : (
+          <div className={cn(compact && "text-center")}>
+            <p className="truncate font-display text-sm font-bold text-foreground">
+              {compact ? storeName.charAt(0).toUpperCase() || "S" : storeName}
+            </p>
+            {!compact ? (
+              <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
+                Admin
+              </p>
+            ) : null}
+          </div>
+        )}
+      </div>
+      <AdminNavList
+        compact={compact}
+        items={items}
+        activeHref={activeHref}
+        openGroups={openGroups}
+        onToggleGroup={onToggleGroup}
+        onNavigate={onNavigate}
+      />
+      <div className="shrink-0 border-t border-sidebar-border p-3">
+        <Link
+          href="/"
+          target="_blank"
+          className={cn(
+            "flex min-h-11 items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground",
+            compact && "justify-center px-2",
+          )}
+          title="View storefront"
+        >
+          <ExternalLink className="size-4 shrink-0" />
+          {!compact && <span>View store</span>}
+        </Link>
+      </div>
+    </div>
+  );
 }
 
 export default function AdminShell({
@@ -139,135 +306,26 @@ export default function AdminShell({
     window.location.assign("/admin/login");
   };
 
-  const NavList = ({ compact }: { compact: boolean }) => (
-    <ScrollArea className="min-h-0 flex-1">
-      <nav className="space-y-5 px-3 py-5">
-        {NAV_GROUPS.map((group) => {
-          const groupItems = items.filter((i) => i.group === group);
-          if (groupItems.length === 0) return null;
-          const isOpen = compact || openGroups[group];
-          return (
-            <div key={group}>
-              {!compact && (
-                <button
-                  type="button"
-                  onClick={() => toggleGroup(group)}
-                  aria-expanded={isOpen}
-                  className="mb-1 flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-left transition hover:bg-foreground/5"
-                >
-                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-                    {group}
-                  </span>
-                  <ChevronDown
-                    className={cn(
-                      "size-3.5 text-muted-foreground transition-transform",
-                      isOpen ? "rotate-0" : "-rotate-90",
-                    )}
-                  />
-                </button>
-              )}
-              {isOpen ? (
-                <div className="space-y-0.5">
-                  {groupItems.map((item) => {
-                    const active = activeItem?.href === item.href;
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setMobileOpen(false)}
-                        title={compact ? item.label : undefined}
-                        className={cn(
-                          "flex min-h-11 items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm font-medium transition-colors",
-                          active
-                            ? "bg-primary/15 text-primary"
-                            : "text-sidebar-foreground/70 hover:bg-foreground/5 hover:text-foreground",
-                          compact && "justify-center px-2",
-                        )}
-                      >
-                        <Icon name={item.icon} className="size-4 shrink-0" />
-                        {!compact && <span>{item.label}</span>}
-                      </Link>
-                    );
-                  })}
-                </div>
-              ) : null}
-            </div>
-          );
-        })}
-      </nav>
-    </ScrollArea>
-  );
-
-  const SidebarInner = ({ compact }: { compact: boolean }) => (
-    <div className="flex h-full min-h-0 flex-col bg-sidebar text-sidebar-foreground">
-      <div
-        className={cn(
-          "flex h-16 shrink-0 items-center gap-2 border-b border-sidebar-border px-4",
-          compact && "justify-center px-2",
-        )}
-      >
-        {compact && (faviconUrl || logoUrl) ? (
-          <Image
-            src={faviconUrl || logoUrl!}
-            alt={storeName}
-            width={64}
-            height={64}
-            className={cn("size-7", logoToneClass)}
-          />
-        ) : !compact && logoUrl ? (
-          <div>
-            <Image
-              src={logoUrl}
-              alt={storeName}
-              width={400}
-              height={160}
-              className={cn("h-6 w-auto", logoToneClass)}
-            />
-            <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
-              Admin
-            </p>
-          </div>
-        ) : (
-          <div className={cn(compact && "text-center")}>
-            <p className="truncate font-display text-sm font-bold text-foreground">
-              {compact ? storeName.charAt(0).toUpperCase() || "S" : storeName}
-            </p>
-            {!compact ? (
-              <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
-                Admin
-              </p>
-            ) : null}
-          </div>
-        )}
-      </div>
-      <NavList compact={compact} />
-      <div className="shrink-0 border-t border-sidebar-border p-3">
-        <Link
-          href="/"
-          target="_blank"
-          className={cn(
-            "flex min-h-11 items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground",
-            compact && "justify-center px-2",
-          )}
-          title="View storefront"
-        >
-          <ExternalLink className="size-4 shrink-0" />
-          {!compact && <span>View store</span>}
-        </Link>
-      </div>
-    </div>
-  );
-
   return (
     <AdminProvider value={session}>
       <div className="flex h-svh overflow-hidden bg-background text-foreground">
         <aside
           className={cn(
-            "hidden h-full shrink-0 border-r border-sidebar-border transition-all lg:block",
+            "hidden h-full shrink-0 border-r border-sidebar-border transition-[width] duration-200 ease-out lg:block",
             collapsed ? "w-16" : "w-60",
           )}
         >
-          <SidebarInner compact={collapsed} />
+          <AdminSidebar
+            compact={collapsed}
+            items={items}
+            activeHref={activeItem?.href ?? null}
+            openGroups={openGroups}
+            onToggleGroup={toggleGroup}
+            onNavigate={() => setMobileOpen(false)}
+            storeName={storeName}
+            logoUrl={logoUrl}
+            faviconUrl={faviconUrl}
+          />
         </aside>
 
         {mobileOpen && (
@@ -277,7 +335,17 @@ export default function AdminShell({
               onClick={() => setMobileOpen(false)}
             />
             <div className="absolute left-0 top-0 flex h-full w-[min(18rem,88vw)] flex-col border-r border-sidebar-border bg-sidebar shadow-2xl">
-              <SidebarInner compact={false} />
+              <AdminSidebar
+                compact={false}
+                items={items}
+                activeHref={activeItem?.href ?? null}
+                openGroups={openGroups}
+                onToggleGroup={toggleGroup}
+                onNavigate={() => setMobileOpen(false)}
+                storeName={storeName}
+                logoUrl={logoUrl}
+                faviconUrl={faviconUrl}
+              />
               <button
                 type="button"
                 className="absolute right-2 top-2 grid size-11 place-items-center rounded-lg text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground"
@@ -366,11 +434,11 @@ export default function AdminShell({
             </DropdownMenu>
           </header>
 
-          <ScrollArea className="min-h-0 flex-1">
+          <AdminScrollArea className="min-h-0 flex-1">
             <main className="admin-content relative p-4 lg:p-8">
               {children}
             </main>
-          </ScrollArea>
+          </AdminScrollArea>
         </div>
       </div>
     </AdminProvider>
