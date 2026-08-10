@@ -2,20 +2,37 @@
 
 import { useCallback, useRef, useState } from "react";
 import Image from "next/image";
-import { Upload, X, Star, ImagePlus } from "lucide-react";
+import { Upload, X, Star, ImagePlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { BucketName } from "@/lib/supabase/config";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { createImageUploadUrl } from "@/app/admin/storage-actions";
+import {
+  createImageUploadUrl,
+  deleteImageObjects,
+} from "@/app/admin/storage-actions";
 import { useAdmin } from "./AdminContext";
 import { ImageCropDialog } from "./ImageCropDialog";
 import { buildStoragePublicUrl } from "@/utility/storageUrl";
+import {
+  formatImageSize,
+  ImageOptimizationError,
+  optimizeImage,
+  optimizedImageName,
+} from "@/lib/images/optimizeImage";
 
 export interface UploadedImage {
   path: string;
   alt?: string | null;
   isMain?: boolean;
+  originalSize?: number;
+  optimizedSize?: number;
+  isNew?: boolean;
+}
+
+interface UploadStatus {
+  stage: "optimizing" | "uploading";
+  fileName: string;
 }
 
 const checkerboardStyle = {
@@ -36,6 +53,10 @@ export function ImageUploader({
   enableCrop = false,
   maxFiles,
   maxFileSizeMb,
+  optimizeToWebp = false,
+  fileNamePrefix,
+  onBusyChange,
+  disabled = false,
   /** Single-image preview: cover = photos, wide = logos, square = favicon. */
   preview = "cover",
 }: {
@@ -52,6 +73,12 @@ export function ImageUploader({
   maxFiles?: number;
   /** Maximum source file size in megabytes. */
   maxFileSizeMb?: number;
+  /** Quality-first WebP optimization for product and review photos. */
+  optimizeToWebp?: boolean;
+  /** Prefix used for the final storage object name. */
+  fileNamePrefix?: string;
+  onBusyChange?: (busy: boolean) => void;
+  disabled?: boolean;
   preview?: "cover" | "wide" | "square";
 }) {
   const { storageBaseUrl } = useAdmin();
@@ -60,6 +87,8 @@ export function ImageUploader({
   const [dragOver, setDragOver] = useState(false);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [uploadStatus, setUploadStatus] = useState<UploadStatus | null>(null);
+  const [lastSizeSummary, setLastSizeSummary] = useState<string | null>(null);
 
   const singlePreview = !multiple && value[0] ? value[0] : null;
   const singleUrl = singlePreview
@@ -69,7 +98,7 @@ export function ImageUploader({
     multiple && maxFiles && value.length >= maxFiles,
   );
   const uploadHint = [
-    "PNG, JPG",
+    optimizeToWebp ? "JPG, PNG, WebP" : "PNG, JPG",
     multiple && maxFiles ? `max ${maxFiles} images` : null,
     maxFileSizeMb ? `${maxFileSizeMb} MB max${multiple ? " each" : ""}` : null,
   ]
@@ -79,35 +108,81 @@ export function ImageUploader({
   const uploadFiles = async (files: File[]) => {
     if (!files.length) return;
     setUploading(true);
+    onBusyChange?.(true);
     const uploaded: UploadedImage[] = [];
 
     try {
-      for (const file of files) {
-        const authorization = await createImageUploadUrl({
-          bucket,
-          contentType: file.type,
-          size: file.size,
-        });
-        if (!authorization.path || !authorization.signedUrl) {
-          toast.error(
-            `Upload failed: ${authorization.error || "Unknown error"}`,
-          );
-          continue;
-        }
+      for (const [index, sourceFile] of files.entries()) {
+        try {
+          let uploadFile = sourceFile;
+          let originalSize: number | undefined;
+          let optimizedSize: number | undefined;
 
-        const body = new FormData();
-        body.append("cacheControl", "3600");
-        body.append("", file);
-        const response = await fetch(authorization.signedUrl, {
-          method: "PUT",
-          body,
-          headers: { "x-upsert": "false" },
-        });
-        if (!response.ok) {
-          toast.error(`Upload failed: ${await response.text()}`);
-          continue;
+          if (optimizeToWebp) {
+            const outputName = optimizedImageName(
+              fileNamePrefix?.trim() || sourceFile.name.replace(/\.[^.]+$/, ""),
+              multiple ? value.length + index + 1 : undefined,
+            );
+            setUploadStatus({
+              stage: "optimizing",
+              fileName: sourceFile.name,
+            });
+            const optimized = await optimizeImage(sourceFile, {
+              outputName,
+            });
+            uploadFile = optimized.file;
+            originalSize = optimized.originalSize;
+            optimizedSize = optimized.optimizedSize;
+          }
+
+          setUploadStatus({
+            stage: "uploading",
+            fileName: sourceFile.name,
+          });
+          const authorization = await createImageUploadUrl({
+            bucket,
+            contentType: uploadFile.type,
+            size: uploadFile.size,
+            fileName: uploadFile.name,
+          });
+          if (!authorization.path || !authorization.signedUrl) {
+            toast.error(
+              `Upload failed: ${authorization.error || "Unknown error"}`,
+            );
+            continue;
+          }
+
+          const body = new FormData();
+          body.append("cacheControl", "3600");
+          body.append("", uploadFile);
+          const response = await fetch(authorization.signedUrl, {
+            method: "PUT",
+            body,
+            headers: { "x-upsert": "false" },
+          });
+          if (!response.ok) {
+            toast.error(`Upload failed: ${await response.text()}`);
+            continue;
+          }
+          uploaded.push({
+            path: authorization.path,
+            alt: sourceFile.name,
+            originalSize,
+            optimizedSize,
+            isNew: optimizeToWebp,
+          });
+          if (originalSize != null && optimizedSize != null) {
+            setLastSizeSummary(
+              `${formatImageSize(originalSize)} → ${formatImageSize(optimizedSize)}`,
+            );
+          }
+        } catch (error) {
+          toast.error(
+            error instanceof ImageOptimizationError
+              ? error.message
+              : `${sourceFile.name} could not be uploaded. Please try again.`,
+          );
         }
-        uploaded.push({ path: authorization.path, alt: file.name });
       }
 
       if (uploaded.length) {
@@ -116,18 +191,36 @@ export function ImageUploader({
           next[0].isMain = true;
         }
         onChange(next);
+        if (!multiple) {
+          const replacedNewPaths = value
+            .filter(
+              (image) =>
+                image.isNew && !next.some((item) => item.path === image.path),
+            )
+            .map((image) => image.path);
+          if (replacedNewPaths.length) {
+            void deleteImageObjects({
+              bucket,
+              paths: replacedNewPaths,
+            }).catch(() => undefined);
+          }
+        }
         toast.success(
           `${uploaded.length} image${uploaded.length > 1 ? "s" : ""} uploaded`,
         );
       }
     } finally {
       setUploading(false);
+      setUploadStatus(null);
+      onBusyChange?.(false);
       if (inputRef.current) inputRef.current.value = "";
     }
   };
 
   const startCropQueue = (files: File[]) => {
-    let images = files.filter((f) => f.type.startsWith("image/"));
+    let images = optimizeToWebp
+      ? files
+      : files.filter((f) => f.type.startsWith("image/"));
     if (!images.length) {
       toast.error("Please choose an image file.");
       return;
@@ -162,6 +255,10 @@ export function ImageUploader({
         );
         images = images.slice(0, remaining);
       }
+    }
+
+    if (!multiple && images.length > 1) {
+      images = images.slice(0, 1);
     }
 
     if (!images.length) return;
@@ -204,35 +301,67 @@ export function ImageUploader({
     (e: React.DragEvent) => {
       e.preventDefault();
       setDragOver(false);
-      if (uploading) return;
+      if (uploading || disabled) return;
       handleFiles(e.dataTransfer.files);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [uploading, enableCrop, value, multiple, maxFiles, maxFileSizeMb],
+    [
+      uploading,
+      enableCrop,
+      value,
+      multiple,
+      maxFiles,
+      maxFileSizeMb,
+      optimizeToWebp,
+      disabled,
+    ],
   );
 
   const remove = (path: string) => {
+    if (uploading || disabled) return;
+    const removed = value.find((image) => image.path === path);
     const next = value.filter((i) => i.path !== path);
     if (multiple && next.length && !next.some((i) => i.isMain)) {
       next[0].isMain = true;
     }
     onChange(next);
+    if (optimizeToWebp && removed?.isNew) {
+      void deleteImageObjects({ bucket, paths: [path] })
+        .then((result) => {
+          if (result.error)
+            toast.error("The unused image could not be removed.");
+        })
+        .catch(() => toast.error("The unused image could not be removed."));
+    }
   };
 
   const setMain = (path: string) => {
+    if (uploading || disabled) return;
     onChange(value.map((i) => ({ ...i, isMain: i.path === path })));
   };
 
   const openPicker = () => {
-    if (!hasReachedFileLimit) inputRef.current?.click();
+    if (!uploading && !disabled && !hasReachedFileLimit)
+      inputRef.current?.click();
   };
 
+  const statusText =
+    uploadStatus?.stage === "optimizing"
+      ? "Optimizing image..."
+      : uploadStatus?.stage === "uploading"
+        ? "Uploading optimized image..."
+        : null;
+
   return (
-    <div className="space-y-3">
+    <div className={cn("space-y-3", disabled && "opacity-60")}>
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept={
+          optimizeToWebp
+            ? "image/jpeg,image/png,image/webp,.heic,.heif"
+            : "image/*"
+        }
         multiple={multiple}
         className="hidden"
         onChange={(e) => handleFiles(e.target.files)}
@@ -243,11 +372,11 @@ export function ImageUploader({
         <div
           role="button"
           tabIndex={0}
-          onClick={() => !uploading && openPicker()}
+          onClick={() => !uploading && !disabled && openPicker()}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
-              if (!uploading) openPicker();
+              if (!uploading && !disabled) openPicker();
             }
           }}
           onDragEnter={(e) => {
@@ -273,7 +402,7 @@ export function ImageUploader({
             dragOver
               ? "border-primary bg-primary/10"
               : "border-border bg-background/40 hover:border-primary/40",
-            uploading && "pointer-events-none opacity-60",
+            (uploading || disabled) && "pointer-events-none",
             !singleUrl &&
               (preview === "square"
                 ? "aspect-square p-4"
@@ -286,7 +415,7 @@ export function ImageUploader({
           {uploading ? (
             <div
               className={cn(
-                "relative overflow-hidden",
+                "relative flex items-center justify-center overflow-hidden",
                 preview === "square"
                   ? "aspect-square"
                   : preview === "cover"
@@ -295,6 +424,10 @@ export function ImageUploader({
               )}
             >
               <Skeleton className="absolute inset-0 rounded-none" />
+              <div className="relative z-10 flex flex-col items-center gap-2 text-foreground">
+                <Loader2 className="size-5 animate-spin" />
+                <span className="text-xs font-medium">{statusText}</span>
+              </div>
             </div>
           ) : singleUrl ? (
             preview === "cover" ? (
@@ -398,7 +531,7 @@ export function ImageUploader({
           <button
             type="button"
             onClick={openPicker}
-            disabled={uploading || hasReachedFileLimit}
+            disabled={uploading || disabled || hasReachedFileLimit}
             onDragEnter={(e) => {
               e.preventDefault();
               setDragOver(true);
@@ -432,8 +565,14 @@ export function ImageUploader({
             )}
             {uploading ? (
               <div className="flex w-full max-w-xs flex-col items-center gap-2">
-                <Skeleton className="h-4 w-36" />
-                <Skeleton className="h-3 w-20" />
+                <span className="font-medium text-foreground">
+                  {statusText}
+                </span>
+                {uploadStatus?.fileName ? (
+                  <span className="max-w-full truncate text-xs text-muted-foreground">
+                    {uploadStatus.fileName}
+                  </span>
+                ) : null}
               </div>
             ) : (
               <>
@@ -482,6 +621,7 @@ export function ImageUploader({
                     )}
                     <button
                       type="button"
+                      disabled={uploading || disabled}
                       onClick={() => remove(img.path)}
                       className="absolute right-1.5 top-1.5 flex size-9 items-center justify-center rounded-full bg-black/70 text-white opacity-100 transition-opacity md:size-7 md:opacity-0 md:group-hover:opacity-100"
                       aria-label="Remove"
@@ -490,6 +630,7 @@ export function ImageUploader({
                     </button>
                     <button
                       type="button"
+                      disabled={uploading || disabled}
                       onClick={() => setMain(img.path)}
                       className={cn(
                         "absolute left-1.5 top-1.5 flex size-9 items-center justify-center rounded-full text-white transition-opacity md:size-7",
@@ -509,6 +650,12 @@ export function ImageUploader({
           )}
         </>
       )}
+
+      {optimizeToWebp && lastSizeSummary ? (
+        <p className="text-xs text-muted-foreground">
+          Last upload: {lastSizeSummary}
+        </p>
+      ) : null}
 
       <ImageCropDialog
         open={Boolean(cropSrc)}

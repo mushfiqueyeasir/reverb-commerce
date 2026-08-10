@@ -6,6 +6,8 @@ import { requireAdminSession, canWrite } from "@/lib/admin/auth";
 import { writeAuditLog } from "@/lib/admin/auditLog";
 import { buildDescriptionPayload } from "@/lib/products/sizeChart";
 import { chooseUniqueProductSlug, productSlugBase } from "@/lib/products/slug";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { BUCKETS } from "@/lib/supabase/config";
 
 export interface ProductImageInput {
   path: string;
@@ -46,6 +48,33 @@ export interface ProductInput {
 type SupabaseServerClient = Awaited<
   ReturnType<typeof createSupabaseServerClient>
 >;
+
+async function removeUnreferencedProductImages(paths: string[]) {
+  if (!paths.length) return;
+  const admin = createSupabaseAdminClient();
+  const { data: references, error: referenceError } = await admin
+    .from("product_images")
+    .select("path")
+    .in("path", paths);
+  if (referenceError) {
+    // eslint-disable-next-line no-console
+    console.error("Could not verify product image references", referenceError);
+    return;
+  }
+
+  const referencedPaths = new Set(
+    (references ?? []).map((image) => image.path as string),
+  );
+  const removablePaths = paths.filter((path) => !referencedPaths.has(path));
+  if (!removablePaths.length) return;
+
+  const { error } = await admin.storage
+    .from(BUCKETS.product)
+    .remove(removablePaths);
+  // Cleanup is best-effort after the database save has committed.
+  // eslint-disable-next-line no-console
+  if (error) console.error("Could not remove product images", error);
+}
 
 async function findAvailableProductSlug(
   supabase: SupabaseServerClient,
@@ -218,27 +247,7 @@ export async function saveProduct(
   if (!product) return { error: "Failed to save product." };
   const productId = product.id as string;
 
-  // 2. Sync images (delete-all + re-insert reflects the desired end state).
-  const { error: delImgError } = await supabase
-    .from("product_images")
-    .delete()
-    .eq("product_id", productId);
-  if (delImgError) return { error: delImgError.message };
-
-  if (input.images.length) {
-    const hasMain = input.images.some((img) => img.isMain);
-    const imageRows = input.images.map((img, i) => ({
-      product_id: productId,
-      path: img.path,
-      alt: img.alt ?? null,
-      is_main: img.isMain ?? (!hasMain && i === 0),
-      sort: i,
-    }));
-    const { error } = await supabase.from("product_images").insert(imageRows);
-    if (error) return { error: error.message };
-  }
-
-  // 3. Sync category links (delete + insert).
+  // 2. Sync category links (delete + insert).
   const { error: delCatError } = await supabase
     .from("product_categories")
     .delete()
@@ -254,7 +263,7 @@ export async function saveProduct(
     if (error) return { error: error.message };
   }
 
-  // 4. Sync variants: delete removed ones, then upsert the rest.
+  // 3. Sync variants: delete removed ones, then upsert the rest.
   const keepIds = input.variants
     .map((v) => v.id)
     .filter((id): id is string => Boolean(id));
@@ -303,6 +312,41 @@ export async function saveProduct(
     if (error) return { error: error.message };
   }
 
+  // 4. Sync images last so a category or variant failure cannot leave newly
+  // uploaded objects referenced by a partially saved product.
+  const { data: previousImages, error: previousImagesError } = await supabase
+    .from("product_images")
+    .select("path")
+    .eq("product_id", productId);
+  if (previousImagesError) return { error: previousImagesError.message };
+  const retainedImagePaths = new Set(input.images.map((image) => image.path));
+  const staleImagePaths = (previousImages ?? [])
+    .map((image) => image.path as string)
+    .filter((path) => !retainedImagePaths.has(path));
+
+  const { error: delImgError } = await supabase
+    .from("product_images")
+    .delete()
+    .eq("product_id", productId);
+  if (delImgError) return { error: delImgError.message };
+
+  if (input.images.length) {
+    const hasMain = input.images.some((img) => img.isMain);
+    const imageRows = input.images.map((img, i) => ({
+      product_id: productId,
+      path: img.path,
+      alt: img.alt ?? null,
+      is_main: img.isMain ?? (!hasMain && i === 0),
+      sort: i,
+    }));
+    const { error } = await supabase.from("product_images").insert(imageRows);
+    if (error) return { error: error.message };
+  }
+
+  if (staleImagePaths.length) {
+    await removeUnreferencedProductImages(staleImagePaths);
+  }
+
   const isCreate = !input.id;
   await writeAuditLog({
     actor: s,
@@ -334,10 +378,19 @@ export async function deleteProduct(
     .select("title")
     .eq("id", id)
     .maybeSingle();
+  const { data: imageRows } = await supabase
+    .from("product_images")
+    .select("path")
+    .eq("product_id", id);
 
   // product_images / product_variants / product_categories cascade on delete.
   const { error } = await supabase.from("products").delete().eq("id", id);
   if (error) return { error: error.message };
+
+  const imagePaths = (imageRows ?? []).map((image) => image.path as string);
+  if (imagePaths.length) {
+    await removeUnreferencedProductImages(imagePaths);
+  }
 
   await writeAuditLog({
     actor: s,

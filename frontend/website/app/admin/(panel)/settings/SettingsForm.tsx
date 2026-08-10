@@ -62,6 +62,10 @@ import type { CourierSettingsPublic } from "@/lib/couriers/types";
 import { COURIER_PROVIDERS } from "@/lib/couriers/metadata";
 import type { StorageUsage } from "@/lib/admin/storageUsage";
 import {
+  estimateProductCapacity,
+  productCapacityLevel,
+} from "@/lib/admin/storageEstimate";
+import {
   saveSettings,
   saveSmtpSettings,
   testSmtpSettings,
@@ -465,6 +469,10 @@ export function SettingsForm({
       : storagePercent >= 75
         ? "bg-amber-500"
         : "bg-primary";
+  const storageProductEstimate = estimateProductCapacity(storageRemaining);
+  const storageProductCapacityLevel = productCapacityLevel(
+    storageProductEstimate.expectedProducts,
+  );
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
@@ -1403,7 +1411,7 @@ export function SettingsForm({
           </FormField>
         </TabsContent>
 
-        <TabsContent value="storage" className="mt-0">
+        <TabsContent value="storage" className="mt-0 space-y-5">
           <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
             <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-5 sm:px-6">
               <div className="flex min-w-0 items-start gap-3">
@@ -1499,6 +1507,42 @@ export function SettingsForm({
               </div>
             )}
           </section>
+
+          {storageUsage.available ? (
+            <section className="rounded-2xl border border-border bg-card px-5 py-5 shadow-sm sm:px-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h2 className="font-display text-lg font-semibold text-foreground">
+                    Estimated product capacity
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Typical range:{" "}
+                    {storageProductEstimate.lowerProducts.toLocaleString()} to{" "}
+                    {storageProductEstimate.upperProducts.toLocaleString()}{" "}
+                    products
+                  </p>
+                </div>
+                <p
+                  className={cn(
+                    "font-display text-3xl font-semibold tabular-nums sm:text-right",
+                    storageProductCapacityLevel === "low"
+                      ? "text-destructive"
+                      : storageProductCapacityLevel === "limited"
+                        ? "text-amber-500"
+                        : "text-emerald-500",
+                  )}
+                >
+                  ~{storageProductEstimate.expectedProducts.toLocaleString()}{" "}
+                  more products
+                </p>
+              </div>
+              <p className="mt-4 border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground">
+                Estimate only, based on 5 images per product at about 800 KB
+                each after WebP optimization. Actual capacity varies with image
+                count, image size, review photos, and other uploads.
+              </p>
+            </section>
+          ) : null}
         </TabsContent>
       </Tabs>
 

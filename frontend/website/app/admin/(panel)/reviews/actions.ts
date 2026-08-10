@@ -4,6 +4,35 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, canWrite } from "@/lib/admin/auth";
 import { writeAuditLog } from "@/lib/admin/auditLog";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { BUCKETS } from "@/lib/supabase/config";
+
+async function removeUnreferencedReviewImages(paths: string[]) {
+  if (!paths.length) return;
+  const admin = createSupabaseAdminClient();
+  const { data: references, error: referenceError } = await admin
+    .from("reviews")
+    .select("image_path")
+    .in("image_path", paths);
+  if (referenceError) {
+    // eslint-disable-next-line no-console
+    console.error("Could not verify review image references", referenceError);
+    return;
+  }
+
+  const referencedPaths = new Set(
+    (references ?? []).map((review) => review.image_path as string),
+  );
+  const removablePaths = paths.filter((path) => !referencedPaths.has(path));
+  if (!removablePaths.length) return;
+
+  const { error } = await admin.storage
+    .from(BUCKETS.review)
+    .remove(removablePaths);
+  // Cleanup is best-effort after the database save has committed.
+  // eslint-disable-next-line no-console
+  if (error) console.error("Could not remove review images", error);
+}
 
 export interface ReviewInput {
   id?: string;
@@ -30,6 +59,16 @@ export async function saveReview(
   }
 
   const supabase = await createSupabaseServerClient();
+  let previousImagePath: string | null = null;
+  if (input.id) {
+    const { data: previousReview, error: previousReviewError } = await supabase
+      .from("reviews")
+      .select("image_path")
+      .eq("id", input.id)
+      .single();
+    if (previousReviewError) return { error: previousReviewError.message };
+    previousImagePath = (previousReview.image_path as string | null) ?? null;
+  }
   const payload = {
     customer_name: input.customer_name.trim(),
     image_path: input.image_path,
@@ -47,6 +86,9 @@ export async function saveReview(
   if (error) return { error: error.message };
 
   const reviewId = data.id as string;
+  if (previousImagePath && previousImagePath !== input.image_path) {
+    await removeUnreferencedReviewImages([previousImagePath]);
+  }
   await writeAuditLog({
     actor: s,
     action: input.id ? "update" : "create",
@@ -71,12 +113,16 @@ export async function deleteReview(
   const supabase = await createSupabaseServerClient();
   const { data: reviewRow } = await supabase
     .from("reviews")
-    .select("customer_name")
+    .select("customer_name, image_path")
     .eq("id", id)
     .maybeSingle();
 
   const { error } = await supabase.from("reviews").delete().eq("id", id);
   if (error) return { error: error.message };
+
+  if (reviewRow?.image_path) {
+    await removeUnreferencedReviewImages([reviewRow.image_path as string]);
+  }
 
   await writeAuditLog({
     actor: s,

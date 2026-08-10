@@ -31,6 +31,7 @@ import { slugify } from "@/lib/admin/format";
 import { DEFAULT_TEE_SIZE_CHART } from "@/lib/products/sizeChart";
 import { DEFAULT_TEE_VARIANTS } from "@/lib/products/variants";
 import { generateProductSku } from "@/lib/products/sku";
+import { deleteImageObjects } from "@/app/admin/storage-actions";
 import {
   saveProduct,
   suggestProductSlug,
@@ -91,6 +92,7 @@ export function ProductForm({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [slugPending, startSlugTransition] = useTransition();
+  const [imageBusy, setImageBusy] = useState(false);
   const slugRequest = useRef(0);
 
   const [title, setTitle] = useState(product?.title ?? "");
@@ -99,6 +101,7 @@ export function ProductForm({
   const [skuMode, setSkuMode] = useState<"auto" | "manual">(
     product ? "manual" : "auto",
   );
+
   const [status, setStatus] = useState<"active" | "draft" | "archived">(
     product?.status ?? "active",
   );
@@ -122,6 +125,27 @@ export function ProductForm({
   const [sizeChart, setSizeChart] = useState<SizeChartFormRow[]>(
     product?.size_chart?.length ? product.size_chart : [],
   );
+
+  const cancel = async () => {
+    if (imageBusy) return;
+    const unsavedPaths = images
+      .filter((image) => image.isNew)
+      .map((image) => image.path);
+    if (unsavedPaths.length) {
+      setImageBusy(true);
+      try {
+        const result = await deleteImageObjects({
+          bucket: BUCKETS.product,
+          paths: unsavedPaths,
+        });
+        if (result.error)
+          toast.error("Some unused product images could not be removed.");
+      } catch {
+        toast.error("Some unused product images could not be removed.");
+      }
+    }
+    router.push("/admin/products");
+  };
 
   const onTitleChange = (v: string) => {
     setTitle(v);
@@ -645,6 +669,10 @@ export function ProductForm({
             multiple
             maxFiles={5}
             maxFileSizeMb={4}
+            optimizeToWebp
+            fileNamePrefix={title || "product"}
+            onBusyChange={setImageBusy}
+            disabled={pending || imageBusy}
             label="Upload product images"
           />
         </TabsContent>
@@ -757,18 +785,18 @@ export function ProductForm({
       <FormActions>
         <Button
           variant="outline"
-          onClick={() => router.push("/admin/products")}
-          disabled={pending}
+          onClick={() => void cancel()}
+          disabled={pending || imageBusy}
           className="rounded-full px-6"
         >
           Cancel
         </Button>
         <Button
           onClick={submit}
-          disabled={pending}
+          disabled={pending || imageBusy}
           className="rounded-full px-6"
         >
-          {pending ? (
+          {pending || imageBusy ? (
             <Loader2 className="mr-2 size-4 animate-spin" />
           ) : (
             <Save className="mr-2 size-4" />

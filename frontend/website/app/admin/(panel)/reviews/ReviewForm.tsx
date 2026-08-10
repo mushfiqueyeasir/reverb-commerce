@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { saveReview } from "./actions";
+import { deleteImageObjects } from "@/app/admin/storage-actions";
 
 export interface ProductOption {
   id: string;
@@ -47,6 +48,7 @@ export function ReviewForm({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [imageBusy, setImageBusy] = useState(false);
 
   const [customerName, setCustomerName] = useState(review?.customer_name ?? "");
   const [rating, setRating] = useState(
@@ -58,6 +60,27 @@ export function ReviewForm({
   const [images, setImages] = useState<UploadedImage[]>(
     review?.image_path ? [{ path: review.image_path }] : [],
   );
+
+  const cancel = async () => {
+    if (imageBusy) return;
+    const unsavedPaths = images
+      .filter((image) => image.isNew)
+      .map((image) => image.path);
+    if (unsavedPaths.length) {
+      setImageBusy(true);
+      try {
+        const result = await deleteImageObjects({
+          bucket: BUCKETS.review,
+          paths: unsavedPaths,
+        });
+        if (result.error)
+          toast.error("The unused review image could not be removed.");
+      } catch {
+        toast.error("The unused review image could not be removed.");
+      }
+    }
+    router.push("/admin/reviews");
+  };
 
   const submit = () => {
     if (!customerName.trim()) {
@@ -158,6 +181,10 @@ export function ReviewForm({
               onChange={setImages}
               label="Upload photo"
               maxFileSizeMb={4}
+              optimizeToWebp
+              fileNamePrefix={`${customerName || "customer"}-review`}
+              onBusyChange={setImageBusy}
+              disabled={pending || imageBusy}
             />
           </AdminCard>
 
@@ -182,18 +209,18 @@ export function ReviewForm({
       <FormActions>
         <Button
           variant="outline"
-          onClick={() => router.push("/admin/reviews")}
-          disabled={pending}
+          onClick={() => void cancel()}
+          disabled={pending || imageBusy}
           className="rounded-full px-6"
         >
           Cancel
         </Button>
         <Button
           onClick={submit}
-          disabled={pending}
+          disabled={pending || imageBusy}
           className="rounded-full px-6"
         >
-          {pending ? (
+          {pending || imageBusy ? (
             <Loader2 className="mr-2 size-4 animate-spin" />
           ) : (
             <Save className="mr-2 size-4" />
