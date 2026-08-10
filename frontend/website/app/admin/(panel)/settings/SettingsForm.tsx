@@ -1427,9 +1427,6 @@ export function SettingsForm({
                   </p>
                 </div>
               </div>
-              <span className="shrink-0 rounded-full border border-border bg-background px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                Free plan
-              </span>
             </div>
 
             {storageUsage.available ? (
@@ -1515,12 +1512,6 @@ export function SettingsForm({
                   <h2 className="font-display text-lg font-semibold text-foreground">
                     Estimated product capacity
                   </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Typical range:{" "}
-                    {storageProductEstimate.lowerProducts.toLocaleString()} to{" "}
-                    {storageProductEstimate.upperProducts.toLocaleString()}{" "}
-                    products
-                  </p>
                 </div>
                 <p
                   className={cn(
