@@ -104,18 +104,17 @@ export const NAV_ITEMS: NavItem[] = [
     group: "Content",
   },
   {
-    label: "Contact",
-    href: "/admin/contact",
-    icon: "Mail",
-    roles: ["admin", "editor", "viewer"],
-    group: "Content",
-  },
-
-  {
     label: "Settings",
     href: "/admin/settings",
     icon: "Settings",
     roles: ["admin"],
+    group: "Store",
+  },
+  {
+    label: "Contact",
+    href: "/admin/contact",
+    icon: "Mail",
+    roles: ["admin", "editor", "viewer"],
     group: "Store",
   },
   {
