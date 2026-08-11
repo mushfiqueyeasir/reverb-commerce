@@ -91,8 +91,7 @@ function uniqueValues(values: (string | null)[]): string[] {
 
 export async function POST(request: NextRequest) {
   try {
-    const apiKey =
-      "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";
+    const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
         {
