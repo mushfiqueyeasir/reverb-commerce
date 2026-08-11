@@ -9,12 +9,13 @@ import {
 import { productImageUrl } from "@/utility/imageUrl";
 import type { AiAdvisorProduct, AiAdvisorResponse } from "@/type/aiAdvisorType";
 
+import { config } from "@/config";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const OPENROUTER_MODEL = "google/gemini-2.5-flash";
 const CATALOG_LIMIT = 120;
 
 const RESPONSE_RECOVERY: AiAdvisorResponse = {
@@ -91,9 +92,9 @@ function uniqueValues(values: (string | null)[]): string[] {
 
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = process.env.OPENROUTER_API_KEY;
-    
-    if (!apiKey) {
+    const apiKey = config.openRouter.apiKey;
+
+    if (!config.openRouter.apiKey) {
       return NextResponse.json(
         {
           error:
@@ -207,7 +208,7 @@ export async function POST(request: NextRequest) {
         "X-OpenRouter-Title": `${storeName} Shopping Assistant`,
       },
       body: JSON.stringify({
-        model: OPENROUTER_MODEL,
+        model: config.openRouter.model,
         messages: [{ role: "system", content: systemPrompt }, ...messages],
         temperature: 0.55,
         top_p: 0.9,
