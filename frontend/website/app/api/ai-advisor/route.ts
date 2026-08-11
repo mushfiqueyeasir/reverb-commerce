@@ -92,6 +92,7 @@ function uniqueValues(values: (string | null)[]): string[] {
 export async function POST(request: NextRequest) {
   try {
     const apiKey = process.env.OPENROUTER_API_KEY;
+    
     if (!apiKey) {
       return NextResponse.json(
         {
