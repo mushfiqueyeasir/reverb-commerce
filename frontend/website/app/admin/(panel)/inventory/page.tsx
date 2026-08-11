@@ -2,10 +2,7 @@ import { requireAdminSession, canWrite } from "@/lib/admin/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { productImageUrl } from "@/utility/imageUrl";
-import {
-  InventoryTable,
-  type InventoryProduct,
-} from "./InventoryTable";
+import { InventoryTable, type InventoryProduct } from "./InventoryTable";
 
 export const dynamic = "force-dynamic";
 
@@ -61,8 +58,7 @@ export default async function InventoryPage() {
     (total, product) =>
       total +
       product.variants.filter(
-        (variant) =>
-          variant.stock_quantity <= variant.low_stock_threshold,
+        (variant) => variant.stock_quantity <= variant.low_stock_threshold,
       ).length,
     0,
   );

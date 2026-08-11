@@ -53,7 +53,8 @@ function StockEditor({
   }, [variant.stock_quantity]);
 
   const parsedValue = Number(value);
-  const valid = value !== "" && Number.isFinite(parsedValue) && parsedValue >= 0;
+  const valid =
+    value !== "" && Number.isFinite(parsedValue) && parsedValue >= 0;
   const nextStock = valid ? Math.trunc(parsedValue) : 0;
   const dirty = valid && nextStock !== variant.stock_quantity;
 
@@ -140,8 +141,7 @@ export function InventoryTable({
   const normalizedQuery = query.trim().toLowerCase();
   const filtered = data.filter((product) => {
     const hasLowStock = product.variants.some(
-      (variant) =>
-        variant.stock_quantity <= variant.low_stock_threshold,
+      (variant) => variant.stock_quantity <= variant.low_stock_threshold,
     );
     if (lowOnly && !hasLowStock) return false;
     if (!normalizedQuery) return true;
@@ -245,9 +245,7 @@ export function InventoryTable({
                         ) : totalStock <= 0 ? (
                           <Badge variant="destructive">Out of stock</Badge>
                         ) : lowCount > 0 ? (
-                          <Badge variant="warning">
-                            {lowCount} low stock
-                          </Badge>
+                          <Badge variant="warning">{lowCount} low stock</Badge>
                         ) : (
                           <Badge variant="success">In stock</Badge>
                         )}
