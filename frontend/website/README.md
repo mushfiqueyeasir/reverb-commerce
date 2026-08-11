@@ -5,6 +5,11 @@ e-commerce platform by Reverb Solution.
 
 ## Getting Started
 
+The storefront requires Supabase server configuration. The AI shopping
+assistant additionally requires `OPENROUTER_API_KEY` as a server-only runtime
+secret. Production stores receive it through Vercel's encrypted environment;
+never prefix it with `NEXT_PUBLIC_` or commit it to this repository.
+
 First, run the development server:
 
 ```bash
