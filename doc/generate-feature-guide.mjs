@@ -9,10 +9,7 @@ const require = createRequire(
 const { jsPDF } = require("jspdf");
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
-const outputPath = join(
-  currentDir,
-  "Reverb-Commerce-Feature-Guide.pdf",
-);
+const outputPath = join(currentDir, "Reverb-Commerce-Feature-Guide.pdf");
 const logoData = `data:image/png;base64,${readFileSync(
   join(currentDir, "reverb-solution-logo.png"),
 ).toString("base64")}`;
@@ -41,7 +38,7 @@ const pages = [
           title: "Platform at a glance",
           bullets: [
             "Responsive storefront for mobile, tablet and desktop.",
-            "Searchable catalog with categories, filters and sorting.",
+            "Full-screen catalog search plus an AI shopping assistant grounded in live inventory.",
             "Detailed product pages with images, sizes, stock and size charts.",
             "Persistent wishlist and shopping cart without customer registration.",
             "Guest checkout with promo codes and configurable delivery charges.",
@@ -55,7 +52,7 @@ const pages = [
             "Low-friction journey from product discovery to checkout.",
             "Clear pricing, discounts, availability and delivery totals.",
             "Mobile shopping navigation and touch-friendly controls.",
-            "WhatsApp or Messenger access for customer assistance.",
+            "Human-style AI guidance plus WhatsApp or Messenger access for assistance.",
             "Brand content, reviews and promotions throughout the storefront.",
             "No account or password required to place an order.",
           ],
@@ -121,8 +118,9 @@ const pages = [
         {
           title: "Catalog discovery",
           bullets: [
-            "Case-insensitive product-title search.",
-            "Shareable search and category URLs.",
+            "Full-screen discovery workspace for direct search and AI guidance.",
+            "Case-insensitive title search with live visual product results.",
+            "Search stays inside the workspace until a product is selected.",
             "Multi-category and stock-availability filtering.",
             "Minimum and maximum price filters.",
             "Price and alphabetical sorting.",
@@ -163,6 +161,81 @@ const pages = [
             "Dedicated published-reviews page with ratings and photos.",
             "CMS-driven About, Privacy, Terms and Refund pages.",
             "Contact form plus clickable store email and phone.",
+          ],
+        },
+      ],
+    ],
+  },
+  {
+    eyebrow: "INTELLIGENT DISCOVERY",
+    title: "Search & AI Shopping Assistant",
+    subtitle:
+      "A modern discovery workspace combines immediate catalog search with conversational, inventory-aware product guidance.",
+    columns: [
+      [
+        {
+          title: "Unified discovery workspace",
+          bullets: [
+            "Full-screen editorial interface aligned with the active store theme.",
+            "Clear Search and Ask AI modes inside one customer journey.",
+            "Oversized query surface with responsive desktop and mobile layouts.",
+            "Live inventory connection indicator and focused product navigation.",
+            "The underlying catalog page remains unchanged while customers explore.",
+            "Selecting a result closes discovery and opens its product page.",
+          ],
+        },
+        {
+          title: "Live product search",
+          bullets: [
+            "Debounced case-insensitive product-title matching.",
+            "Up to twelve active results returned from the current catalog.",
+            "Editorial product cards with imagery, current price and original price.",
+            "Dedicated loading, unavailable and no-result presentations.",
+            "Search requests are isolated from storefront filters and page state.",
+            "Special search characters are safely handled by the server.",
+          ],
+        },
+        {
+          title: "Guided starting points",
+          bullets: [
+            "One-tap prompts for personality matching, gifts and budget-led shopping.",
+            "Customers may begin with a person, occasion, goal, style or feeling.",
+            "Suggested replies make follow-up questions quick on mobile.",
+            "Reset Brief starts a fresh recommendation conversation at any time.",
+          ],
+        },
+      ],
+      [
+        {
+          title: "Human-style sales guidance",
+          bullets: [
+            "Warm conversational guidance designed to feel like an attentive salesperson.",
+            "Adapts to the customer's language, tone and level of formality.",
+            "Asks only decision-critical questions and recommends without over-interviewing.",
+            "Leads with a clear first choice when the catalog supports one.",
+            "Connects product details to customer benefits, occasions and preferences.",
+            "Explains useful tradeoffs and encourages a natural, low-pressure next step.",
+          ],
+        },
+        {
+          title: "Catalog-grounded recommendations",
+          bullets: [
+            "Considers personality, recipient, occasion, budget, style, color and size.",
+            "Uses active product titles, descriptions, types, categories and variants.",
+            "Out-of-stock products and unavailable variant options are excluded.",
+            "One strong recommendation or up to three meaningful alternatives.",
+            "Every returned product ID is revalidated against the live catalog.",
+            "Prices, imagery and product links are attached by the store server.",
+          ],
+        },
+        {
+          title: "Reliable customer conversation",
+          bullets: [
+            "Structured OpenRouter responses with automatic response healing.",
+            "Recovery for fenced JSON, text-wrapped JSON and provider content parts.",
+            "Unusable responses become a natural follow-up question, not a technical error.",
+            "Connection failures preserve the customer's last message for easy retry.",
+            "Provider data-collection filtering is requested on every AI call.",
           ],
         },
       ],
@@ -441,6 +514,7 @@ const pages = [
             "Gmail/custom SMTP with live server-login validation.",
             "Google Analytics, Google Tag Manager and Meta Pixel.",
             "WhatsApp and Facebook Messenger links.",
+            "OpenRouter structured-output integration for catalog-grounded AI guidance.",
             "CSV feeds and downloadable business exports.",
           ],
         },
@@ -500,7 +574,7 @@ doc.setProperties({
   author: "Reverb Solution",
   creator: "Reverb Solution",
   keywords:
-    "Reverb Commerce, Reverb Solution, ecommerce, Next.js, React, Supabase, bKash, Pathao, Steadfast, REDX, SMTP, pg_cron, admin panel",
+    "Reverb Commerce, Reverb Solution, ecommerce, AI shopping assistant, OpenRouter, product recommendations, Next.js, React, Supabase, bKash, Pathao, Steadfast, REDX, SMTP, pg_cron, admin panel",
 });
 
 const pageWidth = doc.internal.pageSize.getWidth();
@@ -524,7 +598,7 @@ function textColor(color) {
 function drawPageBase(page, pageNumber) {
   fill(C.white);
   doc.rect(0, 0, pageWidth, pageHeight, "F");
-  fill(pageNumber === 6 ? C.indigo : C.blue);
+  fill(pageNumber === pages.length ? C.indigo : C.blue);
   doc.rect(0, 0, pageWidth, 3, "F");
 
   doc.addImage(logoData, "PNG", margin, 9, 11, 11 / (988 / 707));
@@ -613,7 +687,9 @@ function drawFooter(pageNumber) {
   textColor(C.muted);
   doc.setFont("helvetica", "normal");
   doc.text("contact@reverbsolution.com", margin + 44, 290);
-  doc.text(`${pageNumber} / 6`, pageWidth - margin, 290, { align: "right" });
+  doc.text(`${pageNumber} / ${pages.length}`, pageWidth - margin, 290, {
+    align: "right",
+  });
 }
 
 function renderPage(page, pageNumber) {
