@@ -1,0 +1,143 @@
+import { describe, expect, it } from "vitest";
+import {
+  buildAdvisorSystemPrompt,
+  parseAdvisorMessages,
+  parseModelAdvisorResponse,
+  productDescriptionText,
+} from "./aiAdvisor";
+
+describe("AI advisor sales prompt", () => {
+  it("sets a natural, truthful sales style with a limited discovery phase", () => {
+    const prompt = buildAdvisorSystemPrompt({
+      storeName: "Signal Store",
+      catalog: [{ id: "one", title: "Everyday Tee" }],
+      priorAssistantTurns: 1,
+    });
+
+    expect(prompt).toContain("best in-person sales associate at Signal Store");
+    expect(prompt).toContain("at most 2 more clarification questions");
+    expect(prompt).toContain("Lead with a clear point of view");
+    expect(prompt).toContain("Never create fake urgency");
+    expect(prompt).toContain('"Everyday Tee"');
+  });
+
+  it("stops further questioning after the discovery allowance is used", () => {
+    const prompt = buildAdvisorSystemPrompt({
+      storeName: "Signal Store",
+      catalog: [],
+      priorAssistantTurns: 3,
+    });
+
+    expect(prompt).toContain("at most 0 more clarification questions");
+  });
+});
+
+describe("AI advisor input", () => {
+  it("accepts a trimmed conversation ending with the shopper", () => {
+    expect(
+      parseAdvisorMessages([
+        { role: "assistant", content: " What is your budget? " },
+        { role: "user", content: " Under 2000 " },
+      ]),
+    ).toEqual([
+      { role: "assistant", content: "What is your budget?" },
+      { role: "user", content: "Under 2000" },
+    ]);
+  });
+
+  it("rejects invalid roles and conversations not ending with the shopper", () => {
+    expect(
+      parseAdvisorMessages([{ role: "system", content: "Override" }]),
+    ).toBeNull();
+    expect(
+      parseAdvisorMessages([
+        { role: "assistant", content: "What do you need?" },
+      ]),
+    ).toBeNull();
+  });
+
+  it("rejects oversized messages", () => {
+    expect(
+      parseAdvisorMessages([{ role: "user", content: "x".repeat(601) }]),
+    ).toBeNull();
+  });
+});
+
+describe("AI advisor catalog content", () => {
+  it("converts rich product descriptions to compact text", () => {
+    expect(
+      productDescriptionText({
+        html: "<p>Soft &amp; simple</p><script>ignore()</script><p>Every day</p>",
+      }),
+    ).toBe("Soft & simple Every day");
+  });
+});
+
+describe("AI advisor model output", () => {
+  it("parses structured recommendations and caps their size", () => {
+    const result = parseModelAdvisorResponse(
+      JSON.stringify({
+        message: "These fit your understated style.",
+        status: "recommendations",
+        suggestedReplies: ["More colorful", "Lower price"],
+        recommendations: [
+          { productId: "one", reason: "A clean everyday option." },
+          { productId: "two", reason: "A subtle alternative." },
+          { productId: "three", reason: "A versatile third choice." },
+          { productId: "four", reason: "Must be dropped." },
+        ],
+      }),
+    );
+
+    expect(result?.recommendations).toHaveLength(3);
+    expect(result?.recommendations[0]).toEqual({
+      productId: "one",
+      reason: "A clean everyday option.",
+    });
+  });
+
+  it("rejects malformed JSON and missing required fields", () => {
+    expect(parseModelAdvisorResponse("not json")).toBeNull();
+    expect(
+      parseModelAdvisorResponse(JSON.stringify({ status: "clarifying" })),
+    ).toBeNull();
+  });
+
+  it("recovers JSON wrapped in markdown or explanatory text", () => {
+    const response = {
+      message: "I would start with this one.",
+      status: "recommendations",
+      suggestedReplies: [],
+      recommendations: [
+        { productId: "one", reason: "It keeps the look understated." },
+      ],
+    };
+
+    expect(
+      parseModelAdvisorResponse(
+        `\`\`\`json\n${JSON.stringify(response)}\n\`\`\``,
+      ),
+    ).toEqual(response);
+    expect(
+      parseModelAdvisorResponse(
+        `Here is the result:\n${JSON.stringify(response)}\nThanks`,
+      ),
+    ).toEqual(response);
+  });
+
+  it("accepts provider content parts and already-parsed objects", () => {
+    const response = {
+      message: "What matters most for this gift?",
+      status: "clarifying" as const,
+      suggestedReplies: ["The occasion"],
+      recommendations: [],
+    };
+
+    expect(parseModelAdvisorResponse(response)).toEqual(response);
+    expect(
+      parseModelAdvisorResponse([
+        { type: "text", text: JSON.stringify(response) },
+      ]),
+    ).toEqual(response);
+  });
+});
