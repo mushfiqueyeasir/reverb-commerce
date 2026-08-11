@@ -15,551 +15,26 @@ const logoData = `data:image/png;base64,${readFileSync(
 ).toString("base64")}`;
 
 const C = {
-  ink: [22, 27, 36],
-  body: [55, 65, 81],
-  muted: [105, 116, 132],
-  line: [218, 224, 232],
-  blue: [22, 103, 247],
-  blueSoft: [235, 242, 255],
-  indigo: [98, 95, 255],
-  white: [255, 255, 255],
+  black: [255, 255, 255],
+  surface: [255, 255, 255],
+  surface2: [247, 249, 252],
+  surface3: [241, 246, 255],
+  grid: [255, 255, 255],
+  border: [226, 231, 239],
+  borderBlue: [176, 202, 244],
+  white: [15, 23, 42],
+  paper: [255, 255, 255],
+  body: [51, 65, 85],
+  muted: [89, 103, 123],
+  dim: [120, 132, 149],
+  blue: [37, 99, 235],
+  blue2: [30, 86, 200],
+  blueSoft: [29, 78, 160],
+  violet: [109, 76, 190],
+  green: [5, 139, 98],
+  greenSoft: [4, 112, 80],
+  pink: [190, 24, 93],
 };
-
-const pages = [
-  {
-    eyebrow: "PRODUCT OVERVIEW",
-    title: "Reverb Commerce",
-    subtitle: "Complete Product Feature & Technology Documentation",
-    intro:
-      "Designed and developed by Reverb Solution, Reverb Commerce connects a modern customer storefront with the complete merchant workflow required to manage products, content, orders, customers, payments and growth.",
-    columns: [
-      [
-        {
-          title: "Platform at a glance",
-          bullets: [
-            "Responsive storefront for mobile, tablet and desktop.",
-            "Full-screen catalog search plus an AI shopping assistant grounded in live inventory.",
-            "Detailed product pages with images, sizes, stock and size charts.",
-            "Persistent wishlist and shopping cart without customer registration.",
-            "Guest checkout with promo codes and configurable delivery charges.",
-            "Cash on Delivery and optional bKash Tokenized Checkout.",
-            "Public order and courier tracking with branded email confirmations.",
-          ],
-        },
-        {
-          title: "Customer experience",
-          bullets: [
-            "Low-friction journey from product discovery to checkout.",
-            "Clear pricing, discounts, availability and delivery totals.",
-            "Mobile shopping navigation and touch-friendly controls.",
-            "Human-style AI guidance plus WhatsApp or Messenger access for assistance.",
-            "Brand content, reviews and promotions throughout the storefront.",
-            "No account or password required to place an order.",
-          ],
-        },
-      ],
-      [
-        {
-          title: "Merchant experience",
-          bullets: [
-            "Central dashboard for orders, sales, customers and stock.",
-            "Product, category, variant and inventory management.",
-            "Quick approval plus Pathao, Steadfast and REDX fulfilment.",
-            "Customer records, order history, reports and exports.",
-            "Homepage, About, promotion, review and policy content tools.",
-            "Brand, delivery, payment, courier, email and analytics settings.",
-            "Staff roles, protected admin routes and detailed audit history.",
-          ],
-        },
-        {
-          title: "Business value",
-          bullets: [
-            "One connected system replaces separate catalog and order tools.",
-            "Daily store operations can be completed without code changes.",
-            "Local payment and Bangladesh courier workflows are built in.",
-            "Campaign content and store appearance remain merchant-controlled.",
-            "Commercial activity is visible through KPIs, charts and reports.",
-            "Managed cloud services provide a practical path for growth.",
-          ],
-        },
-      ],
-    ],
-  },
-  {
-    eyebrow: "CUSTOMER EXPERIENCE",
-    title: "Storefront & Product Discovery",
-    subtitle:
-      "A responsive shopping experience designed to help customers find, understand and save the right products.",
-    columns: [
-      [
-        {
-          title: "Responsive storefront",
-          bullets: [
-            "Layouts optimized for phone, tablet and desktop.",
-            "Dedicated mobile bar for Contact, Cart, Shop, Saved and Search.",
-            "Live cart and wishlist counters in navigation.",
-            "Dynamic desktop category menu.",
-            "Touch-friendly filters, dialogs and shopping controls.",
-            "Configurable color palette, motion and branded not-found page.",
-          ],
-        },
-        {
-          title: "Homepage merchandising",
-          bullets: [
-            "CMS-controlled section ordering and visibility.",
-            "Auto-rotating banner carousel with manual controls.",
-            "Separate desktop and mobile campaign artwork.",
-            "Scheduled banner start and end dates.",
-            "Category tiles and configurable featured products.",
-            "Customer-review marquee and promotional strip.",
-            "Session-aware promotion popup and rich-text brand sections.",
-          ],
-        },
-        {
-          title: "Catalog discovery",
-          bullets: [
-            "Full-screen discovery workspace for direct search and AI guidance.",
-            "Case-insensitive title search with live visual product results.",
-            "Search stays inside the workspace until a product is selected.",
-            "Multi-category and stock-availability filtering.",
-            "Minimum and maximum price filters.",
-            "Price and alphabetical sorting.",
-            "Live result counts, reset control and empty-result guidance.",
-          ],
-        },
-      ],
-      [
-        {
-          title: "Product cards & quick shopping",
-          bullets: [
-            "Main and hover imagery.",
-            "Current price, original price and discount percentage.",
-            "New, discounted and sold-out badges.",
-            "Wishlist control and stock-aware quick actions.",
-            "Quick Add dialog with size, quantity, Add to Cart and Buy Now.",
-          ],
-        },
-        {
-          title: "Product detail pages",
-          bullets: [
-            "Search-friendly URLs generated from product slugs.",
-            "Multi-image gallery, thumbnails, counter and navigation.",
-            "Current/original pricing and calculated discount.",
-            "Stock-driven size selection with disabled unavailable options.",
-            "Quantity selector and low-stock messaging.",
-            "Rich descriptions with headings, lists and links.",
-            "Product-specific chest and length size charts.",
-            "Add to Cart, Buy Now and Add to Favorites.",
-          ],
-        },
-        {
-          title: "Wishlist, cart & customer content",
-          bullets: [
-            "Browser-persistent wishlist with individual and Clear All removal.",
-            "Browser-persistent cart with separate entries by product and size.",
-            "Quantity updates, line removal, line totals and subtotal.",
-            "Dedicated published-reviews page with ratings and photos.",
-            "CMS-driven About, Privacy, Terms and Refund pages.",
-            "Contact form plus clickable store email and phone.",
-          ],
-        },
-      ],
-    ],
-  },
-  {
-    eyebrow: "INTELLIGENT DISCOVERY",
-    title: "Search & AI Shopping Assistant",
-    subtitle:
-      "A modern discovery workspace combines immediate catalog search with conversational, inventory-aware product guidance.",
-    columns: [
-      [
-        {
-          title: "Unified discovery workspace",
-          bullets: [
-            "Full-screen editorial interface aligned with the active store theme.",
-            "Clear Search and Ask AI modes inside one customer journey.",
-            "Oversized query surface with responsive desktop and mobile layouts.",
-            "Live inventory connection indicator and focused product navigation.",
-            "The underlying catalog page remains unchanged while customers explore.",
-            "Selecting a result closes discovery and opens its product page.",
-          ],
-        },
-        {
-          title: "Live product search",
-          bullets: [
-            "Debounced case-insensitive product-title matching.",
-            "Up to twelve active results returned from the current catalog.",
-            "Editorial product cards with imagery, current price and original price.",
-            "Dedicated loading, unavailable and no-result presentations.",
-            "Search requests are isolated from storefront filters and page state.",
-            "Special search characters are safely handled by the server.",
-          ],
-        },
-        {
-          title: "Guided starting points",
-          bullets: [
-            "One-tap prompts for personality matching, gifts and budget-led shopping.",
-            "Customers may begin with a person, occasion, goal, style or feeling.",
-            "Suggested replies make follow-up questions quick on mobile.",
-            "Reset Brief starts a fresh recommendation conversation at any time.",
-          ],
-        },
-      ],
-      [
-        {
-          title: "Human-style sales guidance",
-          bullets: [
-            "Warm conversational guidance designed to feel like an attentive salesperson.",
-            "Adapts to the customer's language, tone and level of formality.",
-            "Asks only decision-critical questions and recommends without over-interviewing.",
-            "Leads with a clear first choice when the catalog supports one.",
-            "Connects product details to customer benefits, occasions and preferences.",
-            "Explains useful tradeoffs and encourages a natural, low-pressure next step.",
-          ],
-        },
-        {
-          title: "Catalog-grounded recommendations",
-          bullets: [
-            "Considers personality, recipient, occasion, budget, style, color and size.",
-            "Uses active product titles, descriptions, types, categories and variants.",
-            "Out-of-stock products and unavailable variant options are excluded.",
-            "One strong recommendation or up to three meaningful alternatives.",
-            "Every returned product ID is revalidated against the live catalog.",
-            "Prices, imagery and product links are attached by the store server.",
-          ],
-        },
-        {
-          title: "Reliable customer conversation",
-          bullets: [
-            "Structured OpenRouter responses with automatic response healing.",
-            "Recovery for fenced JSON, text-wrapped JSON and provider content parts.",
-            "Unusable responses become a natural follow-up question, not a technical error.",
-            "Connection failures preserve the customer's last message for easy retry.",
-            "Provider data-collection filtering is requested on every AI call.",
-          ],
-        },
-      ],
-    ],
-  },
-  {
-    eyebrow: "COMMERCE JOURNEY",
-    title: "Checkout, Payments & Order Tracking",
-    subtitle:
-      "A complete guest-purchase workflow with local payment options, delivery pricing and clear post-purchase communication.",
-    columns: [
-      [
-        {
-          title: "Guest checkout",
-          bullets: [
-            "No customer account required.",
-            "Validated email, name, phone and delivery address.",
-            "Optional postal code and delivery-note support.",
-            "Optional local saving of delivery information.",
-            "Responsive checkout with desktop order-summary panel.",
-            "Product image, size, quantity and price summary.",
-            "Subtotal, discount, delivery and final total calculation.",
-          ],
-        },
-        {
-          title: "Delivery & promo codes",
-          bullets: [
-            "Inside Dhaka and Outside Dhaka delivery zones.",
-            "Separate merchant-configurable delivery charges.",
-            "Promo codes normalized for consistent entry.",
-            "Percentage discounts with active and date validation.",
-            "Discount applied to merchandise subtotal only.",
-            "Promo code revalidated when the order is submitted.",
-          ],
-        },
-        {
-          title: "Cash on Delivery",
-          bullets: [
-            "Always available as the default payment option.",
-            "Immediate order placement and confirmation.",
-            "Customer cart cleared after successful submission.",
-            "Merchant and customer email workflow triggered after order creation.",
-          ],
-        },
-      ],
-      [
-        {
-          title: "bKash Tokenized Checkout",
-          bullets: [
-            "Optional integration when the store operates in BDT.",
-            "Merchant-controlled enable, sandbox and live modes.",
-            "Hosted bKash payment redirect.",
-            "Payment execution and status-query fallback.",
-            "Race-safe finalization with payment and transaction IDs.",
-            "Failed payments removed immediately with stock restoration.",
-            "Hourly-expired unpaid orders cleaned every 15 minutes.",
-            "Automatic return to order tracking after successful payment.",
-          ],
-        },
-        {
-          title: "Order communication",
-          bullets: [
-            "Generated human-readable order numbers.",
-            "Branded customer confirmation email.",
-            "Separate owner notification with optional additional recipients.",
-            "Emails include products, delivery information, discounts and totals.",
-            "Store logo and active theme colors applied to messages.",
-          ],
-        },
-        {
-          title: "Customer order tracking",
-          bullets: [
-            "Public lookup using the order number.",
-            "Progress through Pending, Confirmed, Processing, Shipped and Delivered.",
-            "Separate cancelled-order presentation.",
-            "Order date, delivery area and customer summary.",
-            "Payment state, bKash transaction ID and courier tracking code.",
-            "Courier status, update message and recent event history.",
-            "Products, quantities, totals, discount and delivery charge.",
-          ],
-        },
-      ],
-    ],
-  },
-  {
-    eyebrow: "MERCHANT OPERATIONS",
-    title: "Dashboard, Catalog & Fulfilment",
-    subtitle:
-      "Operational tools give staff direct control over products, inventory, orders, customers and business documents.",
-    columns: [
-      [
-        {
-          title: "Merchant dashboard",
-          bullets: [
-            "Personalized live overview for the signed-in team member.",
-            "Orders today and during the last seven days.",
-            "Seven-day and all-time booked sales.",
-            "New customers, low-stock variants and pending orders.",
-            "Seven-day order-volume and sales charts.",
-            "Recent orders with customer, status, date and total.",
-            "Quick links to common operational tasks.",
-          ],
-        },
-        {
-          title: "Products & categories",
-          bullets: [
-            "Create, edit, search, reorder and permanently delete products.",
-            "Active, draft and archived product states.",
-            "Automatic URL slugs with manual override.",
-            "Original/current prices, product type and rich description.",
-            "Assignment to multiple categories.",
-            "Create, edit, search, reorder and delete categories.",
-            "Product count shown for each category.",
-          ],
-        },
-        {
-          title: "Product media & size charts",
-          bullets: [
-            "Maximum five product images at 4 MB each.",
-            "Main-image selection for cards and gallery.",
-            "Category images limited to 4 MB.",
-            "Optional product-specific size, chest and length charts.",
-            "One-click default tee size-chart template.",
-          ],
-        },
-      ],
-      [
-        {
-          title: "Variants & inventory",
-          bullets: [
-            "Optional sizing, size-free inventory, and automatic or manual SKUs.",
-            "Stock quantity and low-stock threshold per variant.",
-            "One-click default tee variants.",
-            "Inventory sorted from lowest stock upward.",
-            "Search by product, SKU, size or color.",
-            "Low Stock Only filter and stock-status badges.",
-            "Inline non-negative stock updates.",
-          ],
-        },
-        {
-          title: "Orders & fulfilment",
-          bullets: [
-            "Search by order number or customer and filter by status.",
-            "Quick Approve and Send to Courier actions on order cards.",
-            "Atomic Pathao, Steadfast or REDX shipment reservation.",
-            "One active provider for new shipments; old shipments stay linked.",
-            "Authenticated webhooks, manual refresh and event history.",
-            "Safe automatic progress to Processing, Shipped and Delivered.",
-            "Courier-linked orders cannot be cancelled, moved or deleted.",
-          ],
-        },
-        {
-          title: "Customers, reports & documents",
-          bullets: [
-            "Customer directory searchable by name, phone or email.",
-            "Order count, lifetime ordered value and full order history.",
-            "Bulk customer deletion controls.",
-            "Summary totals for orders, sales, products and customers.",
-            "Orders and products CSV exports.",
-            "Individual branded PDF invoices.",
-            "Bulk invoice ZIP downloads.",
-          ],
-        },
-      ],
-    ],
-  },
-  {
-    eyebrow: "CONTENT & ADMINISTRATION",
-    title: "CMS, Settings, Team & Security",
-    subtitle:
-      "The merchant can update storefront content, campaigns, branding and team access without modifying application code.",
-    columns: [
-      [
-        {
-          title: "Homepage & banner CMS",
-          bullets: [
-            "Predefined Banner, Categories, Featured, Reviews, Promo and Rich Text blocks.",
-            "Drag-and-drop section ordering and visibility controls.",
-            "Section headings, subtitles, CTA controls and item limits.",
-            "Create, edit, activate, reorder and delete banner slides.",
-            "Desktop/mobile banner images limited to 6 MB.",
-            "Editable banner statistics and scrolling marquee.",
-          ],
-        },
-        {
-          title: "About & legal content",
-          bullets: [
-            "Structured Hero, Statistics, Story, Values, Craft and CTA sections.",
-            "Section ordering and visible/hidden controls.",
-            "Rich story content, value cards and craft specifications.",
-            "About images limited to 6 MB.",
-            "Rich-text Terms, Privacy and Refund page editing.",
-          ],
-        },
-        {
-          title: "Promotions, reviews & contact",
-          bullets: [
-            "Create, edit, search, activate and delete promotions.",
-            "Promotion image, percentage, CTA and linked product.",
-            "Promo codes with status, start date and expiry.",
-            "Create, publish, hide and delete reviews with 1-5 star ratings.",
-            "Promotion and review images limited to 4 MB.",
-            "Contact inbox with unread count, search and read/unread state.",
-          ],
-        },
-      ],
-      [
-        {
-          title: "Brand, store & integration settings",
-          bullets: [
-            "Store name, logo, favicon, email, phone and address.",
-            "Facebook, Instagram and X links.",
-            "Five built-in themes plus full custom palette controls.",
-            "Live theme preview and reset option.",
-            "BDT, USD and INR display settings.",
-            "Inside/Outside Dhaka delivery pricing.",
-            "Gmail/custom SMTP with live login verification.",
-            "Courier credentials, active provider and webhook setup.",
-          ],
-        },
-        {
-          title: "Staff access & audit",
-          bullets: [
-            "Supabase email/password authentication.",
-            "Administrator, editor and viewer role assignment.",
-            "Create, edit and delete staff accounts.",
-            "Manage email, name, role and replacement password.",
-            "Protected admin routes and Row Level Security.",
-            "Append-only audit trail across key merchant operations.",
-            "Audit search, action/entity filters and structured metadata.",
-          ],
-        },
-        {
-          title: "Media storage & maintenance",
-          bullets: [
-            "Six dedicated media libraries with staff-restricted writes.",
-            "Drag-and-drop uploads, previews, crop and main-image selection.",
-            "Storage used, remaining capacity, file count and warning levels.",
-            "Daily unused-media scan with recent-file protection.",
-            "Manual cleanup with dry-run mode.",
-          ],
-        },
-      ],
-    ],
-  },
-  {
-    eyebrow: "TECHNOLOGY & GROWTH",
-    title: "Technology Stack & Platform Capabilities",
-    subtitle:
-      "A modern full-stack architecture supports performance, discoverability, integrations and ongoing store operations.",
-    columns: [
-      [
-        {
-          title: "Core technology stack",
-          bullets: [
-            "Next.js 16 App Router and React 19.",
-            "TypeScript 5.9 and Tailwind CSS 4.",
-            "Supabase PostgreSQL, Authentication, RLS and Storage.",
-            "Supabase browser, server and middleware clients.",
-            "Radix UI primitives and Lucide icons.",
-            "TipTap rich-text editor.",
-            "Zustand persistent client state.",
-            "Recharts dashboards and dnd-kit ordering.",
-            "date-fns calendar and reporting utilities.",
-            "jsPDF and JSZip document generation.",
-            "Nodemailer email delivery.",
-          ],
-        },
-        {
-          title: "Architecture & integrations",
-          bullets: [
-            "Next.js server components, route handlers and server actions.",
-            "Node.js runtime for payments, email and privileged operations.",
-            "bKash Tokenized Checkout API.",
-            "Pathao, Steadfast and REDX APIs with authenticated webhooks.",
-            "Gmail/custom SMTP with live server-login validation.",
-            "Google Analytics, Google Tag Manager and Meta Pixel.",
-            "WhatsApp and Facebook Messenger links.",
-            "OpenRouter structured-output integration for catalog-grounded AI guidance.",
-            "CSV feeds and downloadable business exports.",
-          ],
-        },
-      ],
-      [
-        {
-          title: "SEO & discoverability",
-          bullets: [
-            "Page-level titles, descriptions, keywords and Open Graph images.",
-            "Canonical URLs and social-sharing metadata.",
-            "Dynamic product metadata from live catalog content.",
-            "Schema.org Product structured data.",
-            "Dynamic XML sitemap with active products.",
-            "Robots rules for storefront and checkout pages.",
-            "Live CSV product feed.",
-            "Meta events for product view, cart, checkout and purchase.",
-          ],
-        },
-        {
-          title: "Performance & operations",
-          bullets: [
-            "Responsive image optimization and loading placeholders.",
-            "Fresh uncached catalog, CMS and admin data.",
-            "Parallel server-side data loading on key pages.",
-            "Persistent cart, wishlist and optional delivery data.",
-            "Database cleanup every 15 minutes for abandoned gateway orders.",
-            "GitHub Actions daily storage maintenance.",
-            "Standard Node/Vercel-compatible build and deployment workflow.",
-          ],
-        },
-        {
-          title: "Current platform scope",
-          bullets: [
-            "Guest-first shopping with browser-based cart and wishlist.",
-            "One administrator-selected display currency at a time.",
-            "Courier webhook/manual-refresh status, not live GPS tracking.",
-            "Staff-curated reviews and storefront content.",
-            "Cash on Delivery and bKash payment methods.",
-            "Ideal for apparel, accessories and focused retail catalogs.",
-          ],
-        },
-      ],
-    ],
-  },
-];
 
 const doc = new jsPDF({
   orientation: "portrait",
@@ -569,19 +44,18 @@ const doc = new jsPDF({
 });
 
 doc.setProperties({
-  title: "Reverb Commerce Feature Documentation",
-  subject: "Complete product feature and technology documentation",
+  title: "Reverb Commerce",
+  subject: "Customer feature and pricing brochure",
   author: "Reverb Solution",
   creator: "Reverb Solution",
   keywords:
-    "Reverb Commerce, Reverb Solution, ecommerce, AI shopping assistant, OpenRouter, product recommendations, Next.js, React, Supabase, bKash, Pathao, Steadfast, REDX, SMTP, pg_cron, admin panel",
+    "Reverb Commerce, ecommerce Bangladesh, online store, bKash, Pathao, Steadfast, REDX, pricing",
 });
 
 const pageWidth = doc.internal.pageSize.getWidth();
 const pageHeight = doc.internal.pageSize.getHeight();
 const margin = 16;
-const columnGap = 10;
-const columnWidth = (pageWidth - margin * 2 - columnGap) / 2;
+const pages = 5;
 
 function fill(color) {
   doc.setFillColor(...color);
@@ -591,129 +65,657 @@ function stroke(color) {
   doc.setDrawColor(...color);
 }
 
-function textColor(color) {
+function ink(color) {
   doc.setTextColor(...color);
 }
 
-function drawPageBase(page, pageNumber) {
-  fill(C.white);
-  doc.rect(0, 0, pageWidth, pageHeight, "F");
-  fill(pageNumber === pages.length ? C.indigo : C.blue);
-  doc.rect(0, 0, pageWidth, 3, "F");
+function font(style = "normal", family = "helvetica") {
+  doc.setFont(family, style);
+}
 
-  doc.addImage(logoData, "PNG", margin, 9, 11, 11 / (988 / 707));
-  textColor(C.ink);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(9.5);
-  doc.text("REVERB SOLUTION", margin + 15, 15.2);
+function text(textValue, x, y, size, color = C.body, style = "normal", options = {}) {
+  const { family = "helvetica", ...textOptions } = options;
+  ink(color);
+  font(style, family);
+  doc.setFontSize(size);
+  doc.text(textValue, x, y, textOptions);
+}
 
-  textColor(C.muted);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.2);
-  doc.text(
-    "REVERB COMMERCE / FEATURE DOCUMENTATION",
-    pageWidth - margin,
-    15.2,
-    {
-      align: "right",
-    },
+function wrapped(
+  textValue,
+  x,
+  y,
+  width,
+  size = 9,
+  color = C.muted,
+  style = "normal",
+  lineHeight = 1.3,
+) {
+  ink(color);
+  font(style);
+  doc.setFontSize(size);
+  const lines = doc.splitTextToSize(textValue, width);
+  doc.text(lines, x, y, { lineHeightFactor: lineHeight });
+  return y + lines.length * size * 0.3528 * lineHeight;
+}
+
+function card(x, y, width, height, options = {}) {
+  fill(options.fill ?? C.surface);
+  stroke(options.stroke ?? C.border);
+  doc.setLineWidth(options.lineWidth ?? 0.22);
+  doc.roundedRect(x, y, width, height, options.radius ?? 2, options.radius ?? 2, "FD");
+}
+
+function line(x1, y1, x2, y2, color = C.border, width = 0.3) {
+  stroke(color);
+  doc.setLineWidth(width);
+  doc.line(x1, y1, x2, y2);
+}
+
+function pill(label, x, y, options = {}) {
+  const size = options.size ?? 7.2;
+  font(options.style ?? "bold", options.family ?? "helvetica");
+  doc.setFontSize(size);
+  const width = doc.getTextWidth(label) + (options.padding ?? 7);
+  fill(options.fill ?? C.surface2);
+  stroke(options.stroke ?? C.border);
+  doc.setLineWidth(0.22);
+  doc.roundedRect(x, y, width, options.height ?? 7, 2, 2, "FD");
+  text(
+    label,
+    x + width / 2,
+    y + (options.textY ?? 4.7),
+    size,
+    options.color ?? C.body,
+    options.style ?? "bold",
+    { align: "center" },
   );
+  return width;
+}
 
-  stroke(C.line);
-  doc.line(margin, 23, pageWidth - margin, 23);
+function eyebrow(label, y) {
+  line(margin, y - 1.3, margin + 5, y - 1.3, C.blue, 0.9);
+  text(label.toUpperCase(), margin + 8, y, 7.4, C.blueSoft, "bold");
+}
 
-  textColor(C.blue);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(7.5);
-  doc.text(page.eyebrow, margin, 34);
+function pageTitle(primary, secondary, y = 43) {
+  text(primary, margin, y, 25, C.white, "bold");
+  if (secondary) text(secondary, margin, y + 19, 25, C.dim, "bold");
+}
 
-  textColor(C.ink);
-  doc.setFontSize(pageNumber === 1 ? 25 : 21);
-  doc.text(page.title, margin, pageNumber === 1 ? 46 : 45);
-
-  if (pageNumber === 1) {
-    textColor(C.blue);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    doc.text(page.subtitle, margin, 56);
-
-    fill(C.blueSoft);
-    doc.rect(margin, 65, pageWidth - margin * 2, 28, "F");
-    textColor(C.body);
-    doc.setFontSize(9.5);
-    const lines = doc.splitTextToSize(page.intro, pageWidth - margin * 2 - 12);
-    doc.text(lines, margin + 6, 74, { lineHeightFactor: 1.45 });
-  } else {
-    textColor(C.body);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.5);
-    const lines = doc.splitTextToSize(page.subtitle, pageWidth - margin * 2);
-    doc.text(lines, margin, 54, { lineHeightFactor: 1.35 });
+function bulletList(items, x, y, width, options = {}) {
+  const size = options.size ?? 8.2;
+  const gap = options.gap ?? 4.2;
+  let cursor = y;
+  for (const item of items) {
+    fill(options.dot ?? C.blue);
+    doc.circle(x + 1.2, cursor - 1, 0.75, "F");
+    cursor = wrapped(
+      item,
+      x + 5,
+      cursor,
+      width - 5,
+      size,
+      options.color ?? C.body,
+      "normal",
+      1.25,
+    );
+    cursor += gap;
   }
+  return cursor;
 }
 
-function drawSection(x, y, width, section) {
-  textColor(C.blue);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.text(section.title, x, y);
-  stroke(C.blue);
-  doc.setLineWidth(0.6);
-  doc.line(x, y + 2.5, x + width, y + 2.5);
+function metric(x, y, width, label, value, accent = C.blue) {
+  card(x, y, width, 22, { fill: C.surface, stroke: C.border });
+  text(label.toUpperCase(), x + 4, y + 6, 6.2, C.dim, "bold");
+  text(value, x + 4, y + 15, 13, C.white, "bold");
+  fill(accent);
+  doc.circle(x + width - 5, y + 6, 1.2, "F");
+}
 
-  let cursor = y + 10;
-  section.bullets.forEach((bullet) => {
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.2);
-    const lines = doc.splitTextToSize(bullet, width - 8);
-    fill(C.blue);
-    doc.circle(x + 1.8, cursor - 1.1, 0.75, "F");
-    textColor(C.body);
-    doc.text(lines, x + 6, cursor, { lineHeightFactor: 1.35 });
-    cursor += lines.length * 4.3 + 1.4;
+function drawBackground(pageNumber) {
+  fill(C.paper);
+  doc.rect(0, 0, pageWidth, pageHeight, "F");
+
+  doc.addImage(logoData, "PNG", margin, 10, 12, 12 / (988 / 707));
+  text("REVERB SOLUTION", margin + 16, 16.3, 9.5, C.white, "bold");
+  text(
+    "REVERB COMMERCE",
+    pageWidth - margin,
+    16.3,
+    6.8,
+    C.dim,
+    "bold",
+    { align: "right" },
+  );
+  line(margin, 23, pageWidth - margin, 23, C.border, 0.2);
+
+  line(margin, 284, pageWidth - margin, 284, C.border, 0.2);
+  text("REVERBSOLUTION.COM/ECOMMERCE", margin, 290, 6.6, C.blueSoft, "bold");
+  text("contact@reverbsolution.com", pageWidth / 2, 290, 6.6, C.dim, "normal", {
+    align: "center",
   });
-
-  return cursor + 4;
-}
-
-function drawFooter(pageNumber) {
-  stroke(C.line);
-  doc.setLineWidth(0.3);
-  doc.line(margin, 284, pageWidth - margin, 284);
-  textColor(C.blue);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(7.3);
-  doc.text("WWW.REVERBSOLUTION.COM", margin, 290);
-  textColor(C.muted);
-  doc.setFont("helvetica", "normal");
-  doc.text("contact@reverbsolution.com", margin + 44, 290);
-  doc.text(`${pageNumber} / ${pages.length}`, pageWidth - margin, 290, {
+  text(`${pageNumber} / ${pages}`, pageWidth - margin, 290, 6.6, C.dim, "normal", {
     align: "right",
   });
 }
 
-function renderPage(page, pageNumber) {
-  if (pageNumber > 1) doc.addPage();
-  drawPageBase(page, pageNumber);
+function drawHero() {
+  drawBackground(1);
+  eyebrow("New product by Reverb Solution", 34);
+  text("Commerce,", margin, 53, 34, C.white, "bold");
+  text("connected.", margin, 78, 34, C.blueSoft, "bold");
+  wrapped(
+    "A complete online store and merchant control room built for how Bangladesh sells, gets paid and delivers.",
+    margin,
+    91,
+    128,
+    11.5,
+    C.body,
+    "normal",
+    1.35,
+  );
 
-  const startY = pageNumber === 1 ? 106 : 68;
-  page.columns.forEach((sections, columnIndex) => {
-    const x = margin + columnIndex * (columnWidth + columnGap);
-    let y = startY;
-    sections.forEach((section) => {
-      y = drawSection(x, y, columnWidth, section);
+  let tagX = margin;
+  for (const label of ["YOUR BRANDING", "YOUR DOMAIN", "YOUR BUSINESS DATA", "AI SEARCH + CHAT"]) {
+    const width = pill(label, tagX, 111, {
+      size: 6.3,
+      fill: C.surface3,
+      stroke: C.surface3,
+      color: C.blueSoft,
+      family: "courier",
     });
-    if (y > 280) {
-      throw new Error(
-        `Page ${pageNumber}, column ${columnIndex + 1} exceeds layout at ${y.toFixed(1)} mm`,
-      );
-    }
+    tagX += width + 3;
+  }
+
+  card(margin, 127, pageWidth - margin * 2, 104, {
+    fill: C.surface2,
+    stroke: C.border,
+    lineWidth: 0.22,
+    radius: 3,
+  });
+  text("Merchant control room", margin + 7, 138, 11, C.white, "bold");
+  text("LIVE OVERVIEW", pageWidth - margin - 7, 138, 6.3, C.greenSoft, "bold", {
+    align: "right",
+  });
+  fill(C.green);
+  doc.circle(pageWidth - margin - 39, 136.4, 1, "F");
+
+  const innerWidth = pageWidth - margin * 2 - 14;
+  const metricGap = 3;
+  const metricWidth = (innerWidth - metricGap * 3) / 4;
+  const metrics = [
+    ["Orders", "48", C.blue],
+    ["Sales", "BDT 86K", C.green],
+    ["Customers", "31", C.violet],
+    ["Low stock", "06", C.pink],
+  ];
+  metrics.forEach(([label, value, accent], index) =>
+    metric(
+      margin + 7 + index * (metricWidth + metricGap),
+      145,
+      metricWidth,
+      label,
+      value,
+      accent,
+    ),
+  );
+
+  card(margin + 7, 172, 103, 50, { fill: C.surface, stroke: C.border });
+  text("SALES PULSE", margin + 12, 181, 6.3, C.dim, "bold");
+  line(margin + 13, 212, margin + 102, 212, C.border, 0.25);
+  const chartPoints = [207, 202, 205, 194, 197, 186, 190, 179];
+  for (let index = 0; index < chartPoints.length - 1; index += 1) {
+    line(
+      margin + 14 + index * 12,
+      chartPoints[index],
+      margin + 14 + (index + 1) * 12,
+      chartPoints[index + 1],
+      C.blue2,
+      1.1,
+    );
+  }
+  fill(C.blue);
+  doc.circle(margin + 98, chartPoints.at(-1), 1.6, "F");
+
+  card(margin + 114, 172, 57, 50, { fill: C.surface, stroke: C.border });
+  text("RECENT ORDERS", margin + 119, 181, 6.3, C.dim, "bold");
+  const orders = [
+    ["#RV-1048", "Processing", "2,480"],
+    ["#RV-1047", "Confirmed", "1,890"],
+    ["#RV-1046", "Shipped", "3,220"],
+  ];
+  orders.forEach((order, index) => {
+    const y = 190 + index * 10;
+    text(order[0], margin + 119, y, 6.5, C.body, "bold");
+    text(order[1], margin + 138, y, 5.8, index === 2 ? C.greenSoft : C.blueSoft);
+    text(order[2], margin + 166, y, 6.2, C.white, "bold", { align: "right" });
+    if (index < 2) line(margin + 119, y + 3.5, margin + 166, y + 3.5, C.border, 0.2);
   });
 
-  drawFooter(pageNumber);
+  text("BUILT-IN LOCAL COMMERCE", margin, 244, 6.5, C.dim, "bold");
+  let integrationX = margin;
+  const integrations = [
+    ["bKash", C.pink],
+    ["Pathao", C.blue],
+    ["Steadfast", C.green],
+    ["REDX", C.violet],
+  ];
+  integrations.forEach(([label, accent]) => {
+    const width = pill(label, integrationX, 250, {
+      size: 8,
+      height: 9,
+      textY: 6,
+      fill: C.surface2,
+      stroke: accent,
+      color: C.white,
+      padding: 10,
+    });
+    integrationX += width + 4;
+  });
+  text(
+    "YOUR STOREFRONT. YOUR OPERATIONS. ONE CONNECTED PLATFORM.",
+    margin,
+    273,
+    7.2,
+    C.blueSoft,
+    "bold",
+  );
 }
 
-pages.forEach((page, index) => renderPage(page, index + 1));
+function drawExperience() {
+  doc.addPage();
+  drawBackground(2);
+  eyebrow("One product, two experiences", 34);
+  pageTitle("Delight shoppers.", "Empower your team.");
+
+  const gap = 6;
+  const width = (pageWidth - margin * 2 - gap) / 2;
+  const left = margin;
+  const right = margin + width + gap;
+
+  card(left, 72, width, 167, { fill: C.surface2, stroke: C.surface2, radius: 3 });
+  text("CUSTOMER STOREFRONT", left + 7, 83, 6.5, C.blueSoft, "bold");
+  text("Your brand gets", left + 7, 96, 16, C.white, "bold");
+  text("the spotlight.", left + 7, 108, 16, C.dim, "bold");
+  bulletList(
+    [
+      "Responsive storefront for mobile, tablet and desktop",
+      "AI product search and chat grounded in current store information",
+      "Product galleries, prices, stock, optional sizes and size charts",
+      "Persistent wishlist and cart without customer registration",
+      "Guest checkout with promo codes, COD and optional bKash",
+      "Order confirmation and courier-status tracking",
+    ],
+    left + 7,
+    121,
+    width - 14,
+    { size: 7.8, gap: 3.2 },
+  );
+
+  card(left + 7, 190, width - 14, 40, { fill: C.surface, stroke: C.border, radius: 2 });
+  text("CHECKOUT", left + 12, 199, 6.3, C.dim, "bold");
+  text("Complete your order", left + 12, 208, 10.5, C.white, "bold");
+  pill("COD", left + 12, 214, {
+    size: 6.5,
+    height: 8,
+    textY: 5.4,
+    stroke: C.blue,
+    color: C.blueSoft,
+  });
+  pill("bKash", left + 34, 214, {
+    size: 6.5,
+    height: 8,
+    textY: 5.4,
+    stroke: C.pink,
+    color: C.white,
+  });
+  text("TOTAL  BDT 2,240", left + width - 12, 219.5, 7.2, C.white, "bold", {
+    align: "right",
+  });
+
+  card(right, 72, width, 167, { fill: C.surface2, stroke: C.surface2, radius: 3 });
+  text("MERCHANT CONTROL ROOM", right + 7, 83, 6.5, C.greenSoft, "bold");
+  text("Everything your team", right + 7, 96, 16, C.white, "bold");
+  text("uses every day.", right + 7, 108, 16, C.dim, "bold");
+  bulletList(
+    [
+      "Dashboard for orders, sales, customers and low stock",
+      "Products, categories, variants, inventory and images",
+      "Order approval and local courier booking from one screen",
+      "Customers, reports, CSV exports and branded PDF invoices",
+      "Homepage, promotions, reviews, About and policy content",
+      "Admin, editor and viewer roles with an activity trail",
+    ],
+    right + 7,
+    121,
+    width - 14,
+    { size: 7.8, gap: 3.2, dot: C.green },
+  );
+
+  card(right + 7, 190, width - 14, 40, { fill: C.surface, stroke: C.border, radius: 2 });
+  text("TODAY", right + 12, 199, 6.3, C.dim, "bold");
+  text("12", right + 12, 213, 15, C.white, "bold");
+  text("ORDERS", right + 12, 221, 5.8, C.dim, "bold");
+  text("BDT 24K", right + width / 2, 213, 15, C.greenSoft, "bold", {
+    align: "center",
+  });
+  text("SALES", right + width / 2, 221, 5.8, C.dim, "bold", { align: "center" });
+  text("03", right + width - 12, 213, 15, C.pink, "bold", { align: "right" });
+  text("LOW STOCK", right + width - 12, 221, 5.8, C.dim, "bold", { align: "right" });
+
+  card(margin, 243, pageWidth - margin * 2, 35, {
+    fill: C.surface3,
+    stroke: C.surface3,
+    radius: 2,
+  });
+  fill(C.blue);
+  doc.rect(margin, 243, 1.4, 35, "F");
+  pill("NEW", margin + 7, 249, {
+    size: 5.8,
+    height: 7,
+    textY: 4.8,
+    fill: C.blue,
+    stroke: C.blue,
+    color: C.paper,
+    padding: 6,
+  });
+  text("AI SEARCH + CHAT", margin + 25, 254, 8, C.blueSoft, "bold");
+  text("Help every shopper find the right product faster.", margin + 7, 264, 11.5, C.white, "bold");
+  wrapped(
+    "Instant, store-aware answers about products, stock, delivery, returns and navigation.",
+    margin + 7,
+    272,
+    pageWidth - margin * 2 - 14,
+    7.4,
+    C.body,
+  );
+}
+
+function featureCard(x, y, width, height, label, titleValue, bullets, accent = C.blue) {
+  fill(C.surface2);
+  doc.roundedRect(x, y, width, height, 2, 2, "F");
+  line(x + 7, y + 8, x + 22, y + 8, accent, 0.9);
+  text(label.toUpperCase(), x + 7, y + 15, 5.9, accent, "bold");
+  text(titleValue, x + 7, y + 26, 10.5, C.white, "bold");
+  bulletList(bullets, x + 7, y + 36, width - 14, {
+    size: 7,
+    gap: 2.4,
+    dot: accent,
+    color: C.muted,
+  });
+}
+
+function drawFeatures() {
+  doc.addPage();
+  drawBackground(3);
+  eyebrow("Complete feature set", 34);
+  pageTitle("Everything required", "to sell and operate.");
+
+  const gap = 6;
+  const width = (pageWidth - margin * 2 - gap) / 2;
+  const height = 58;
+  const left = margin;
+  const right = margin + width + gap;
+  const rows = [75, 139, 203];
+
+  featureCard(left, rows[0], width, height, "Courier control centre", "Delivery without switching tabs", [
+    "Approve and book Pathao, Steadfast or REDX",
+    "Refresh status and review delivery events",
+    "Keep public customer tracking updated",
+  ]);
+  featureCard(right, rows[0], width, height, "Payment system", "COD and bKash at checkout", [
+    "Cash on Delivery ready by default",
+    "Optional hosted bKash payment",
+    "Order, payment and stock stay synchronized",
+  ], C.pink);
+
+  featureCard(left, rows[1], width, height, "Live theme builder", "Make the storefront yours", [
+    "Five ready-made themes plus custom colors",
+    "Live preview before saving changes",
+    "Logo, favicon, invoice logo and social links",
+  ], C.violet);
+  featureCard(right, rows[1], width, height, "Catalog and merchandising", "Products made easy to discover", [
+    "Categories, variants, sizes, colors and stock",
+    "Pricing, discounts, images and size charts",
+    "Homepage banners, featured items and promos",
+  ], C.green);
+
+  featureCard(left, rows[2], width, height, "AI-powered discovery", "AI search and chat that sells", [
+    "Instant product search with relevant results",
+    "Store-aware answers about products and stock",
+    "Guidance for delivery, returns and navigation",
+  ]);
+  featureCard(right, rows[2], width, height, "Operations and access", "Know what needs attention", [
+    "Customers, reports, CSV files and PDF invoices",
+    "Admin, editor and read-only viewer roles",
+    "Contact inbox, reviews and activity history",
+  ], C.greenSoft);
+}
+
+function workflowStep(x, y, width, number, titleValue, body, accent = C.blue) {
+  fill(C.surface2);
+  doc.roundedRect(x, y, width, 42, 2, 2, "F");
+  line(x + 6, y + 8, x + 14, y + 8, accent, 0.9);
+  text(number, x + 6, y + 16, 7.5, accent, "bold", { family: "courier" });
+  text(titleValue, x + 18, y + 16, 9.2, C.white, "bold");
+  wrapped(body, x + 6, y + 28, width - 12, 7.4, C.muted, "normal", 1.25);
+}
+
+function drawWorkflow() {
+  doc.addPage();
+  drawBackground(4);
+  eyebrow("From click to doorstep", 34);
+  pageTitle("A workflow that", "keeps moving.");
+
+  const gap = 6;
+  const width = (pageWidth - margin * 2 - gap) / 2;
+  workflowStep(
+    margin,
+    76,
+    width,
+    "01",
+    "Customer places an order",
+    "Guest checkout through Cash on Delivery or optional bKash.",
+  );
+  workflowStep(
+    margin + width + gap,
+    76,
+    width,
+    "02",
+    "Stock and payment stay aligned",
+    "Inventory is reserved safely and restored after failed payments.",
+    C.green,
+  );
+  workflowStep(
+    margin,
+    124,
+    width,
+    "03",
+    "Your team books delivery",
+    "Approve the order and send it to the active local courier.",
+    C.violet,
+  );
+  workflowStep(
+    margin + width + gap,
+    124,
+    width,
+    "04",
+    "Everyone sees the latest status",
+    "Courier events update the admin workflow and tracking page.",
+    C.pink,
+  );
+
+  eyebrow("Client-owned environment", 184);
+  text("Your store. Your data.", margin, 200, 21, C.white, "bold");
+  text("Your control.", margin, 217, 21, C.dim, "bold");
+  wrapped(
+    "Your business receives a dedicated store environment. Customer, order, catalog and operational data are not mixed with another Reverb Commerce client.",
+    margin,
+    229,
+    145,
+    9.2,
+    C.body,
+    "normal",
+    1.35,
+  );
+
+  const ownerGap = 4;
+  const ownerWidth = (pageWidth - margin * 2 - ownerGap * 2) / 3;
+  const owners = [
+    ["01", "Your business identity", "Your domain, branding and store settings."],
+    ["02", "Dedicated environment", "An isolated store and business data boundary."],
+    ["03", "Operational control", "Your team manages daily work without code."],
+  ];
+  owners.forEach(([number, titleValue, body], index) => {
+    const x = margin + index * (ownerWidth + ownerGap);
+    card(x, 249, ownerWidth, 29, { fill: C.surface2, stroke: C.surface2, radius: 2 });
+    text(number, x + 4, 257, 6.4, C.blueSoft, "bold");
+    text(titleValue, x + 4, 264, 7.3, C.white, "bold");
+    wrapped(body, x + 4, 271, ownerWidth - 8, 6.1, C.muted, "normal", 1.15);
+  });
+}
+
+const plans = [
+  {
+    name: "Monthly",
+    strapline: "Pay month to month",
+    price: "BDT 1,500",
+    period: "/ month",
+    billing: "BDT 1,500 billed monthly",
+    saving: null,
+    featured: false,
+  },
+  {
+    name: "6 months",
+    strapline: "Commit for six months",
+    price: "BDT 1,250",
+    period: "/ month",
+    billing: "BDT 7,500 billed every 6 months",
+    saving: "SAVE BDT 1,500",
+    featured: false,
+  },
+  {
+    name: "1 year",
+    strapline: "Best value for growing stores",
+    price: "BDT 1,000",
+    period: "/ month",
+    billing: "BDT 12,000 billed yearly",
+    saving: "SAVE BDT 6,000",
+    featured: true,
+  },
+];
+
+function pricingRow(plan, y) {
+  const x = margin;
+  const width = pageWidth - margin * 2;
+  const height = 38;
+
+  fill(plan.featured ? C.surface3 : C.surface2);
+  doc.roundedRect(x, y, width, height, 2, 2, "F");
+  if (plan.featured) {
+    fill(C.blue);
+    doc.rect(x, y, 1.4, height, "F");
+    pill("BEST VALUE", x + 25, y + 5, {
+      size: 5,
+      height: 6,
+      textY: 4.1,
+      fill: C.blue,
+      stroke: C.blue,
+      color: C.paper,
+      padding: 5,
+    });
+  }
+
+  text(plan.name, x + 7, y + 12, 11, C.white, "bold");
+  text(plan.strapline, x + 7, y + 24, 6.6, C.muted);
+
+  text(plan.price, x + 55, y + 14, 13.5, plan.featured ? C.blueSoft : C.white, "bold");
+  text(plan.period, x + 55, y + 25, 6.2, C.dim);
+
+  wrapped(plan.billing, x + 100, y + 12, 38, 6.4, C.muted, "normal", 1.2);
+  if (plan.saving) {
+    pill(plan.saving, x + 100, y + 25, {
+      size: 5.2,
+      height: 6.5,
+      textY: 4.4,
+      fill: [229, 247, 240],
+      stroke: [181, 226, 208],
+      color: C.greenSoft,
+      padding: 5,
+    });
+  } else {
+    text("STANDARD RATE", x + 100, y + 29, 5.5, C.dim, "bold");
+  }
+
+  fill(plan.featured ? C.blue : C.paper);
+  stroke(plan.featured ? C.blue : C.border);
+  doc.roundedRect(x + width - 36, y + 13, 29, 12, 2, 2, "FD");
+  text(
+    "SELECT",
+    x + width - 21.5,
+    y + 20.7,
+    6.2,
+    plan.featured ? C.paper : C.body,
+    "bold",
+    { align: "center" },
+  );
+}
+
+function drawPricing() {
+  doc.addPage();
+  drawBackground(5);
+  eyebrow("Simple plans, more value over time", 34);
+  text("Choose the plan", margin, 52, 25, C.white, "bold");
+  text("that fits your business.", margin, 71, 25, C.dim, "bold");
+  wrapped(
+    "Every subscription includes the complete platform. Longer billing periods reduce the monthly cost without removing features.",
+    margin,
+    84,
+    155,
+    9.5,
+    C.body,
+  );
+
+  const pricingWidth = pageWidth - margin * 2;
+  text("PLAN", margin + 7, 103, 5.8, C.dim, "bold");
+  text("MONTHLY RATE", margin + 55, 103, 5.8, C.dim, "bold");
+  text("BILLING", margin + 100, 103, 5.8, C.dim, "bold");
+  text("ACTION", margin + pricingWidth - 21.5, 103, 5.8, C.dim, "bold", {
+    align: "center",
+  });
+  plans.forEach((plan, index) => pricingRow(plan, 109 + index * 42));
+
+  wrapped(
+    "Domain, payment gateway, courier, and other third-party usage fees are charged separately when applicable.",
+    margin,
+    240,
+    pageWidth - margin * 2,
+    6.3,
+    C.dim,
+    "normal",
+    1.2,
+  );
+
+  card(margin, 249, pageWidth - margin * 2, 27, {
+    fill: C.surface2,
+    stroke: C.surface2,
+    radius: 2,
+  });
+  fill(C.blue);
+  doc.rect(margin, 249, 1.4, 27, "F");
+  text("READY TO LAUNCH?", margin + 7, 259, 6.3, C.blueSoft, "bold");
+  text("Start your store with Reverb Solution", margin + 7, 269, 10, C.white, "bold");
+  text("contact@reverbsolution.com", pageWidth - margin - 7, 269, 7.5, C.greenSoft, "bold", {
+    align: "right",
+  });
+}
+
+drawHero();
+drawExperience();
+drawFeatures();
+drawWorkflow();
+drawPricing();
 
 writeFileSync(outputPath, Buffer.from(doc.output("arraybuffer")));
 console.log(`Generated ${outputPath} (${doc.getNumberOfPages()} pages)`);

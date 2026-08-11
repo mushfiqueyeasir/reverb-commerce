@@ -147,8 +147,18 @@ export default function Footer({ settings }: FooterProps) {
           <Col title="Legal" items={legalLinks} pathname={pathname} />
         </div>
 
-        <div className="mt-14 border-t border-border pt-8 font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
-          © {year} {storeName}
+        <div className="mt-14 flex flex-col gap-3 border-t border-border pt-8 font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <span>
+            © {year} {storeName}
+          </span>
+          <Link
+            href="https://www.reverbsolution.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="self-end transition hover:text-primary sm:self-auto"
+          >
+            Developed by Reverb Solution
+          </Link>
         </div>
       </div>
     </footer>

@@ -5,9 +5,22 @@ import {
   parseAdvisorMessages,
   parseModelAdvisorResponse,
   productDescriptionText,
+  type WebsiteKnowledgeDocument,
 } from "@/lib/aiAdvisor";
 import { productImageUrl } from "@/utility/imageUrl";
-import type { AiAdvisorProduct, AiAdvisorResponse } from "@/type/aiAdvisorType";
+import { getAboutSections } from "@/utility/getAboutSections";
+import { getBanners } from "@/utility/getBanners";
+import { getCategories } from "@/utility/getCategory";
+import { getContentPage } from "@/utility/getContentPage";
+import { getHomepageSections } from "@/utility/getHomepageSections";
+import { getPromotions } from "@/utility/getPromotion";
+import { getReviews } from "@/utility/getReview";
+import { getSiteSettings } from "@/utility/getSettings";
+import type {
+  AiAdvisorProduct,
+  AiAdvisorResponse,
+  AiAdvisorSource,
+} from "@/type/aiAdvisorType";
 
 import { config } from "@/config";
 
@@ -28,6 +41,7 @@ const RESPONSE_RECOVERY: AiAdvisorResponse = {
     "Get the overall look right",
   ],
   recommendations: [],
+  sources: [],
 };
 
 interface CatalogRow {
@@ -59,7 +73,7 @@ const RESPONSE_SCHEMA = {
     message: { type: "string" },
     status: {
       type: "string",
-      enum: ["clarifying", "recommendations", "no_match"],
+      enum: ["answer", "clarifying", "recommendations", "no_match"],
     },
     suggestedReplies: {
       type: "array",
@@ -79,8 +93,19 @@ const RESPONSE_SCHEMA = {
         additionalProperties: false,
       },
     },
+    sourceIds: {
+      type: "array",
+      items: { type: "string" },
+      maxItems: 4,
+    },
   },
-  required: ["message", "status", "suggestedReplies", "recommendations"],
+  required: [
+    "message",
+    "status",
+    "suggestedReplies",
+    "recommendations",
+    "sourceIds",
+  ],
   additionalProperties: false,
 } as const;
 
@@ -88,6 +113,207 @@ function uniqueValues(values: (string | null)[]): string[] {
   return [
     ...new Set(values.filter((value): value is string => Boolean(value))),
   ];
+}
+
+function knowledgeText(value: unknown, maxLength = 5_000): string {
+  const raw = typeof value === "string" ? value : JSON.stringify(value);
+  if (!raw) return "";
+  return productDescriptionText({ html: raw }, maxLength);
+}
+
+function buildWebsiteKnowledge({
+  settings,
+  policies,
+  aboutSections,
+  homepageSections,
+  banners,
+  categories,
+  promotions,
+  reviews,
+}: {
+  settings: Awaited<ReturnType<typeof getSiteSettings>>;
+  policies: Awaited<ReturnType<typeof getContentPage>>[];
+  aboutSections: Awaited<ReturnType<typeof getAboutSections>>;
+  homepageSections: Awaited<ReturnType<typeof getHomepageSections>>;
+  banners: Awaited<ReturnType<typeof getBanners>>;
+  categories: Awaited<ReturnType<typeof getCategories>>;
+  promotions: Awaited<ReturnType<typeof getPromotions>>;
+  reviews: Awaited<ReturnType<typeof getReviews>>;
+}): WebsiteKnowledgeDocument[] {
+  const policyRoutes: Record<string, string> = {
+    terms: "/terms-of-service",
+    privacy: "/privacy-policy",
+    refund: "/refund-policy",
+    about: "/about-us",
+  };
+  const publicSocials = Object.fromEntries(
+    Object.entries(settings.socials ?? {}).filter(
+      ([key, value]) => key !== "_cms" && typeof value === "string" && value,
+    ),
+  );
+  const documents: WebsiteKnowledgeDocument[] = [
+    {
+      id: "store-details",
+      title: "Store and contact details",
+      href: "/contact-us",
+      sourceType: "store",
+      content: knowledgeText({
+        storeName: settings.store_name,
+        email: settings.contact_email,
+        phone: settings.contact_phone,
+        address: settings.address,
+        currency: settings.currency,
+        socialLinks: publicSocials,
+        announcement: settings.announcement_active
+          ? settings.announcement_text
+          : null,
+      }),
+    },
+    {
+      id: "delivery-details",
+      title: "Delivery charges",
+      href: "/checkout",
+      sourceType: "delivery",
+      content: knowledgeText({
+        insideDhaka: settings.deliveryCharges.insideDhaka,
+        outsideDhaka: settings.deliveryCharges.outsideDhaka,
+        currency: settings.currency,
+      }),
+    },
+    {
+      id: "about-store",
+      title: "About the store",
+      href: "/about-us",
+      sourceType: "about",
+      content: knowledgeText(
+        aboutSections.map(({ type, title, config }) => ({ type, title, config })),
+        8_000,
+      ),
+    },
+    {
+      id: "homepage",
+      title: "Homepage",
+      href: "/",
+      sourceType: "homepage",
+      content: knowledgeText(
+        {
+          banners: banners.map(
+            ({ title, subtitle, ctaLabel, ctaUrl }) => ({
+              title,
+              subtitle,
+              ctaLabel,
+              ctaUrl,
+            }),
+          ),
+          sections: homepageSections.map(
+            ({ type, title, subtitle, body, config }) => ({
+              type,
+              title,
+              subtitle,
+              body,
+              config,
+            }),
+          ),
+        },
+        8_000,
+      ),
+    },
+    {
+      id: "shop-page",
+      title: "Shop all products",
+      href: "/product",
+      sourceType: "navigation",
+      content:
+        "Browse all active products, search the collection, filter by category, and open a product for current options and details.",
+    },
+    {
+      id: "cart-checkout",
+      title: "Cart and checkout",
+      href: "/cart",
+      sourceType: "navigation",
+      content:
+        "Visitors can review their selected products in the cart and continue to checkout to enter delivery and order details.",
+    },
+    {
+      id: "wishlist",
+      title: "Wishlist",
+      href: "/wishlist",
+      sourceType: "navigation",
+      content: "Visitors can review products they have saved to their wishlist.",
+    },
+    {
+      id: "track-order",
+      title: "Track an order",
+      href: "/track-order",
+      sourceType: "navigation",
+      content: "Visitors can use the Track Order page to check an existing order.",
+    },
+    {
+      id: "contact-page",
+      title: "Contact the store",
+      href: "/contact-us",
+      sourceType: "navigation",
+      content:
+        "Visitors can use the contact page to send the store a message for help that is not answered on the website.",
+    },
+  ];
+
+  for (const policy of policies) {
+    documents.push({
+      id: `policy-${policy.slug}`,
+      title: policy.title,
+      href: policyRoutes[policy.slug] ?? "/",
+      sourceType: "policy",
+      content: knowledgeText(policy.body_html, 8_000),
+    });
+  }
+
+  for (const category of categories) {
+    documents.push({
+      id: `category-${category._id}`,
+      title: category.categoryName,
+      href: category.isDefault
+        ? "/product"
+        : `/product?category=${encodeURIComponent(category.categoryUrl.current)}`,
+      sourceType: "category",
+      content:
+        knowledgeText(category.categoryDescription) ||
+        `Product category named ${category.categoryName}.`,
+    });
+  }
+
+  for (const promotion of promotions) {
+    documents.push({
+      id: `promotion-${promotion._id}`,
+      title: promotion.title,
+      href: promotion.ctaUrl || "/product",
+      sourceType: "promotion",
+      content: knowledgeText({
+        description: promotion.description,
+        discountPercent: promotion.discountPercent,
+        action: promotion.ctaLabel,
+      }),
+    });
+  }
+
+  if (reviews.length > 0) {
+    documents.push({
+      id: "customer-reviews",
+      title: "Customer reviews",
+      href: "/reviews",
+      sourceType: "reviews",
+      content: knowledgeText(
+        reviews.map(({ customerName, rating, body }) => ({
+          customerName,
+          rating,
+          body,
+        })),
+        8_000,
+      ),
+    });
+  }
+
+  return documents.filter((document) => document.content.trim());
 }
 
 export async function POST(request: NextRequest) {
@@ -115,7 +341,19 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createSupabaseServerClient();
 
-    const [{ data, error }, settingsResult] = await Promise.all([
+    const [
+      { data, error },
+      settings,
+      terms,
+      privacy,
+      refund,
+      aboutSections,
+      homepageSections,
+      banners,
+      categories,
+      promotions,
+      reviews,
+    ] = await Promise.all([
       supabase
         .from("products")
         .select(
@@ -128,32 +366,44 @@ export async function POST(request: NextRequest) {
         )
         .eq("status", "active")
         .limit(CATALOG_LIMIT),
-      supabase
-        .from("site_settings")
-        .select("store_name")
-        .eq("id", 1)
-        .maybeSingle(),
+      getSiteSettings(),
+      getContentPage("terms"),
+      getContentPage("privacy"),
+      getContentPage("refund"),
+      getAboutSections(),
+      getHomepageSections(),
+      getBanners(),
+      getCategories().catch(() => []),
+      getPromotions().catch(() => []),
+      getReviews().catch(() => []),
     ]);
     if (error) throw error;
 
     const rows = ((data as unknown as CatalogRow[]) ?? []).filter((product) =>
       product.product_variants.some((variant) => variant.stock_quantity > 0),
     );
-    if (!rows.length) {
-      const response: AiAdvisorResponse = {
-        message:
-          "I do not want to steer you toward something unavailable. There is nothing in stock that I can recommend right now, but it is worth checking back when the collection refreshes.",
-        status: "no_match",
-        suggestedReplies: [],
-        recommendations: [],
-      };
-      return NextResponse.json(response);
-    }
-
-    const storeName =
-      (settingsResult.data?.store_name as string | undefined)?.trim() ||
-      "the store";
+    const storeName = settings.store_name.trim() || "the store";
+    const websiteKnowledge = buildWebsiteKnowledge({
+      settings,
+      policies: [terms, privacy, refund],
+      aboutSections,
+      homepageSections,
+      banners,
+      categories,
+      promotions,
+      reviews,
+    });
     const productsById = new Map<string, AiAdvisorProduct>();
+    const sourcesById = new Map<string, AiAdvisorSource>(
+      websiteKnowledge.map((document) => [
+        document.id,
+        {
+          title: document.title,
+          href: document.href,
+          sourceType: document.sourceType,
+        },
+      ]),
+    );
     const catalog = rows.map((product) => {
       const images = [...product.product_images].sort(
         (a, b) => a.sort - b.sort,
@@ -196,6 +446,7 @@ export async function POST(request: NextRequest) {
     const systemPrompt = buildAdvisorSystemPrompt({
       storeName,
       catalog,
+      websiteKnowledge,
       priorAssistantTurns,
     });
 
@@ -258,6 +509,10 @@ export async function POST(request: NextRequest) {
       return product ? [{ product, reason: item.reason }] : [];
     });
     const hasRecommendations = recommendations.length > 0;
+    const sources = modelResult.sourceIds.flatMap((sourceId) => {
+      const source = sourcesById.get(sourceId);
+      return source ? [source] : [];
+    });
     const response: AiAdvisorResponse = {
       message:
         modelResult.status === "recommendations" && !hasRecommendations
@@ -269,6 +524,7 @@ export async function POST(request: NextRequest) {
           : modelResult.status,
       suggestedReplies: modelResult.suggestedReplies,
       recommendations,
+      sources,
     };
 
     return NextResponse.json(response);

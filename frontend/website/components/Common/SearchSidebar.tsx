@@ -123,15 +123,15 @@ export default function SearchSidebar({
           <aside className="flex flex-col border-b border-border/80 pb-4 lg:min-h-0 lg:border-b-0 lg:border-r lg:pb-8 lg:pr-8">
             <div className="pr-12 lg:pr-0">
               <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary">
-                Discovery / Live catalog
+                Discovery / Store knowledge
               </p>
               <h1 className="mt-2 max-w-sm font-display text-3xl font-bold leading-[0.95] tracking-[-0.045em] sm:text-4xl lg:mt-5 lg:text-6xl">
                 Find your
                 <span className="block text-primary">signal.</span>
               </h1>
               <p className="mt-3 hidden max-w-[15rem] text-sm leading-6 text-muted-foreground lg:block">
-                Search with precision or let the advisor turn a feeling into a
-                shortlist.
+                Search products directly or ask the store expert about anything
+                on the website.
               </p>
             </div>
 
@@ -161,7 +161,7 @@ export default function SearchSidebar({
                     Ask AI
                   </span>
                   <span className="mt-0.5 hidden text-[11px] font-normal text-muted-foreground group-data-[state=active]:text-current/70 lg:block">
-                    Start with a feeling
+                    Products to policies
                   </span>
                 </span>
                 <Sparkles className="ml-auto size-4 shrink-0" />
@@ -170,7 +170,8 @@ export default function SearchSidebar({
 
             <div className="mt-auto hidden items-center gap-2 pt-8 font-mono text-[9px] uppercase tracking-[0.24em] text-muted-foreground lg:flex">
               <span className="size-1.5 animate-pulse rounded-full bg-primary" />
-              Inventory connected
+               Website + inventory connected
+
             </div>
           </aside>
 
@@ -235,14 +236,14 @@ export default function SearchSidebar({
                   />
                   <span className="relative">
                     <span className="font-mono text-[9px] uppercase tracking-[0.28em] text-primary">
-                      No exact words needed
+                      Need more than product search?
                     </span>
                     <span className="mt-2 block font-display text-2xl font-bold tracking-tight sm:text-4xl">
-                      Let AI read the room.
+                      Ask about anything.
                     </span>
                     <span className="mt-2 block max-w-lg text-sm leading-6 text-muted-foreground">
-                      Share the person, moment, budget, or mood. The advisor
-                      will build a live shortlist.
+                      Get help with products, delivery, returns, company details,
+                      navigation, and more.
                     </span>
                   </span>
                   <span className="relative grid size-12 shrink-0 place-items-center rounded-full border border-border transition group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground sm:size-14">

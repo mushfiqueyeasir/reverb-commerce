@@ -1,20 +1,22 @@
 # Reverb Commerce Architecture
 
-## Overview
+## System Scope
 
-Reverb Commerce uses one shared application repository while giving every client
-an isolated production deployment and isolated Supabase project.
+Reverb Commerce is a multi-store commerce platform built from one shared codebase.
+Each client receives an isolated Vercel deployment and an isolated Supabase
+project. Stores share application code, while their domain, schema version,
+content, catalog, branding, users, integration settings and business data remain
+independent.
 
 ```mermaid
 flowchart TB
-    team[Reverb Solution Team]
-    repo[(GitHub Repository)]
-    actions[GitHub Actions Fleet Cleanup]
+    repo[(Shared GitHub Repository)]
+    workflow[GitHub Actions]
 
-    subgraph shared[Shared Codebase]
-        frontend[Next.js Storefront and Admin]
-        backend[Provisioning and Fleet Scripts]
-        migrations[Supabase Baseline and Migrations]
+    subgraph code[Shared Codebase]
+        web[Next.js Storefront and Admin]
+        database[Supabase Baseline and Migrations]
+        tools[Provisioning and Fleet Tools]
         registry[Client Registry]
     end
 
@@ -24,291 +26,422 @@ flowchart TB
         supabaseA[(Supabase Project)]
     end
 
-    subgraph clientB[Client B]
-        domainB[Custom Domain]
-        vercelB[Vercel Project]
-        supabaseB[(Supabase Project)]
-    end
-
     subgraph clientN[Client N]
         domainN[Custom Domain]
         vercelN[Vercel Project]
         supabaseN[(Supabase Project)]
     end
 
-    team --> repo
-    repo --> shared
-    repo --> actions
-    frontend --> vercelA
-    frontend --> vercelB
-    frontend --> vercelN
-    migrations --> supabaseA
-    migrations --> supabaseB
-    migrations --> supabaseN
-    backend --> registry
+    repo --> code
+    workflow --> tools
+    web --> vercelA
+    web --> vercelN
+    database --> supabaseA
+    database --> supabaseN
+    tools --> registry
     registry --> vercelA
-    registry --> vercelB
     registry --> vercelN
-    actions --> supabaseA
-    actions --> supabaseB
-    actions --> supabaseN
     domainA --> vercelA --> supabaseA
-    domainB --> vercelB --> supabaseB
     domainN --> vercelN --> supabaseN
 ```
 
-This model provides:
-
-- One codebase and one production branch.
-- One Vercel project per client.
-- One Supabase database, authentication service, and storage account per client.
-- One custom domain and independent environment configuration per client.
-- The complete product feature set for every client.
-- Fleet-wide automation without sharing client business data.
+Every client deploys the same application code. A capability is usable only when
+the client has the required schema migration, tenant setting and external
+credential.
 
 ## Repository Structure
 
 ```text
-frontend/website/                 Shared Next.js storefront and admin panel
-backend/clients/<client-id>/      Non-secret tenant and deployment metadata
-backend/scripts/                  Provisioning, validation, status, and cleanup
-backend/supabase/                 Database baseline and migrations
-ops/schemas/                      Tenant manifest schema
-.github/workflows/                Fleet automation
+frontend/website/                 Next.js storefront, admin and API runtime
+backend/supabase/baselines/       Clean database baseline for new stores
+backend/supabase/migrations/      Versioned database and storage changes
+backend/supabase/seed/            Store initialization data
+backend/scripts/                  Provisioning, registry, status and cleanup tools
+backend/clients/<client-id>/      Tracked non-secret client inventory
+ops/schemas/                      Tenant manifest contract
+.github/workflows/                New-store provisioning and asset cleanup
+doc/                              Feature-guide PDF, generator and architecture
 .client-secrets/                  Ignored local provisioning credentials
-doc/                              Architecture and operations documentation
 ```
 
-## Per-Client Runtime
+The backend directory is a database and control-plane package, not a separately
+deployed HTTP API. Next.js is the application server.
 
-The browser communicates with the Next.js deployment. Supabase credentials are
-server-only and are not included in browser bundles.
+## Product Capability Map
+
+### Customer storefront
+
+- Dynamic homepage assembled from merchant-ordered banner, category, featured
+  product, review, promotion and rich-text sections.
+- Responsive catalog, featured merchant ordering, category, availability and
+  price filters, and price or alphabetical sorting.
+- Full-screen product search and a conversational AI store expert grounded in
+  current website content and available products.
+- Product galleries, rich descriptions, live stock, optional sizing, optional
+  product-specific size charts and stock-aware quick shopping.
+- Browser-persistent cart, wishlist and checkout form state without customer
+  registration.
+- Guest checkout with Inside Dhaka or Outside Dhaka delivery charges, promo
+  codes, Cash on Delivery and optional bKash payment.
+- Public order-number lookup with payment, order, item and courier event status.
+- Reviews, contact, About, Privacy, Terms and Refund content.
+- Dynamic metadata, canonical URLs, Product structured data, sitemap, robots
+  rules, product CSV feed, analytics, Meta Pixel events and chat links.
+
+### Merchant administration
+
+- Dashboard KPIs, seven-day charts, recent orders and operational shortcuts.
+- Product and category CRUD, merchant ordering, protected default category,
+  optional sizing, variants, SKUs, stock thresholds, image galleries and size
+  charts.
+- Alphabetical, collapsible inventory groups with combined stock and expandable
+  variant details.
+- Order approval, status management, internal notes, customer history, reports
+  and CSV exports.
+- Pathao, Steadfast and REDX shipment creation, refresh and event history.
+- Individual branded PDF invoices and bulk ZIP generation for up to 50 orders,
+  with an optional print-safe invoice logo.
+- Homepage, banner, About, policy, promotion, promo-code, review and contact
+  content management.
+- Branding, five theme presets and custom colors, delivery, SMTP, bKash,
+  courier, analytics and chat settings.
+- Admin, editor and viewer roles plus append-only audit records.
+- Six media libraries, signed uploads, storage estimates and operational asset
+  cleanup tooling.
+
+## Runtime Topology
+
+The application uses Next.js 16 App Router, React 19 and TypeScript. Storefront
+and admin routes are dynamic and favor current Supabase data over shared page
+caching. Route Handlers and Server Actions use the Node.js runtime for payment,
+email, PDF data preparation, privileged database operations and external APIs.
 
 ```mermaid
 flowchart LR
     customer[Customer Browser]
-    merchant[Merchant Browser]
-    domain[Client Custom Domain]
+    staff[Authenticated Staff Browser]
 
-    subgraph vercel[Vercel: Client Next.js Deployment]
-        pages[Storefront and Admin UI]
+    subgraph vercel[Vercel: Per-Client Next.js]
+        storefront[Storefront Server and Client Components]
+        admin[Admin Server and Client Components]
         middleware[Admin Session Middleware]
-        server[Server Components and Route Handlers]
-        actions[Server Actions]
+        routes[Public and Provider Route Handlers]
+        actions[Authenticated Server Actions]
+        service[Server-Only Service Role Operations]
     end
 
-    subgraph supabase[Supabase: Isolated Client Project]
-        auth[Authentication]
-        database[(Postgres Database)]
-        storage[(Object Storage)]
-        cron[pg_cron Scheduler]
+    subgraph supabase[Supabase: Per-Client Project]
+        auth[Auth]
+        db[(PostgreSQL and RLS)]
+        storage[(Six Public Media Buckets)]
+        cron[pg_cron]
     end
 
-    payments[bKash]
-    email[SMTP Provider]
-    couriers[Pathao / Steadfast / REDX]
+    providers[OpenRouter / bKash / SMTP / Couriers]
 
-    customer --> domain
-    merchant --> domain
-    domain --> pages
-    pages --> server
-    merchant --> middleware
-    middleware --> auth
-    pages --> actions
-    server --> database
-    actions --> auth
-    actions --> database
-    actions -->|Temporary signed upload URL| storage
-    merchant -->|Image body using signed URL| storage
-    server --> payments
-    server --> email
-    actions -->|Create shipment / refresh status| couriers
-    couriers -->|Authenticated status webhook| server
-    cron -->|Delete expired unpaid gateway orders| database
+    customer --> storefront
+    storefront --> routes
+    staff --> middleware --> auth
+    staff --> admin --> actions
+    routes --> service --> db
+    actions --> db
+    actions --> service
+    actions -->|Short-lived signed upload URL| staff
+    staff -->|Direct media upload| storage
+    storefront --> db
+    routes --> providers
+    actions --> providers
+    cron --> db
 ```
 
-### Order, Payment, and Courier Workflow
+### Browser state
+
+Customers do not have accounts. Zustand stores persist the cart, wishlist and
+checkout form in browser storage. A separate saved-delivery record is written
+when the customer selects the save option. This means anonymous delivery data
+can remain on the device until browser storage is cleared.
+
+The AI conversation is held in component memory and is not persisted to the
+store database.
+
+## Next.js and Supabase Boundary
+
+- Storefront reads and staff operations normally pass through Server Components,
+  Route Handlers or Server Actions.
+- Cookie-bound Supabase sessions support admin authentication and RLS-governed
+  staff access.
+- The service-role client is server-only and bypasses RLS. It is used for
+  transactional order placement, public order tracking, Auth administration,
+  private integration settings, audit writes, signed upload creation and courier
+  event processing.
+- Media uploads use short-lived signed upload URLs. The image body travels from
+  the authenticated admin browser directly to Supabase Storage.
+- Product and review uploads accept JPG, PNG or WebP input, reject HEIC/HEIF,
+  resize large images, remove metadata and produce WebP output within configured
+  size limits.
+- The authenticated settings interface is trusted with editable courier
+  configuration, including webhook values required to configure providers.
+
+## Authentication and Authorization
+
+Supabase Auth provides staff email/password authentication. New-store
+provisioning disables public signup, creates a bootstrap user and explicitly
+assigns the administrator role.
+
+Authorization is layered:
+
+1. Middleware refreshes the Supabase session and protects `/admin` routes.
+2. Admin layouts and pages load the staff profile and filter available modules.
+3. Server Actions enforce admin, editor or viewer permissions.
+4. PostgreSQL RLS controls table access.
+5. Selected trusted server paths use the service role when public or privileged
+   behavior cannot be expressed through a staff session.
+
+Public RLS policies permit active catalog/content reads and contact submission.
+Operational writes require staff access. User administration, private settings
+and audit reads are administrator-only.
+
+## Data Architecture
+
+### Core domains
+
+| Domain | Main records |
+| --- | --- |
+| Identity | profiles and staff roles |
+| Catalog | categories, products, product images, variants and category assignments |
+| Commerce | customers, orders and immutable order-item snapshots |
+| CMS | banners, homepage sections, content pages, promotions and reviews |
+| Operations | contact submissions, site settings, promo codes and blocked-IP records |
+| Integrations | SMTP, bKash and courier settings |
+| Fulfilment | order shipments and courier event history |
+| Governance | append-only audit logs and provisioning migration ledger |
+
+The CMS is hybrid. Newer content uses normalized tables, while compatible legacy
+and configuration content remains under the `_cms` object in
+`site_settings.socials`. Content readers prefer normalized records and use the
+stored object or defaults as fallback.
+
+### Database invariants
+
+- A protected default category is pinned first and represents the complete
+  catalog; merchant-created categories remain reorderable and deletable.
+- Product sizing is optional. Every purchasable item still resolves to an
+  inventory variant so stock and cart identity remain consistent.
+- Order placement locks variants, verifies prices and stock, snapshots item
+  details, updates the customer, calculates totals and decrements stock in one
+  transaction.
+- Cancellation, failed-payment cleanup and deletion restore stock through
+  database functions.
+- Only one courier may be active for new shipments. Existing shipments retain
+  their original provider.
+- Courier events are deduplicated and may only advance the main order workflow
+  monotonically.
+- Audit rows are append-only to application roles.
+
+## Order, Payment and Notification Flow
 
 ```mermaid
 sequenceDiagram
     participant Customer
-    participant Store as Next.js Store
-    participant DB as Supabase Postgres
+    participant Store as Next.js
+    participant DB as Supabase PostgreSQL
     participant Payment as bKash
-    participant Merchant
-    participant Courier as Active Courier API
+    participant Mail as SMTP
 
-    Customer->>Store: Submit checkout
-    Store->>DB: Create order and reserve stock
+    Customer->>Store: Submit cart, delivery, promo and payment method
+    Store->>DB: Load authoritative products, variants and settings
+    Store->>DB: place_order transaction and reserve stock
     alt Cash on Delivery
-        Store-->>Customer: Confirm order
-    else Gateway payment
+        Store->>Mail: Send customer and owner messages
+        Store-->>Customer: Return order number
+    else bKash
         Store->>Payment: Create hosted payment
-        Payment-->>Store: Success or failure callback
-        Store->>DB: Confirm paid order or delete failed order
-        DB->>DB: Every 15 min delete unpaid gateway orders older than 1 hour
+        Store-->>Customer: Redirect to bKash
+        Customer->>Store: Return with payment ID and status
+        Store->>DB: Atomically claim unpaid order for processing
+        Store->>Payment: Execute payment or query provider status
+        alt Verified payment
+            Store->>DB: Mark paid and confirmed
+            Store->>Mail: Send customer and owner messages
+            Store-->>Customer: Redirect to order tracking
+        else Failed payment
+            Store->>DB: Delete order and restore stock
+            Store-->>Customer: Redirect to checkout with failure
+        end
     end
-    Merchant->>Store: Approve order
-    Merchant->>Store: Send to active courier
-    Store->>Courier: Create consignment
-    Store->>DB: Store provider, tracking ID, and event
-    Courier-->>Store: Authenticated status webhook
-    Store->>DB: Deduplicate event and safely advance status
 ```
 
-Exactly one courier can be active for new shipments, or all courier creation can
-be disabled. Changing the active provider never migrates existing shipments:
-`order_shipments.provider` permanently records the provider used for that order,
-so old Pathao shipments continue to receive Pathao updates after REDX or
-Steadfast becomes active.
+The server does not trust client prices, stock, shipping charges or promo totals.
+It reloads authoritative values before calling the service-role-only order RPC.
+Email failure does not roll back an accepted order.
 
-Shipment creation is a deliberate merchant action available from both the order
-list and order detail page. Pending orders can be approved from their list card;
-confirmed or processing orders can then be sent to the active courier. COD
-orders are eligible; bKash orders must be paid. Pathao and REDX require parcel weight, while REDX also
-requires a provider delivery area.
+Migration `0018_abandoned_gateway_orders.sql` installs a `pg_cron` job that runs
+every 15 minutes. It deletes unpaid non-COD orders older than one hour and
+restores stock transactionally. Paid, COD, recent and courier-linked orders are
+excluded.
 
-Courier updates preserve the detailed provider status and event history. Safe
-mapping only advances the main workflow to `processing`, `shipped`, or
-`delivered`. Hold, failure, partial-delivery, approval-pending, return, and
-unknown events never cancel, restock, or regress an order. Courier-linked orders
-cannot be locally cancelled, moved to another provider, or deleted; customers
-with linked orders are protected from cascading deletion.
+Public tracking uses possession of an order number rather than customer
+authentication. It returns order items, customer summary, delivery area, payment
+state, totals and courier history.
 
-### Runtime Security Boundary
+## Courier Flow
 
-| Location | Data | Tracked by Git |
-| --- | --- | --- |
-| `tenant.json` | Domain, project reference, schema version | Yes |
-| `deployment.json` | Vercel and Supabase deployment metadata | Yes |
-| `.client-secrets/<client-id>.env` | Supabase keys used for provisioning | No |
-| `frontend/website/.env.<client-id>` | Local client runtime environment | No |
-| Vercel environment | Production Supabase keys and site configuration | No |
-| GitHub Actions secret | Supabase Management API token | No |
-| Private database settings | SMTP, payment, courier credentials, active provider, webhook secrets | No |
-| Browser runtime | UI code and temporary signed upload URLs | No permanent keys |
+```mermaid
+sequenceDiagram
+    participant Staff
+    participant Store as Next.js
+    participant DB as Supabase PostgreSQL
+    participant Courier as Active Courier API
 
-The anon key and service-role key are server-only environment variables. The
-service-role client bypasses row-level security and must only be used by trusted
-server code. Admin authentication uses server actions and cookie-bound sessions.
+    Staff->>Store: Approve order
+    Staff->>Store: Send eligible order to courier
+    Store->>DB: Reserve shipment atomically
+    Store->>Courier: Create consignment
+    Store->>DB: Store provider, tracking ID and initial event
+    Courier->>Store: Provider-authenticated webhook
+    Store->>DB: Hash, deduplicate and apply event transactionally
+    Staff->>Store: Optional manual status refresh
+    Store->>Courier: Fetch latest provider status
+    Store->>DB: Apply event using the same path
+```
 
-## Client Onboarding
+Pathao and REDX require parcel weight; REDX also requires a provider delivery
+area. COD orders are eligible, while bKash orders must be paid. Courier-linked
+orders cannot be cancelled, moved to another provider or deleted locally.
+Failure, hold, return, partial-delivery and unknown provider events are retained
+without automatically cancelling, restocking or regressing the order.
 
-Required input is documented in
-[`NEW-CLIENT-DEPLOYMENT.md`](./NEW-CLIENT-DEPLOYMENT.md).
+## AI Store Expert
+
+The public AI route builds two request-time knowledge sets. The first contains up
+to 120 active products, excludes products without a positive-stock variant and
+derives currently available colors and sizes. The second contains public store
+settings, delivery charges, About content, homepage sections, banners, policies,
+categories, promotions, reviews and navigation guidance.
+
+The bounded recent conversation and both knowledge sets are sent to OpenRouter
+using structured output. The model can return an informational answer, one
+clarifying question, a no-match response or up to three product recommendations.
+It may also return up to four website source identifiers. The server checks source
+identifiers against the request knowledge map and product identifiers against the
+stock-filtered catalog before attaching server-owned links, prices and images.
+
+Website and catalog content are treated as untrusted data rather than model
+instructions. The prompt forbids invented store policies, contact details,
+delivery terms, discounts, reviews, product details and availability, and directs
+the visitor to a relevant page or contact route when current content cannot
+answer the question. Supported wrapped or fenced JSON response forms are
+recovered. Conversation history is not stored in Supabase.
+
+## Storage and Asset Lifecycle
+
+Supabase provides six public-read buckets:
+
+- product images;
+- category images;
+- review images;
+- promotion images;
+- branding;
+- banner images.
+
+Staff writes are authorized before a server action creates a signed upload URL.
+Product and review files have additional WebP and size restrictions. Database
+records and CMS content hold the references used by storefront rendering.
+
+The manually dispatched cleanup workflow discovers active registered clients and
+runs up to five jobs in parallel. Each job:
+
+1. Resolves the correct project credential without adding it to the matrix.
+2. Paginates all database references and recursively lists storage objects.
+3. Protects referenced files, seed prefixes and files newer than 24 hours.
+4. Deletes remaining objects in batches.
+
+The workflow currently performs deletion when dispatched. Dry-run behavior is
+available through the backend CLI by passing `--dry-run`.
+
+## Client Provisioning
+
+The primary onboarding path is the protected `Deploy New Customer` GitHub Actions
+workflow. It accepts a site URL and temporary Supabase Management API token,
+validates the repository, then runs the resumable store provisioner.
 
 ```mermaid
 sequenceDiagram
     participant Operator
-    participant Registry as Client Registry
-    participant Supabase
+    participant Actions as GitHub Actions
     participant Provisioner
+    participant Supabase
     participant Vercel
-    participant DNS
+    participant Registry as Client Registry
 
-    Operator->>Supabase: Create an empty isolated project
-    Operator->>Registry: Add tenant.json
-    Operator->>Registry: Add ignored local credentials
-    Operator->>Supabase: Apply clean baseline and migrations
-    Operator->>Provisioner: Run client validation
-    Operator->>Provisioner: Provision client
-    Provisioner->>Vercel: Create or adopt store-client-id
-    Provisioner->>Vercel: Set server-only production environment
-    Provisioner->>Vercel: Connect repository and deploy
-    Provisioner->>Registry: Write non-secret deployment.json
-    Operator->>DNS: Attach and verify production domain
-    Operator->>Supabase: Create initial administrator
-    Operator->>Vercel: Run production smoke tests
-    Operator->>Registry: Mark client active
+    Operator->>Actions: Site URL and temporary Supabase token
+    Actions->>Actions: Backend tests and validation; frontend test, lint and build
+    Actions->>Provisioner: Run resumable provisioning at selected release SHA
+    Provisioner->>Supabase: Create project and wait for health
+    Provisioner->>Supabase: Apply baseline, migrations and checksum ledger
+    Provisioner->>Supabase: Seed data, assets, Auth policy and bootstrap admin
+    Provisioner->>Vercel: Create/configure project and production environment
+    Provisioner->>Vercel: Deploy exact release SHA and attach domains
+    Provisioner->>Vercel: Run initial health and route smoke tests
+    Provisioner->>Registry: Write tenant and deployment inventory
+    Actions->>Registry: Validate and commit generated files to main
 ```
 
-The provisioning script derives the Vercel project name as
-`store-<client-id>`, uses `frontend/website` as the project root, deploys from
-`main`, and records the resulting non-secret deployment metadata.
+Provisioning derives the Vercel project name as `store-<client-id>`, configures
+`frontend/website` as the project root and writes non-privileged registry data.
+The generated inventory includes tenant metadata, deployment status, schema and
+migration checksums, an environment backup with privileged fields blank, and a
+client operations README.
 
-## Deployment Flow
+### Registry and secrets
 
-```mermaid
-flowchart LR
-    commit[Commit on main]
-    github[(GitHub)]
-    projectA[Vercel Client A]
-    projectB[Vercel Client B]
-    projectN[Vercel Client N]
-    smoke[Per-client Smoke Tests]
+| Location | Contents | Tracked |
+| --- | --- | --- |
+| `backend/clients/<id>/tenant.json` | Client identity, domain, project reference and desired schema | Yes |
+| `backend/clients/<id>/deployment.json` | Release, deployment, domain, schema and smoke-test metadata | Yes |
+| `backend/clients/<id>/environment.backup.json` | Non-privileged environment inventory; secret fields blank | Yes |
+| `.client-secrets/<id>.env` | Local provisioning and service credentials | No |
+| Vercel production environment | Runtime Supabase and site configuration | No |
+| GitHub Actions secrets | Vercel and fleet-management credentials | No |
+| Private Supabase tables | SMTP, bKash and courier credentials | Database only |
 
-    commit --> github
-    github --> projectA
-    github --> projectB
-    github --> projectN
-    projectA --> smoke
-    projectB --> smoke
-    projectN --> smoke
-```
+## Release and Scaling Model
 
-All Vercel projects build the same source code. Client differences come from
-the tenant's environment, database content, branding, domain, payment settings,
-email settings, courier settings, and merchant-managed configuration.
+New stores are initially deployed from an exact release SHA. Their Vercel
+projects are also connected to the shared repository and `main`, so subsequent
+frontend-affecting changes use Vercel Git deployment behavior. Client differences
+come from isolated data, environment, domain and merchant configuration rather
+than branches or copied applications.
 
-## Abandoned Gateway-Order Cleanup
+Adding a client adds one registry folder, one Vercel project and one Supabase
+project. It does not add a source branch. Fleet asset cleanup discovers active
+registry entries dynamically and limits parallel load to five clients.
 
-Migration `0018_abandoned_gateway_orders.sql` installs the database job
-`cleanup-abandoned-gateway-orders` using `pg_cron`. It runs every 15 minutes and
-deletes unpaid non-COD orders older than one hour. Explicitly failed or cancelled
-gateway attempts are removed immediately by the callback path.
+## Current Operational Boundaries
 
-Deletion and variant-stock restoration execute in one transaction. Paid orders,
-COD orders, recent gateway orders, and courier-linked orders are excluded. The
-job uses row locking with `SKIP LOCKED`, allowing payment callbacks and cleanup
-to operate safely without processing the same order concurrently. Migration
-`0019_payment_courier_concurrency.sql` also claims an order as `processing`
-before contacting bKash, reserves courier shipments while holding the order row
-lock, and applies courier events through one transactional, monotonic RPC.
+These statements describe the current repository rather than future intent:
 
-## Fleet Asset Cleanup
-
-The cleanup workflow scales across the client registry without placing
-credentials in its matrix payload.
-
-```mermaid
-flowchart TB
-    dispatch[Manual Workflow Dispatch]
-    discover[Read Active Client Folders]
-    matrix[Dynamic Client Matrix]
-    secret[SUPABASE_ACCESS_TOKEN]
-
-    subgraph workers[Up to Five Concurrent Client Jobs]
-        validate[Validate Tenant and Resolve Project Server Key]
-        references[Collect All Referenced Paths with Pagination]
-        objects[List All Storage Objects]
-        protect[Exclude Referenced, Protected, and Recent Objects]
-        result[Dry Run or Batched Delete]
-    end
-
-    dispatch --> discover --> matrix --> validate
-    secret --> validate
-    validate --> references --> objects --> protect --> result
-```
-
-Cleanup safety rules:
-
-- Only clients with `status: active` are discovered.
-- At most five clients run concurrently.
-- One failed client does not stop other clients.
-- The Management API token resolves each registered project's server key at runtime.
-- Reference queries paginate to the exact row count.
-- Required query, storage listing, and deletion errors fail the client job.
-- Files newer than 24 hours are protected from deletion.
-- Seed assets under protected prefixes are never deleted.
-- Dry-run mode is the default.
-
-## Scaling Model
-
-Adding a client adds one registry folder, one Vercel project, and one Supabase
-project. It does not add a source branch or application copy. The dynamic
-cleanup matrix supports up to GitHub Actions' matrix limit and limits active
-load with `max-parallel: 5`.
-
-Application fixes are made once in the shared codebase and deployed across the
-fleet. Database changes are delivered through versioned migrations and tracked
-per client using the manifest's `schemaVersion`.
+- New-store provisioning installs the latest schema, but no repository workflow
+  currently rolls pending migrations across existing clients. Registry schema
+  versions must therefore be checked and upgraded through an operator-managed
+  process.
+- Initial provisioning performs smoke tests. There is no recurring repository
+  workflow that smoke-tests every client after normal Vercel deployments.
+- The asset-cleanup workflow is manually triggered and destructive by default;
+  dry-run is a separate CLI option.
+- Public order creation, tracking, contact, search, promo validation, product
+  feed and AI routes do not have an application-level rate limiter or CAPTCHA.
+- Order tracking is authorized only by knowledge of the order number.
+- Blocked-IP records can be managed in the admin database, but request middleware
+  does not currently enforce them. The optional anti-inspection browser script
+  is a deterrent, not a server security control.
+- Private integration credentials are plaintext values inside each isolated
+  Supabase database and rely on project isolation, RLS and trusted server access
+  rather than application-layer encryption.
+- The OpenRouter credential is currently loaded from tracked server-only source
+  configuration instead of deployment secret management and should be rotated
+  and moved before treating the repository as secret-free.
+- Audit insertion is best effort, and audit-write failure does not block the
+  underlying merchant operation.
+- Dynamic no-store rendering prioritizes immediate catalog and admin freshness
+  over shared response caching.

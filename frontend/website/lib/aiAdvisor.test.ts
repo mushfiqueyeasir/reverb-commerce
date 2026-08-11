@@ -11,14 +11,24 @@ describe("AI advisor sales prompt", () => {
     const prompt = buildAdvisorSystemPrompt({
       storeName: "Signal Store",
       catalog: [{ id: "one", title: "Everyday Tee" }],
+      websiteKnowledge: [
+        {
+          id: "returns",
+          title: "Returns",
+          href: "/refund-policy",
+          sourceType: "policy",
+          content: "Returns are accepted within seven days.",
+        },
+      ],
       priorAssistantTurns: 1,
     });
 
-    expect(prompt).toContain("best in-person sales associate at Signal Store");
+    expect(prompt).toContain("knowledgeable store expert for Signal Store");
     expect(prompt).toContain("at most 2 more clarification questions");
-    expect(prompt).toContain("Lead with a clear point of view");
+    expect(prompt).toContain("entire website");
     expect(prompt).toContain("Never create fake urgency");
     expect(prompt).toContain('"Everyday Tee"');
+    expect(prompt).toContain('"/refund-policy"');
   });
 
   it("stops further questioning after the discovery allowance is used", () => {
@@ -80,6 +90,7 @@ describe("AI advisor model output", () => {
         message: "These fit your understated style.",
         status: "recommendations",
         suggestedReplies: ["More colorful", "Lower price"],
+        sourceIds: ["shop-page"],
         recommendations: [
           { productId: "one", reason: "A clean everyday option." },
           { productId: "two", reason: "A subtle alternative." },
@@ -93,6 +104,24 @@ describe("AI advisor model output", () => {
     expect(result?.recommendations[0]).toEqual({
       productId: "one",
       reason: "A clean everyday option.",
+    });
+  });
+
+  it("parses grounded website answers and deduplicates sources", () => {
+    expect(
+      parseModelAdvisorResponse({
+        message: "Returns are accepted within seven days.",
+        status: "answer",
+        suggestedReplies: [],
+        recommendations: [],
+        sourceIds: ["returns", "returns", "contact", "terms", "privacy"],
+      }),
+    ).toEqual({
+      message: "Returns are accepted within seven days.",
+      status: "answer",
+      suggestedReplies: [],
+      recommendations: [],
+      sourceIds: ["returns", "contact", "terms", "privacy"],
     });
   });
 
@@ -111,6 +140,7 @@ describe("AI advisor model output", () => {
       recommendations: [
         { productId: "one", reason: "It keeps the look understated." },
       ],
+      sourceIds: [],
     };
 
     expect(
@@ -131,6 +161,7 @@ describe("AI advisor model output", () => {
       status: "clarifying" as const,
       suggestedReplies: ["The occasion"],
       recommendations: [],
+      sourceIds: [],
     };
 
     expect(parseModelAdvisorResponse(response)).toEqual(response);
