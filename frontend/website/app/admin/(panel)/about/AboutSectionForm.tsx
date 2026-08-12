@@ -4,11 +4,15 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import type {
-  AboutCraftItem,
-  AboutSectionRow,
-  AboutStatItem,
-  AboutValueItem,
+import {
+  getAboutSectionDisplayName,
+  getAboutSectionFamily,
+  getAboutSectionVersion,
+  type AboutCraftItem,
+  type AboutSectionFamily,
+  type AboutSectionRow,
+  type AboutStatItem,
+  type AboutValueItem,
 } from "@/lib/cms/aboutSections";
 import { BUCKETS } from "@/lib/supabase/config";
 import {
@@ -30,7 +34,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { saveAboutSection } from "./actions";
 
-const TYPE_INFO: Record<AboutSectionRow["type"], string> = {
+const TYPE_INFO: Record<AboutSectionFamily, string> = {
   hero: "Full-bleed hero with headline, supporting line, image, and CTAs.",
   stats: "Four label / value pairs under the hero.",
   story: "Two-column story with image and rich text.",
@@ -110,6 +114,9 @@ export function AboutSectionForm({ section }: { section: AboutSectionRow }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const config = section.config ?? {};
+  const family = getAboutSectionFamily(section.type) ?? "hero";
+  const version = getAboutSectionVersion(section.type);
+  const displayName = getAboutSectionDisplayName(section.type) ?? section.type;
 
   const [title, setTitle] = useState(section.title ?? "");
   const [active, setActive] = useState(section.active);
@@ -154,7 +161,7 @@ export function AboutSectionForm({ section }: { section: AboutSectionRow }) {
   const submit = () => {
     const nextConfig: Record<string, unknown> = { ...config };
 
-    if (section.type === "hero") {
+    if (family === "hero") {
       nextConfig.eyebrow = eyebrow.trim();
       nextConfig.headline_line1 = headline1.trim();
       nextConfig.headline_line2 = headline2.trim();
@@ -166,13 +173,13 @@ export function AboutSectionForm({ section }: { section: AboutSectionRow }) {
       nextConfig.image_path = images[0]?.path ?? null;
       nextConfig.image_bucket = "banner";
     }
-    if (section.type === "stats") {
+    if (family === "stats") {
       nextConfig.items = stats.map((s) => ({
         label: s.label.trim(),
         value: s.value.trim(),
       }));
     }
-    if (section.type === "story") {
+    if (family === "story") {
       nextConfig.eyebrow = eyebrow.trim();
       nextConfig.title = sectionTitle.trim();
       nextConfig.body_html = bodyHtml;
@@ -180,14 +187,14 @@ export function AboutSectionForm({ section }: { section: AboutSectionRow }) {
       nextConfig.image_path = images[0]?.path ?? null;
       nextConfig.image_bucket = "banner";
     }
-    if (section.type === "values") {
+    if (family === "values") {
       nextConfig.eyebrow = eyebrow.trim();
       nextConfig.title = sectionTitle.trim();
       nextConfig.items = values
         .map((v) => ({ title: v.title.trim(), body: v.body.trim() }))
         .filter((v) => v.title || v.body);
     }
-    if (section.type === "craft") {
+    if (family === "craft") {
       nextConfig.eyebrow = eyebrow.trim();
       nextConfig.title_line1 = titleLine1.trim();
       nextConfig.title_line2 = titleLine2.trim();
@@ -203,7 +210,7 @@ export function AboutSectionForm({ section }: { section: AboutSectionRow }) {
         icon: c.icon.trim() || "Layers",
       }));
     }
-    if (section.type === "cta") {
+    if (family === "cta") {
       nextConfig.eyebrow = eyebrow.trim();
       nextConfig.title = sectionTitle.trim();
       nextConfig.body = body.trim();
@@ -217,7 +224,7 @@ export function AboutSectionForm({ section }: { section: AboutSectionRow }) {
       const res = await saveAboutSection({
         id: section.id,
         type: section.type,
-        title: title.trim() || section.type,
+        title: title.trim() || displayName,
         active,
         config: nextConfig,
       });
@@ -233,13 +240,16 @@ export function AboutSectionForm({ section }: { section: AboutSectionRow }) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
-      <AdminCard title="Section content" description={TYPE_INFO[section.type]}>
+      <AdminCard title="Section content" description={TYPE_INFO[family]}>
         <div className="space-y-5">
-          <FormField label="Section type">
-            <div className="flex h-11 items-center">
-              <Badge variant="secondary" className="capitalize">
-                {section.type}
-              </Badge>
+          <FormField label="Design">
+            <div className="flex h-11 items-center gap-2">
+              <Badge variant="secondary">{displayName}</Badge>
+              {version && version > 1 ? (
+                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
+                  (v{version})
+                </span>
+              ) : null}
             </div>
           </FormField>
 
@@ -252,11 +262,11 @@ export function AboutSectionForm({ section }: { section: AboutSectionRow }) {
             />
           </FormField>
 
-          {(section.type === "hero" ||
-            section.type === "story" ||
-            section.type === "values" ||
-            section.type === "craft" ||
-            section.type === "cta") && (
+          {(family === "hero" ||
+            family === "story" ||
+            family === "values" ||
+            family === "craft" ||
+            family === "cta") && (
             <FormField label="Eyebrow" htmlFor="eyebrow">
               <Input
                 id="eyebrow"
@@ -267,7 +277,7 @@ export function AboutSectionForm({ section }: { section: AboutSectionRow }) {
             </FormField>
           )}
 
-          {section.type === "hero" && (
+          {family === "hero" && (
             <>
               <div className="grid gap-5 sm:grid-cols-2">
                 <FormField label="Headline line 1" htmlFor="h1">
@@ -338,7 +348,7 @@ export function AboutSectionForm({ section }: { section: AboutSectionRow }) {
             </>
           )}
 
-          {section.type === "stats" && (
+          {family === "stats" && (
             <div className="space-y-3">
               {stats.map((stat, i) => (
                 <div
@@ -376,7 +386,7 @@ export function AboutSectionForm({ section }: { section: AboutSectionRow }) {
             </div>
           )}
 
-          {section.type === "story" && (
+          {family === "story" && (
             <>
               <FormField label="Heading" htmlFor="story_title">
                 <Input
@@ -410,7 +420,7 @@ export function AboutSectionForm({ section }: { section: AboutSectionRow }) {
             </>
           )}
 
-          {section.type === "values" && (
+          {family === "values" && (
             <>
               <FormField label="Heading" htmlFor="values_title">
                 <Input
@@ -470,7 +480,7 @@ export function AboutSectionForm({ section }: { section: AboutSectionRow }) {
             </>
           )}
 
-          {section.type === "craft" && (
+          {family === "craft" && (
             <>
               <div className="grid gap-5 sm:grid-cols-2">
                 <FormField label="Title line 1">
@@ -600,7 +610,7 @@ export function AboutSectionForm({ section }: { section: AboutSectionRow }) {
             </>
           )}
 
-          {section.type === "cta" && (
+          {family === "cta" && (
             <>
               <FormField label="Heading" htmlFor="cta_title">
                 <Input

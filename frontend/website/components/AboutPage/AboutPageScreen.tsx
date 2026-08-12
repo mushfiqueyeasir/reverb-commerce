@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -10,11 +11,19 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
-import type {
-  AboutCraftItem,
-  AboutSectionRow,
-  AboutStatItem,
-  AboutValueItem,
+import AboutCraftV2 from "@/components/AboutPage/V2/AboutCraftV2";
+import AboutCtaV2 from "@/components/AboutPage/V2/AboutCtaV2";
+import AboutHeroV2 from "@/components/AboutPage/V2/AboutHeroV2";
+import AboutStatsV2 from "@/components/AboutPage/V2/AboutStatsV2";
+import AboutStoryV2 from "@/components/AboutPage/V2/AboutStoryV2";
+import AboutValuesV2 from "@/components/AboutPage/V2/AboutValuesV2";
+import {
+  getAboutSectionFamily,
+  getAboutSectionVersion,
+  type AboutCraftItem,
+  type AboutSectionRow,
+  type AboutStatItem,
+  type AboutValueItem,
 } from "@/lib/cms/aboutSections";
 
 const CRAFT_ICONS: Record<string, LucideIcon> = {
@@ -80,13 +89,16 @@ function asCraft(config: Record<string, unknown>): AboutCraftItem[] {
 function HeroSection({
   config,
   imageUrl,
+  headingLevel = "h1",
 }: {
   config: Record<string, unknown>;
   imageUrl?: string | null;
+  headingLevel?: "h1" | "h2";
 }) {
   const heroUrl = imageUrl;
   const line1 = cfgStr(config, "headline_line1", "Designed with purpose.");
   const line2 = cfgStr(config, "headline_line2", "Made for everyday life.");
+  const Heading = headingLevel;
 
   return (
     <section className="relative isolate min-h-[72vh] overflow-hidden md:min-h-[80vh]">
@@ -111,7 +123,7 @@ function HeroSection({
             {cfgStr(config, "eyebrow")}
           </p>
         ) : null}
-        <h1 className="mt-3 max-w-3xl font-display text-[clamp(2.5rem,7vw,5.5rem)] font-bold leading-[0.92] tracking-[-0.04em] text-foreground">
+        <Heading className="mt-3 max-w-3xl font-display text-[clamp(2.5rem,7vw,5.5rem)] font-bold leading-[0.92] tracking-[-0.04em] text-foreground">
           {line1}
           {line2 ? (
             <>
@@ -119,7 +131,7 @@ function HeroSection({
               <span className="text-primary">{line2}</span>
             </>
           ) : null}
-        </h1>
+        </Heading>
         {cfgStr(config, "subtitle") ? (
           <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
             {cfgStr(config, "subtitle")}
@@ -454,40 +466,70 @@ function CtaSection({ config }: { config: Record<string, unknown> }) {
 function renderSection(
   section: AboutSectionRow,
   imageUrls: Partial<Record<string, string | null>>,
+  preview: boolean,
+  primaryHeroId: string | undefined,
 ) {
   const config = section.config ?? {};
   const sectionImageUrl = imageUrls[section.id];
-  switch (section.type) {
-    case "hero":
-      return (
-        <HeroSection
-          key={section.id}
+  const family = getAboutSectionFamily(section.type);
+  const isV2 = getAboutSectionVersion(section.type) === 2;
+
+  switch (family) {
+    case "hero": {
+      const headingLevel = section.id === primaryHeroId ? "h1" : "h2";
+      return isV2 ? (
+        <AboutHeroV2
           config={config}
           imageUrl={sectionImageUrl}
+          headingLevel={headingLevel}
+          preview={preview}
+        />
+      ) : (
+        <HeroSection
+          config={config}
+          imageUrl={sectionImageUrl}
+          headingLevel={headingLevel}
         />
       );
+    }
     case "stats":
-      return <StatsSection key={section.id} config={config} />;
+      return isV2 ? (
+        <AboutStatsV2 config={config} preview={preview} />
+      ) : (
+        <StatsSection config={config} />
+      );
     case "story":
-      return (
-        <StorySection
-          key={section.id}
+      return isV2 ? (
+        <AboutStoryV2
           config={config}
           imageUrl={sectionImageUrl}
+          preview={preview}
         />
+      ) : (
+        <StorySection config={config} imageUrl={sectionImageUrl} />
       );
     case "values":
-      return <ValuesSection key={section.id} config={config} />;
+      return isV2 ? (
+        <AboutValuesV2 config={config} preview={preview} />
+      ) : (
+        <ValuesSection config={config} />
+      );
     case "craft":
-      return (
-        <CraftSection
-          key={section.id}
+      return isV2 ? (
+        <AboutCraftV2
           config={config}
           imageUrl={sectionImageUrl}
+          preview={preview}
         />
+      ) : (
+        <CraftSection config={config} imageUrl={sectionImageUrl} />
       );
     case "cta":
-      return <CtaSection key={section.id} config={config} />;
+      return isV2 ? (
+        <AboutCtaV2 config={config} preview={preview} />
+      ) : (
+        <CtaSection config={config} />
+      );
     default:
       return null;
   }
@@ -496,13 +538,23 @@ function renderSection(
 export default function AboutPageScreen({
   sections,
   imageUrls = {},
+  preview = false,
 }: {
   sections: AboutSectionRow[];
   imageUrls?: Partial<Record<string, string | null>>;
+  preview?: boolean;
 }) {
+  const primaryHeroId = sections.find(
+    (section) => getAboutSectionFamily(section.type) === "hero",
+  )?.id;
+
   return (
     <div className="pb-24">
-      {sections.map((section) => renderSection(section, imageUrls))}
+      {sections.map((section) => (
+        <Fragment key={section.id}>
+          {renderSection(section, imageUrls, preview, primaryHeroId)}
+        </Fragment>
+      ))}
     </div>
   );
 }

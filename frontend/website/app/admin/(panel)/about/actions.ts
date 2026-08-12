@@ -95,7 +95,8 @@ export async function toggleAboutSection(
 
   const rows = await listAboutSections();
   const section = rows.find((r) => r.id === id);
-  const sectionLabel = section?.title?.trim() || section?.type || id;
+  if (!section) return { error: "Section not found." };
+  const sectionLabel = section.title?.trim() || section.type;
 
   const next = rows.map((r) =>
     r.id === id ? { ...r, active, updated_at: new Date().toISOString() } : r,
@@ -126,6 +127,7 @@ export async function reorderAboutSections(
   const rows = await listAboutSections();
   if (
     orderedIds.length !== rows.length ||
+    new Set(orderedIds).size !== rows.length ||
     !orderedIds.every((id) => rows.some((r) => r.id === id))
   ) {
     return { error: "Invalid section order." };

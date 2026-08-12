@@ -127,8 +127,17 @@ with seed as (
       ),
       'about_sections', jsonb_build_array(
         jsonb_build_object('id', 'about-hero', 'type', 'hero', 'title', 'Hero', 'sort', 0, 'active', true, 'config', jsonb_build_object('image_path', 'store-template/v1/home/hero-desktop.png', 'image_bucket', 'banner')),
+        jsonb_build_object('id', 'about-stats', 'type', 'stats', 'title', 'Stats bar', 'sort', 1, 'active', true, 'config', '{}'::jsonb),
         jsonb_build_object('id', 'about-story', 'type', 'story', 'title', 'Story', 'sort', 2, 'active', true, 'config', jsonb_build_object('image_path', 'store-template/v1/home/hero-mobile.png', 'image_bucket', 'banner')),
-        jsonb_build_object('id', 'about-craft', 'type', 'craft', 'title', 'Product standards', 'sort', 4, 'active', true, 'config', jsonb_build_object('image_path', 'store-template/v1/og-image.png', 'image_bucket', 'branding'))
+        jsonb_build_object('id', 'about-values', 'type', 'values', 'title', 'Values', 'sort', 3, 'active', true, 'config', '{}'::jsonb),
+        jsonb_build_object('id', 'about-craft', 'type', 'craft', 'title', 'Product standards', 'sort', 4, 'active', true, 'config', jsonb_build_object('image_path', 'store-template/v1/og-image.png', 'image_bucket', 'branding')),
+        jsonb_build_object('id', 'about-cta', 'type', 'cta', 'title', 'Community CTA', 'sort', 5, 'active', true, 'config', '{}'::jsonb),
+        jsonb_build_object('id', 'about-hero-v2', 'type', 'hero_v2', 'title', 'Hero V2', 'sort', 6, 'active', false, 'config', jsonb_build_object('image_path', 'store-template/v1/home/hero-desktop.png', 'image_bucket', 'banner')),
+        jsonb_build_object('id', 'about-stats-v2', 'type', 'stats_v2', 'title', 'Stats bar V2', 'sort', 7, 'active', false, 'config', '{}'::jsonb),
+        jsonb_build_object('id', 'about-story-v2', 'type', 'story_v2', 'title', 'Story V2', 'sort', 8, 'active', false, 'config', jsonb_build_object('image_path', 'store-template/v1/home/hero-mobile.png', 'image_bucket', 'banner')),
+        jsonb_build_object('id', 'about-values-v2', 'type', 'values_v2', 'title', 'Values V2', 'sort', 9, 'active', false, 'config', '{}'::jsonb),
+        jsonb_build_object('id', 'about-craft-v2', 'type', 'craft_v2', 'title', 'Product standards V2', 'sort', 10, 'active', false, 'config', jsonb_build_object('image_path', 'store-template/v1/og-image.png', 'image_bucket', 'branding')),
+        jsonb_build_object('id', 'about-cta-v2', 'type', 'cta_v2', 'title', 'Community CTA V2', 'sort', 11, 'active', false, 'config', '{}'::jsonb)
       ),
       'pages', jsonb_build_object(
         'about', jsonb_build_object('slug', 'about', 'title', 'About ' || context.store_name, 'body_html', '<p>This is placeholder copy. Add the merchant story, values, and contact details before launch.</p>', 'updated_at', '1970-01-01T00:00:00Z'),

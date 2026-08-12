@@ -100,6 +100,9 @@ test("renders the complete store seed without psql directives", () => {
   const jsonHomepage = rendered.match(
     /'homepage_sections', jsonb_build_array\(([\s\S]*?)\n      \),\n      'about_sections'/,
   )?.[1];
+  const jsonAbout = rendered.match(
+    /'about_sections', jsonb_build_array\(([\s\S]*?)\n      \),\n      'pages'/,
+  )?.[1];
   const tableBanners = rendered.match(
     /insert into public\.banners \(([\s\S]*?)\n-- Remove the generated migration layout/,
   )?.[1];
@@ -114,9 +117,18 @@ test("renders the complete store seed without psql directives", () => {
     "promo_v2",
     "richtext_v2",
   ];
+  const aboutV2Types = [
+    "hero_v2",
+    "stats_v2",
+    "story_v2",
+    "values_v2",
+    "craft_v2",
+    "cta_v2",
+  ];
 
   assert.ok(jsonBanners);
   assert.ok(jsonHomepage);
+  assert.ok(jsonAbout);
   assert.ok(tableBanners);
   assert.ok(tableHomepage);
   assert.equal(
@@ -133,6 +145,16 @@ test("renders the complete store seed without psql directives", () => {
       new RegExp(`'type', '${type}'[^\\n]*'active', false`),
     );
     assert.match(tableHomepage, new RegExp(`'${type}'[^\\n]*, false,`));
+  }
+  assert.equal(
+    [...jsonAbout.matchAll(/jsonb_build_object\('id', 'about-/g)].length,
+    12,
+  );
+  for (const type of aboutV2Types) {
+    assert.match(
+      jsonAbout,
+      new RegExp(`'type', '${type}'[^\\n]*'active', false`),
+    );
   }
   assert.match(jsonBanners, /'section_type', 'banner'/);
   assert.doesNotMatch(jsonBanners, /banner_v2/);

@@ -22,7 +22,12 @@ import { CSS } from "@dnd-kit/utilities";
 import { Eye, GripVertical, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import AboutPageScreen from "@/components/AboutPage/AboutPageScreen";
-import type { AboutSectionRow } from "@/lib/cms/aboutSections";
+import {
+  getAboutSectionDisplayName,
+  getAboutSectionFamily,
+  getAboutSectionVersion,
+  type AboutSectionRow,
+} from "@/lib/cms/aboutSections";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,23 +63,33 @@ function ActiveToggle({
   }
 
   return (
-    <Switch
-      checked={active}
-      disabled={pending}
-      onCheckedChange={(next) =>
-        startTransition(async () => {
-          const res = await toggleAboutSection(id, next);
-          if (res?.error) toast.error(res.error);
-          else toast.success(next ? "Shown" : "Hidden");
-        })
-      }
-      aria-label="Toggle visibility"
-    />
+    <div className="flex min-h-11 items-center gap-2 rounded-full px-2">
+      <span
+        className={cn(
+          "text-xs font-medium",
+          active ? "text-foreground" : "text-muted-foreground",
+        )}
+      >
+        {active ? "Shown" : "Hidden"}
+      </span>
+      <Switch
+        checked={active}
+        disabled={pending}
+        onCheckedChange={(next) =>
+          startTransition(async () => {
+            const res = await toggleAboutSection(id, next);
+            if (res?.error) toast.error(res.error);
+            else toast.success(next ? "Shown" : "Hidden");
+          })
+        }
+        aria-label={active ? "Hide section" : "Show section"}
+      />
+    </div>
   );
 }
 
 function previewImage(type: AboutSectionRow["type"]): string | null {
-  switch (type) {
+  switch (getAboutSectionFamily(type)) {
     case "hero":
     case "story":
       return "/images/lovable/hero-biker.jpg";
@@ -86,6 +101,9 @@ function previewImage(type: AboutSectionRow["type"]): string | null {
 }
 
 function PreviewDialog({ section }: { section: AboutSectionRow }) {
+  const displayName = getAboutSectionDisplayName(section.type) ?? section.type;
+  const version = getAboutSectionVersion(section.type);
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -96,18 +114,25 @@ function PreviewDialog({ section }: { section: AboutSectionRow }) {
       </DialogTrigger>
       <DialogContent className="max-w-[min(1600px,calc(100vw-3rem))] gap-0 overflow-hidden rounded-2xl p-0">
         <DialogHeader className="border-b border-border px-6 py-5 pr-14">
-          <DialogTitle className="font-display capitalize">
-            {section.type} preview
+          <DialogTitle className="flex items-baseline gap-2 font-display">
+            <span>{displayName}</span>
+            {version && version > 1 ? (
+              <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
+                (v{version})
+              </span>
+            ) : null}
+            <span>preview</span>
           </DialogTitle>
           <DialogDescription>
             Storefront layout shown with this section&apos;s content and
             placeholder imagery.
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="h-[75dvh] bg-background text-foreground [&_a]:pointer-events-none [&_button]:pointer-events-none">
+        <ScrollArea className="h-[75dvh] bg-background text-foreground [&_a]:pointer-events-none [&_button:not([data-preview-interactive])]:pointer-events-none">
           <AboutPageScreen
             sections={[section]}
             imageUrls={{ [section.id]: previewImage(section.type) }}
+            preview
           />
         </ScrollArea>
       </DialogContent>
@@ -122,6 +147,8 @@ function SortableRow({
   section: AboutSectionRow;
   canWrite: boolean;
 }) {
+  const displayName = getAboutSectionDisplayName(section.type) ?? section.type;
+  const version = getAboutSectionVersion(section.type);
   const {
     attributes,
     listeners,
@@ -159,15 +186,15 @@ function SortableRow({
           <span className="size-9 shrink-0" />
         )}
 
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="secondary" className="capitalize">
-              {section.type}
-            </Badge>
-            <p className="truncate font-medium text-foreground">
-              {section.title || section.type}
-            </p>
-          </div>
+        <div className="flex min-w-0 flex-1 items-baseline gap-2">
+          <p className="truncate font-display text-base font-semibold text-foreground">
+            {displayName}
+          </p>
+          {version && version > 1 ? (
+            <span className="shrink-0 font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
+              (v{version})
+            </span>
+          ) : null}
         </div>
       </div>
 
@@ -178,14 +205,10 @@ function SortableRow({
           active={section.active}
           canWrite={canWrite}
         />
-        <Button
-          variant="ghost"
-          size="icon"
-          asChild
-          className="size-11 rounded-full sm:size-9"
-        >
-          <Link href={`/admin/about/${section.id}`} aria-label="Edit">
+        <Button variant="ghost" size="sm" asChild className="rounded-full">
+          <Link href={`/admin/about/${section.id}`}>
             <Pencil className="size-4" />
+            Edit
           </Link>
         </Button>
       </div>
@@ -248,11 +271,10 @@ export function AboutTable({
 
   return (
     <div className="space-y-3">
-      {canWrite ? (
-        <p className="text-sm text-muted-foreground">
-          Drag to reorder. Edit a section to control its copy and images.
-        </p>
-      ) : null}
+      <p className="text-sm text-muted-foreground">
+        Drag sections into the order you want. Preview a design, show or hide
+        it, or choose Edit to change its content.
+      </p>
 
       <DndContext
         sensors={sensors}
