@@ -19,11 +19,21 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Pencil } from "lucide-react";
+import { Eye, GripVertical, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import AboutPageScreen from "@/components/AboutPage/AboutPageScreen";
 import type { AboutSectionRow } from "@/lib/cms/aboutSections";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { reorderAboutSections, toggleAboutSection } from "./actions";
@@ -60,6 +70,48 @@ function ActiveToggle({
       }
       aria-label="Toggle visibility"
     />
+  );
+}
+
+function previewImage(type: AboutSectionRow["type"]): string | null {
+  switch (type) {
+    case "hero":
+    case "story":
+      return "/images/lovable/hero-biker.jpg";
+    case "craft":
+      return "/images/lovable/fabric-texture.jpg";
+    default:
+      return null;
+  }
+}
+
+function PreviewDialog({ section }: { section: AboutSectionRow }) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="rounded-full">
+          <Eye />
+          Preview
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-[min(1600px,calc(100vw-3rem))] gap-0 overflow-hidden rounded-2xl p-0">
+        <DialogHeader className="border-b border-border px-6 py-5 pr-14">
+          <DialogTitle className="font-display capitalize">
+            {section.type} preview
+          </DialogTitle>
+          <DialogDescription>
+            Storefront layout shown with this section&apos;s content and
+            placeholder imagery.
+          </DialogDescription>
+        </DialogHeader>
+        <ScrollArea className="h-[75dvh] bg-background text-foreground [&_a]:pointer-events-none [&_button]:pointer-events-none">
+          <AboutPageScreen
+            sections={[section]}
+            imageUrls={{ [section.id]: previewImage(section.type) }}
+          />
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -120,6 +172,7 @@ function SortableRow({
       </div>
 
       <div className="flex w-full shrink-0 flex-wrap items-center justify-end gap-3 border-t border-border/60 pt-3 sm:w-auto sm:border-0 sm:pt-0">
+        <PreviewDialog section={section} />
         <ActiveToggle
           id={section.id}
           active={section.active}

@@ -16,7 +16,6 @@ import type {
   AboutStatItem,
   AboutValueItem,
 } from "@/lib/cms/aboutSections";
-import { bannerImageUrl, brandingImageUrl } from "@/utility/imageUrl";
 
 const CRAFT_ICONS: Record<string, LucideIcon> = {
   Layers,
@@ -30,13 +29,6 @@ const CRAFT_ICONS: Record<string, LucideIcon> = {
 function cfgStr(config: Record<string, unknown>, key: string, fallback = "") {
   const v = config[key];
   return typeof v === "string" ? v : fallback;
-}
-
-function imageUrl(config: Record<string, unknown>, fallback?: string | null) {
-  const path = cfgStr(config, "image_path");
-  if (!path) return fallback ?? null;
-  const bucket = cfgStr(config, "image_bucket", "banner");
-  return bucket === "branding" ? brandingImageUrl(path) : bannerImageUrl(path);
 }
 
 function asStats(config: Record<string, unknown>): AboutStatItem[] {
@@ -85,8 +77,14 @@ function asCraft(config: Record<string, unknown>): AboutCraftItem[] {
     .filter((x): x is AboutCraftItem => Boolean(x && x.label));
 }
 
-function HeroSection({ config }: { config: Record<string, unknown> }) {
-  const heroUrl = imageUrl(config);
+function HeroSection({
+  config,
+  imageUrl,
+}: {
+  config: Record<string, unknown>;
+  imageUrl?: string | null;
+}) {
+  const heroUrl = imageUrl;
   const line1 = cfgStr(config, "headline_line1", "Designed with purpose.");
   const line2 = cfgStr(config, "headline_line2", "Made for everyday life.");
 
@@ -175,8 +173,14 @@ function StatsSection({ config }: { config: Record<string, unknown> }) {
   );
 }
 
-function StorySection({ config }: { config: Record<string, unknown> }) {
-  const lifestyleUrl = imageUrl(config);
+function StorySection({
+  config,
+  imageUrl,
+}: {
+  config: Record<string, unknown>;
+  imageUrl?: string | null;
+}) {
+  const lifestyleUrl = imageUrl;
   const bodyHtml = cfgStr(config, "body_html");
   const extra = cfgStr(config, "extra");
 
@@ -265,8 +269,14 @@ function ValuesSection({ config }: { config: Record<string, unknown> }) {
   );
 }
 
-function CraftSection({ config }: { config: Record<string, unknown> }) {
-  const fabricUrl = imageUrl(config);
+function CraftSection({
+  config,
+  imageUrl,
+}: {
+  config: Record<string, unknown>;
+  imageUrl?: string | null;
+}) {
+  const fabricUrl = imageUrl;
   const craft = asCraft(config);
 
   return (
@@ -441,19 +451,41 @@ function CtaSection({ config }: { config: Record<string, unknown> }) {
   );
 }
 
-function renderSection(section: AboutSectionRow) {
+function renderSection(
+  section: AboutSectionRow,
+  imageUrls: Partial<Record<string, string | null>>,
+) {
   const config = section.config ?? {};
+  const sectionImageUrl = imageUrls[section.id];
   switch (section.type) {
     case "hero":
-      return <HeroSection key={section.id} config={config} />;
+      return (
+        <HeroSection
+          key={section.id}
+          config={config}
+          imageUrl={sectionImageUrl}
+        />
+      );
     case "stats":
       return <StatsSection key={section.id} config={config} />;
     case "story":
-      return <StorySection key={section.id} config={config} />;
+      return (
+        <StorySection
+          key={section.id}
+          config={config}
+          imageUrl={sectionImageUrl}
+        />
+      );
     case "values":
       return <ValuesSection key={section.id} config={config} />;
     case "craft":
-      return <CraftSection key={section.id} config={config} />;
+      return (
+        <CraftSection
+          key={section.id}
+          config={config}
+          imageUrl={sectionImageUrl}
+        />
+      );
     case "cta":
       return <CtaSection key={section.id} config={config} />;
     default:
@@ -463,8 +495,14 @@ function renderSection(section: AboutSectionRow) {
 
 export default function AboutPageScreen({
   sections,
+  imageUrls = {},
 }: {
   sections: AboutSectionRow[];
+  imageUrls?: Partial<Record<string, string | null>>;
 }) {
-  return <div className="pb-24">{sections.map(renderSection)}</div>;
+  return (
+    <div className="pb-24">
+      {sections.map((section) => renderSection(section, imageUrls))}
+    </div>
+  );
 }

@@ -15,6 +15,7 @@ import {
   type HomepageSection,
 } from "@/utility/getHomepageSections";
 import { getPromotionById, getPromotions } from "@/utility/getPromotion";
+import { brandingImageUrl } from "@/utility/imageUrl";
 import type { Metadata } from "next";
 import { generateMetadata as generateSeoMetadata } from "@/utility/generateMetadata";
 import { getBaseSeoItem } from "@/utility/getSeoSettings";
@@ -194,6 +195,7 @@ export default async function HomePage() {
             subtitle={section.subtitle}
             body={section.body}
             config={section.config}
+            imageUrl={brandingImageUrl(configStr(section.config, "image_path"))}
           />
         );
 

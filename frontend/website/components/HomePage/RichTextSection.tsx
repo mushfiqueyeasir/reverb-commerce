@@ -1,12 +1,12 @@
 import Image from "next/image";
 import { Scissors, Shirt, Layers, Zap, Sparkles, Award } from "lucide-react";
-import { brandingImageUrl } from "@/utility/imageUrl";
 
 interface RichTextSectionProps {
   title?: string | null;
   subtitle?: string | null;
   body?: string | null;
   config?: Record<string, unknown>;
+  imageUrl?: string | null;
 }
 
 const specs = [
@@ -23,14 +23,12 @@ export default function RichTextSection({
   subtitle,
   body,
   config,
+  imageUrl,
 }: RichTextSectionProps) {
   if (!title && !subtitle && !body) return null;
 
   const isFabric = config?.variant === "fabric";
-  const imagePath =
-    typeof config?.image_path === "string" ? config.image_path : null;
-  const fabricUrl =
-    brandingImageUrl(imagePath) ?? "/images/lovable/fabric-texture.jpg";
+  const fabricUrl = imageUrl ?? "/images/lovable/fabric-texture.jpg";
 
   if (isFabric) {
     return (
