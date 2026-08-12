@@ -1,11 +1,17 @@
 import type { ReactNode } from "react";
 import Hero from "@/components/HomePage/Hero";
+import BannerV2 from "@/components/HomePage/BannerV2";
 import Marquee from "@/components/HomePage/Marquee";
 import Category from "@/components/HomePage/Category";
+import CategoryV2 from "@/components/HomePage/CategoryV2";
 import FeaturedProducts from "@/components/HomePage/FeaturedProducts";
+import FeaturedProductsV2 from "@/components/HomePage/FeaturedProductsV2";
 import ReviewSlider from "@/components/HomePage/ReviewSlider";
+import ReviewsV2 from "@/components/HomePage/ReviewsV2";
 import PromoStrip from "@/components/HomePage/PromoStrip";
+import PromoV2 from "@/components/HomePage/PromoV2";
 import RichTextSection from "@/components/HomePage/RichTextSection";
+import RichTextSectionV2 from "@/components/HomePage/RichTextSectionV2";
 import { getCategories } from "@/utility/getCategory";
 import { getProducts, transformProduct } from "@/utility/getProducts";
 import { getReviews, transformReview } from "@/utility/getReview";
@@ -14,8 +20,9 @@ import {
   getHomepageSections,
   type HomepageSection,
 } from "@/utility/getHomepageSections";
-import { getPromotionById, getPromotions } from "@/utility/getPromotion";
+import { getPromotions } from "@/utility/getPromotion";
 import { brandingImageUrl } from "@/utility/imageUrl";
+import { getHomepageSectionMetadata } from "@/lib/cms/homepageSections";
 import type { Metadata } from "next";
 import { generateMetadata as generateSeoMetadata } from "@/utility/generateMetadata";
 import { getBaseSeoItem } from "@/utility/getSeoSettings";
@@ -43,13 +50,21 @@ function configStr(
   return typeof v === "string" && v.trim() ? v : null;
 }
 
-function configNum(
+function configLimit(
   config: Record<string, unknown>,
-  key: string,
   fallback: number,
 ): number {
-  const v = config[key];
-  return typeof v === "number" && Number.isFinite(v) ? v : fallback;
+  const value = config.limit;
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  return Math.min(24, Math.max(1, Math.floor(value)));
+}
+
+function optionalConfigLimit(
+  config: Record<string, unknown>,
+): number | undefined {
+  const value = config.limit;
+  if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
+  return Math.min(24, Math.max(1, Math.floor(value)));
 }
 
 function configBool(
@@ -87,44 +102,83 @@ function configMarquee(config: Record<string, unknown>): string[] {
 }
 
 export default async function HomePage() {
-  const [banners, sections, categories, products, reviews, promotions] =
-    await Promise.all([
-      getBanners(),
-      getHomepageSections(),
-      getCategories(),
-      getProducts(),
-      getReviews(),
-      getPromotions(),
-    ]);
+  const [
+    banners,
+    bannersV2,
+    sections,
+    categories,
+    products,
+    reviews,
+    promotions,
+  ] = await Promise.all([
+    getBanners("banner"),
+    getBanners("banner_v2"),
+    getHomepageSections(),
+    getCategories(),
+    getProducts(),
+    getReviews(),
+    getPromotions(),
+  ]);
 
   const transformedReviews = reviews.map(transformReview);
   const allTransformed = products.map(transformProduct);
   const latestPromotion = promotions[0] ?? null;
+  const primaryBannerId =
+    (banners.length > 0
+      ? sections.find((section) => section.type === "banner")?.id
+      : undefined) ??
+    (bannersV2.length > 0
+      ? sections.find((section) => section.type === "banner_v2")?.id
+      : undefined);
 
-  const renderSection = async (
-    section: HomepageSection,
-  ): Promise<ReactNode> => {
+  const renderSection = (section: HomepageSection): ReactNode => {
+    const metadata = getHomepageSectionMetadata(section.type);
+    if (!metadata) return null;
+
     const cfg = section.config ?? {};
+    const family = metadata.family;
+    const isV2 = metadata.version === 2;
 
-    switch (section.type) {
-      case "banner":
-        return banners.length > 0 ? (
+    switch (family) {
+      case "banner": {
+        const slides = isV2 ? bannersV2 : banners;
+        if (slides.length === 0) return null;
+        const description =
+          configStr(cfg, "description") ?? DEFAULT_BANNER_DESCRIPTION;
+
+        return isV2 ? (
+          <BannerV2
+            banners={slides}
+            description={description}
+            headingLevel={section.id === primaryBannerId ? "h1" : "h2"}
+          />
+        ) : (
           <>
             <Hero
-              banners={banners}
-              description={
-                configStr(cfg, "description") ?? DEFAULT_BANNER_DESCRIPTION
-              }
+              banners={slides}
+              description={description}
               stats={configStats(cfg)}
             />
             {configBool(cfg, "show_marquee", true) ? (
               <Marquee items={configMarquee(cfg)} />
             ) : null}
           </>
-        ) : null;
+        );
+      }
 
       case "categories":
-        return categories.length > 0 ? (
+        if (categories.length === 0) return null;
+        return isV2 ? (
+          <CategoryV2
+            categories={categories}
+            title={section.title}
+            subtitle={section.subtitle}
+            eyebrow={configStr(cfg, "eyebrow")}
+            ctaLabel={configStr(cfg, "cta_label")}
+            ctaHref={configStr(cfg, "cta_url") ?? "/product"}
+            limit={optionalConfigLimit(cfg)}
+          />
+        ) : (
           <Category
             categories={categories}
             title={section.title}
@@ -133,80 +187,96 @@ export default async function HomePage() {
             ctaLabel={configStr(cfg, "cta_label")}
             ctaHref={configStr(cfg, "cta_url") ?? "/product"}
           />
-        ) : null;
+        );
 
       case "featured": {
-        const limit = configNum(cfg, "limit", 8);
-        const featured = allTransformed.slice(0, limit);
-        return featured.length > 0 ? (
-          <FeaturedProducts
-            products={featured}
-            title={section.title}
-            subtitle={section.subtitle}
-            eyebrow={configStr(cfg, "eyebrow")}
-            ctaLabel={configStr(cfg, "cta_label")}
-            ctaHref={configStr(cfg, "cta_url") ?? "/product"}
-          />
-        ) : null;
+        const featured = allTransformed.slice(0, configLimit(cfg, 8));
+        if (featured.length === 0) return null;
+        const props = {
+          products: featured,
+          title: section.title,
+          subtitle: section.subtitle,
+          eyebrow: configStr(cfg, "eyebrow"),
+          ctaLabel: configStr(cfg, "cta_label"),
+          ctaHref: configStr(cfg, "cta_url") ?? "/product",
+        };
+        return isV2 ? (
+          <FeaturedProductsV2 {...props} />
+        ) : (
+          <FeaturedProducts {...props} />
+        );
       }
 
       case "reviews": {
-        // Marquee works best with a fuller set; CMS limit still applies.
-        const limit = configNum(cfg, "limit", 24);
-        const slice = transformedReviews.slice(0, limit);
-        return slice.length > 0 ? (
-          <ReviewSlider
-            reviews={slice}
-            title={section.title}
-            subtitle={section.subtitle}
-            eyebrow={configStr(cfg, "eyebrow")}
-            ctaLabel={configStr(cfg, "cta_label")}
-            ctaHref={configStr(cfg, "cta_url") ?? "/reviews"}
-          />
-        ) : null;
+        const visibleReviews = transformedReviews.slice(
+          0,
+          configLimit(cfg, 24),
+        );
+        if (visibleReviews.length === 0) return null;
+        const props = {
+          reviews: visibleReviews,
+          title: section.title,
+          subtitle: section.subtitle,
+          eyebrow: configStr(cfg, "eyebrow"),
+          ctaLabel: configStr(cfg, "cta_label"),
+          ctaHref: configStr(cfg, "cta_url") ?? "/reviews",
+        };
+        return isV2 ? <ReviewsV2 {...props} /> : <ReviewSlider {...props} />;
       }
 
       case "promo": {
         const promoId = configStr(cfg, "promotion_id");
-        const promotion = promoId
-          ? ((await getPromotionById(promoId)) ?? latestPromotion)
-          : latestPromotion;
-        return promotion ? (
-          <PromoStrip
-            promotion={promotion}
-            title={section.title}
-            subtitle={section.subtitle}
-            ctaHref={
-              configStr(cfg, "cta_url") || promotion.ctaUrl || "/product"
-            }
-            ctaLabel={
-              configStr(cfg, "cta_label") ||
-              promotion.ctaLabel ||
-              "Shop the drop"
-            }
-          />
-        ) : null;
+        const promotion =
+          promotions.find((candidate) => candidate._id === promoId) ??
+          latestPromotion;
+        if (!promotion) return null;
+        const props = {
+          promotion,
+          title: section.title,
+          subtitle: section.subtitle,
+          ctaHref: configStr(cfg, "cta_url") || promotion.ctaUrl || "/product",
+          ctaLabel:
+            configStr(cfg, "cta_label") ||
+            promotion.ctaLabel ||
+            (isV2 ? "Shop offer" : "Shop the drop"),
+        };
+        return isV2 ? <PromoV2 {...props} /> : <PromoStrip {...props} />;
       }
 
-      case "richtext":
-        return (
+      case "richtext": {
+        const imageUrl = brandingImageUrl(configStr(cfg, "image_path"));
+        return isV2 ? (
+          <RichTextSectionV2
+            title={section.title}
+            subtitle={section.subtitle}
+            body={section.body}
+            eyebrow={configStr(cfg, "eyebrow")}
+            ctaLabel={configStr(cfg, "cta_label")}
+            ctaHref={configStr(cfg, "cta_url")}
+            config={cfg}
+            imageUrl={imageUrl}
+          />
+        ) : (
           <RichTextSection
             title={section.title}
             subtitle={section.subtitle}
             body={section.body}
-            config={section.config}
-            imageUrl={brandingImageUrl(configStr(section.config, "image_path"))}
+            config={cfg}
+            imageUrl={imageUrl}
           />
         );
+      }
 
-      default:
-        return null;
+      default: {
+        const exhaustiveFamily: never = family;
+        return exhaustiveFamily;
+      }
     }
   };
 
   const rendered: { id: string; node: ReactNode }[] = [];
   for (const section of sections) {
-    const node = await renderSection(section);
+    const node = renderSection(section);
     if (node) rendered.push({ id: section.id, node });
   }
 

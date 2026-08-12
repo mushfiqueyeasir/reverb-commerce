@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Pencil, Trash2, GalleryHorizontalEnd } from "lucide-react";
 import { toast } from "sonner";
 import { useTransition } from "react";
-import type { BannerRow } from "@/type/db";
+import type { BannerRow, BannerSectionType } from "@/type/db";
 import { BUCKETS } from "@/lib/supabase/config";
 import { buildStoragePublicUrl } from "@/utility/storageUrl";
 import { useAdmin } from "@/components/admin/AdminContext";
@@ -20,10 +20,12 @@ function ActiveToggle({
   id,
   active,
   canWrite,
+  sectionType,
 }: {
   id: string;
   active: boolean;
   canWrite: boolean;
+  sectionType: BannerSectionType;
 }) {
   const [pending, startTransition] = useTransition();
 
@@ -41,7 +43,7 @@ function ActiveToggle({
       disabled={pending}
       onCheckedChange={(next) =>
         startTransition(async () => {
-          const res = await toggleBanner(id, next);
+          const res = await toggleBanner(id, next, sectionType);
           if (res?.error) toast.error(res.error);
           else toast.success(next ? "Activated" : "Deactivated");
         })
@@ -54,11 +56,13 @@ function ActiveToggle({
 export function BannersTable({
   data,
   canWrite,
+  sectionType,
   editBasePath = "/admin/homepage/banners",
   sectionId,
 }: {
   data: BannerRow[];
   canWrite: boolean;
+  sectionType: BannerSectionType;
   editBasePath?: string;
   sectionId?: string;
 }) {
@@ -73,7 +77,7 @@ export function BannersTable({
       items={data}
       sortable
       canReorder={canWrite}
-      onReorder={reorderBanners}
+      onReorder={(orderedIds) => reorderBanners(orderedIds, sectionType)}
       hint="Drag the handle to reorder slides on the storefront."
       searchPlaceholder="Search slides…"
       searchFilter={(item, q) =>
@@ -111,7 +115,12 @@ export function BannersTable({
       renderSubtitle={(item) => item.subtitle || null}
       renderTrailing={(item) => (
         <>
-          <ActiveToggle id={item.id} active={item.active} canWrite={canWrite} />
+          <ActiveToggle
+            id={item.id}
+            active={item.active}
+            canWrite={canWrite}
+            sectionType={sectionType}
+          />
           <Button variant="ghost" size="icon" asChild className="rounded-full">
             <Link href={editHref(item.id)} aria-label="Edit">
               <Pencil className="size-4" />
@@ -132,7 +141,7 @@ export function BannersTable({
               title="Delete banner?"
               description={`"${item.title || "This slide"}" will be permanently removed.`}
               confirmLabel="Delete"
-              action={() => deleteBanner(item.id)}
+              action={() => deleteBanner(item.id, sectionType)}
             />
           ) : null}
         </>

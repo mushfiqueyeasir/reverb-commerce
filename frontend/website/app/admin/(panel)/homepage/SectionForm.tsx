@@ -9,11 +9,17 @@ import {
   DEFAULT_BANNER_DESCRIPTION,
   DEFAULT_BANNER_MARQUEE,
   DEFAULT_BANNER_STATS,
+  isBannerSectionType,
   type BannerRow,
   type BannerStatItem,
   type HomepageSectionRow,
-  type HomepageSectionType,
+  type HomepageSectionV1Type,
 } from "@/type/db";
+import {
+  getHomepageSectionDisplayName,
+  getHomepageSectionFamily,
+  getHomepageSectionVersion,
+} from "@/lib/cms/homepageSections";
 import { AdminCard } from "@/components/admin/AdminCard";
 import {
   FormActions,
@@ -39,15 +45,22 @@ import {
 import { BannersTable } from "../banners/BannersTable";
 import { saveSection } from "./actions";
 
-const TYPE_INFO: Record<HomepageSectionType, string> = {
+const FAMILY_INFO: Record<HomepageSectionV1Type, string> = {
   banner:
-    "Top banner carousel — slides, stats bar, supporting copy, and marquee.",
+    "Banner carousel with independently managed slides and supporting copy.",
   categories: "Category grid from your Catalog → Categories.",
   featured: "Product grid from your latest active products.",
   reviews: "Review photos and quotes from Content → Reviews.",
-  promo: "Promo band driven by an active promotion.",
+  promo: "Promotion block driven by a selected promotion.",
   richtext: "Custom rich-text block for brand story or notes.",
 };
+
+const MIN_LIMIT = 1;
+const MAX_LIMIT = 24;
+
+function clampLimit(value: number): number {
+  return Math.min(MAX_LIMIT, Math.max(MIN_LIMIT, Math.floor(value)));
+}
 
 export interface PromotionOption {
   id: string;
@@ -128,6 +141,26 @@ export function SectionForm({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const config = section.config ?? {};
+  const family = getHomepageSectionFamily(section.type);
+  const version = getHomepageSectionVersion(section.type);
+  const displayName =
+    getHomepageSectionDisplayName(section.type) ?? section.type;
+  const bannerSectionType = isBannerSectionType(section.type)
+    ? section.type
+    : null;
+  const isBanner = family === "banner";
+  const hasRequiredLimit = family === "featured" || family === "reviews";
+  const hasOptionalLimit = family === "categories" && version === 2;
+  const showsEyebrow =
+    family === "categories" ||
+    family === "featured" ||
+    family === "reviews" ||
+    (family === "richtext" && version === 2);
+  const showsCta =
+    family === "categories" ||
+    family === "featured" ||
+    family === "reviews" ||
+    (family === "richtext" && version === 2);
   const [tab, setTab] = useState<"content" | "slides">(
     initialTab === "slides" ? "slides" : "content",
   );
@@ -138,18 +171,21 @@ export function SectionForm({
   const [active, setActive] = useState(section.active ?? true);
 
   const [eyebrow, setEyebrow] = useState(strConfig(config, "eyebrow"));
-  const [limit, setLimit] = useState(
-    String(numConfig(config, "limit", section.type === "reviews" ? 6 : 8)),
-  );
+  const [limit, setLimit] = useState(() => {
+    if (hasOptionalLimit && typeof config.limit !== "number") return "";
+    return String(
+      clampLimit(numConfig(config, "limit", family === "reviews" ? 24 : 8)),
+    );
+  });
   const [ctaLabel, setCtaLabel] = useState(
-    strConfig(
-      config,
-      "cta_label",
-      section.type === "promo" ? "Shop the drop" : "",
-    ),
+    strConfig(config, "cta_label", family === "promo" ? "Shop the drop" : ""),
   );
   const [ctaUrl, setCtaUrl] = useState(
-    strConfig(config, "cta_url", "/product"),
+    strConfig(
+      config,
+      "cta_url",
+      family === "reviews" ? "/reviews" : "/product",
+    ),
   );
   const [showMarquee, setShowMarquee] = useState(
     boolConfig(config, "show_marquee", true),
@@ -203,28 +239,39 @@ export function SectionForm({
   };
 
   const submit = () => {
-    const nextConfig: Record<string, unknown> = {
-      ...config,
-      eyebrow: eyebrow.trim() || null,
-      cta_label: ctaLabel.trim() || null,
-      cta_url: ctaUrl.trim() || null,
-    };
+    const nextConfig: Record<string, unknown> = { ...config };
 
-    if (section.type === "featured" || section.type === "reviews") {
-      nextConfig.limit = Math.max(1, Number(limit) || 8);
+    if (showsEyebrow) nextConfig.eyebrow = eyebrow.trim() || null;
+    if (showsCta || family === "promo") {
+      nextConfig.cta_label = ctaLabel.trim() || null;
+      nextConfig.cta_url = ctaUrl.trim() || null;
     }
-    if (section.type === "banner") {
-      nextConfig.show_marquee = showMarquee;
+    if (hasRequiredLimit) {
+      const fallback = family === "reviews" ? 24 : 8;
+      const parsedLimit = Number(limit);
+      const value =
+        limit.trim() && Number.isFinite(parsedLimit) ? parsedLimit : fallback;
+      nextConfig.limit = clampLimit(value);
+    }
+    if (hasOptionalLimit) {
+      const value = Number(limit);
+      nextConfig.limit =
+        limit.trim() && Number.isFinite(value) ? clampLimit(value) : null;
+    }
+    if (isBanner) {
       nextConfig.description = description.trim() || DEFAULT_BANNER_DESCRIPTION;
-      nextConfig.stats = stats.map((s) => ({
-        label: s.label.trim(),
-        value: s.value.trim(),
-      }));
-      nextConfig.marquee_items = marqueeItems
-        .map((item) => item.trim())
-        .filter(Boolean);
+      if (version === 1) {
+        nextConfig.show_marquee = showMarquee;
+        nextConfig.stats = stats.map((s) => ({
+          label: s.label.trim(),
+          value: s.value.trim(),
+        }));
+        nextConfig.marquee_items = marqueeItems
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
     }
-    if (section.type === "promo") {
+    if (family === "promo") {
       nextConfig.promotion_id =
         promotionId === "__latest__" ? null : promotionId;
     }
@@ -282,7 +329,7 @@ export function SectionForm({
     </div>
   );
 
-  if (section.type === "banner") {
+  if (bannerSectionType) {
     return (
       <div className="mx-auto max-w-4xl space-y-6">
         <Tabs value={tab} onValueChange={onTabChange} className="w-full">
@@ -298,14 +345,16 @@ export function SectionForm({
           <TabsContent value="content" className="mt-6 space-y-8">
             <AdminCard
               title="Banner content"
-              description="Stats bar, supporting copy, and marquee under the carousel."
+              description={
+                version === 1
+                  ? "Stats bar, supporting copy, and marquee under the carousel."
+                  : FAMILY_INFO.banner
+              }
             >
               <div className="space-y-5">
                 <FormField label="Section type">
                   <div className="flex h-11 items-center">
-                    <Badge variant="secondary" className="capitalize">
-                      {section.type}
-                    </Badge>
+                    <Badge variant="secondary">{displayName}</Badge>
                   </div>
                 </FormField>
 
@@ -323,109 +372,120 @@ export function SectionForm({
                   />
                 </FormField>
 
-                <div className="space-y-3">
-                  <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                    Stats bar
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Four label / value pairs shown along the bottom of the
-                    banner.
-                  </p>
-                  <div className="space-y-3">
-                    {stats.map((stat, i) => (
-                      <div
-                        key={i}
-                        className="grid gap-3 rounded-xl border border-border bg-background/40 p-3 sm:grid-cols-2"
-                      >
-                        <FormField label="Label" htmlFor={`stat-label-${i}`}>
-                          <Input
-                            id={`stat-label-${i}`}
-                            value={stat.label}
-                            onChange={(e) =>
-                              updateStat(i, "label", e.target.value)
-                            }
-                            placeholder="Weight"
-                            className={adminInputClass}
-                          />
-                        </FormField>
-                        <FormField label="Value" htmlFor={`stat-value-${i}`}>
-                          <Input
-                            id={`stat-value-${i}`}
-                            value={stat.value}
-                            onChange={(e) =>
-                              updateStat(i, "value", e.target.value)
-                            }
-                            placeholder="Quality"
-                            className={adminInputClass}
-                          />
-                        </FormField>
+                {version === 1 ? (
+                  <>
+                    <div className="space-y-3">
+                      <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                        Stats bar
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Four label / value pairs shown along the bottom of the
+                        banner.
+                      </p>
+                      <div className="space-y-3">
+                        {stats.map((stat, i) => (
+                          <div
+                            key={i}
+                            className="grid gap-3 rounded-xl border border-border bg-background/40 p-3 sm:grid-cols-2"
+                          >
+                            <FormField
+                              label="Label"
+                              htmlFor={`stat-label-${i}`}
+                            >
+                              <Input
+                                id={`stat-label-${i}`}
+                                value={stat.label}
+                                onChange={(e) =>
+                                  updateStat(i, "label", e.target.value)
+                                }
+                                placeholder="Weight"
+                                className={adminInputClass}
+                              />
+                            </FormField>
+                            <FormField
+                              label="Value"
+                              htmlFor={`stat-value-${i}`}
+                            >
+                              <Input
+                                id={`stat-value-${i}`}
+                                value={stat.value}
+                                onChange={(e) =>
+                                  updateStat(i, "value", e.target.value)
+                                }
+                                placeholder="Quality"
+                                className={adminInputClass}
+                              />
+                            </FormField>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
 
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-border px-4 py-3">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">
-                      Show marquee
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Scrolling ticker under the banner
-                    </p>
-                  </div>
-                  <Switch
-                    checked={showMarquee}
-                    onCheckedChange={setShowMarquee}
-                  />
-                </div>
-
-                {showMarquee ? (
-                  <div className="space-y-3">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center justify-between gap-3 rounded-xl border border-border px-4 py-3">
                       <div>
-                        <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                          Marquee items
+                        <p className="text-sm font-medium text-foreground">
+                          Show marquee
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Each phrase scrolls in the ticker under the banner.
+                          Scrolling ticker under the banner
                         </p>
                       </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="rounded-full"
-                        onClick={addMarqueeItem}
-                      >
-                        <Plus className="size-4" /> Add item
-                      </Button>
+                      <Switch
+                        checked={showMarquee}
+                        onCheckedChange={setShowMarquee}
+                      />
                     </div>
-                    <div className="space-y-2">
-                      {marqueeItems.map((item, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <Input
-                            id={`marquee-${i}`}
-                            value={item}
-                            onChange={(e) =>
-                              updateMarqueeItem(i, e.target.value)
-                            }
-                            placeholder="e.g. LIMITED DROP"
-                            className={adminInputClass}
-                          />
+
+                    {showMarquee ? (
+                      <div className="space-y-3">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                              Marquee items
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Each phrase scrolls in the ticker under the
+                              banner.
+                            </p>
+                          </div>
                           <Button
                             type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="shrink-0 rounded-full"
-                            onClick={() => removeMarqueeItem(i)}
-                            aria-label="Remove marquee item"
+                            variant="outline"
+                            size="sm"
+                            className="rounded-full"
+                            onClick={addMarqueeItem}
                           >
-                            <Trash2 className="size-4 text-destructive" />
+                            <Plus className="size-4" /> Add item
                           </Button>
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                        <div className="space-y-2">
+                          {marqueeItems.map((item, i) => (
+                            <div key={i} className="flex items-center gap-2">
+                              <Input
+                                id={`marquee-${i}`}
+                                value={item}
+                                onChange={(e) =>
+                                  updateMarqueeItem(i, e.target.value)
+                                }
+                                placeholder="e.g. LIMITED DROP"
+                                className={adminInputClass}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="shrink-0 rounded-full"
+                                onClick={() => removeMarqueeItem(i)}
+                                aria-label="Remove marquee item"
+                              >
+                                <Trash2 className="size-4 text-destructive" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </>
                 ) : null}
 
                 {activeToggle}
@@ -454,6 +514,7 @@ export function SectionForm({
             <BannersTable
               data={banners}
               canWrite={canWrite}
+              sectionType={bannerSectionType}
               editBasePath="/admin/homepage/banners"
               sectionId={section.id}
             />
@@ -465,35 +526,40 @@ export function SectionForm({
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
-      <AdminCard title="Section content" description={TYPE_INFO[section.type]}>
+      <AdminCard
+        title="Section content"
+        description={family ? FAMILY_INFO[family] : undefined}
+      >
         <div className="space-y-5">
           <FormField label="Section type">
             <div className="flex h-11 items-center">
-              <Badge variant="secondary" className="capitalize">
-                {section.type}
-              </Badge>
+              <Badge variant="secondary">{displayName}</Badge>
             </div>
           </FormField>
 
-          <FormField
-            label="Eyebrow"
-            htmlFor="eyebrow"
-            hint="Small label above the heading (optional)."
-          >
-            <Input
-              id="eyebrow"
-              value={eyebrow}
-              onChange={(e) => setEyebrow(e.target.value)}
-              placeholder={
-                section.type === "categories"
-                  ? "Collections"
-                  : section.type === "reviews"
-                    ? "Community"
-                    : "Featured"
-              }
-              className={adminInputClass}
-            />
-          </FormField>
+          {showsEyebrow ? (
+            <FormField
+              label="Eyebrow"
+              htmlFor="eyebrow"
+              hint="Small label above the heading (optional)."
+            >
+              <Input
+                id="eyebrow"
+                value={eyebrow}
+                onChange={(e) => setEyebrow(e.target.value)}
+                placeholder={
+                  family === "categories"
+                    ? "Collections"
+                    : family === "reviews"
+                      ? "Community"
+                      : family === "richtext"
+                        ? "Our manifesto"
+                        : "Featured"
+                }
+                className={adminInputClass}
+              />
+            </FormField>
+          ) : null}
           <FormField label="Heading" htmlFor="title">
             <Input
               id="title"
@@ -513,29 +579,36 @@ export function SectionForm({
             />
           </FormField>
 
-          {(section.type === "featured" || section.type === "reviews") && (
+          {hasRequiredLimit || hasOptionalLimit ? (
             <FormField
               label={
-                section.type === "featured"
+                family === "featured"
                   ? "Products to show"
-                  : "Reviews to show"
+                  : family === "reviews"
+                    ? "Reviews to show"
+                    : "Categories to show"
               }
               htmlFor="limit"
-              hint="How many items appear in this section."
+              hint={
+                hasOptionalLimit
+                  ? "Leave blank to show every category."
+                  : `Choose between ${MIN_LIMIT} and ${MAX_LIMIT} items.`
+              }
             >
               <Input
                 id="limit"
                 type="number"
-                min={1}
-                max={24}
+                min={MIN_LIMIT}
+                max={MAX_LIMIT}
                 value={limit}
                 onChange={(e) => setLimit(e.target.value)}
+                placeholder={hasOptionalLimit ? "All" : undefined}
                 className={`${adminInputClass} w-full sm:w-32`}
               />
             </FormField>
-          )}
+          ) : null}
 
-          {section.type === "promo" && (
+          {family === "promo" && (
             <>
               <FormField
                 label="Promotion"
@@ -581,9 +654,7 @@ export function SectionForm({
             </>
           )}
 
-          {(section.type === "featured" ||
-            section.type === "categories" ||
-            section.type === "reviews") && (
+          {showsCta && (
             <div className="grid gap-5 sm:grid-cols-2">
               <FormField
                 label="Button label"
@@ -610,13 +681,13 @@ export function SectionForm({
             </div>
           )}
 
-          {section.type === "richtext" && (
+          {family === "richtext" && (
             <FormField label="Body">
               <RichTextEditor value={body} onChange={setBody} />
             </FormField>
           )}
 
-          {section.type === "categories" && (
+          {family === "categories" && (
             <p className="rounded-xl border border-border bg-background/50 px-4 py-3 text-sm text-muted-foreground">
               Category cards come from{" "}
               <Link

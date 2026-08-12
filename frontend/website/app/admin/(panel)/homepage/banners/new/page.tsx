@@ -1,5 +1,7 @@
+import { notFound } from "next/navigation";
 import { requireRole } from "@/lib/admin/auth";
 import { PageHeader, BackLink } from "@/components/admin/PageHeader";
+import { isBannerSectionType } from "@/type/db";
 import { BannerForm } from "../../../banners/BannerForm";
 import { listSections } from "../../actions";
 
@@ -13,12 +15,11 @@ export default async function NewHomepageBannerPage({
   await requireRole(["admin", "editor"]);
   const { section: sectionParam } = await searchParams;
   const sections = await listSections();
-  const bannerSection =
-    sections.find((s) => s.id === sectionParam && s.type === "banner") ??
-    sections.find((s) => s.type === "banner");
-  const returnTo = bannerSection
-    ? `/admin/homepage/${bannerSection.id}?tab=slides`
-    : "/admin/homepage";
+  const bannerSection = sectionParam
+    ? sections.find((section) => section.id === sectionParam)
+    : sections.find((section) => section.type === "banner");
+  if (!bannerSection || !isBannerSectionType(bannerSection.type)) notFound();
+  const returnTo = `/admin/homepage/${bannerSection.id}?tab=slides`;
 
   return (
     <div>
@@ -27,7 +28,7 @@ export default async function NewHomepageBannerPage({
         title="New banner slide"
         description="Add an image slide for the homepage Banner section."
       />
-      <BannerForm returnTo={returnTo} />
+      <BannerForm sectionType={bannerSection.type} returnTo={returnTo} />
     </div>
   );
 }

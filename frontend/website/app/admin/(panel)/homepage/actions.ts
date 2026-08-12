@@ -4,12 +4,11 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, canWrite } from "@/lib/admin/auth";
 import { writeAuditLog } from "@/lib/admin/auditLog";
+import type { HomepageSectionRow, HomepageSectionType } from "@/type/db";
 import {
-  DEFAULT_HOMEPAGE_SECTIONS,
-  HOMEPAGE_SECTION_TYPES,
-  type HomepageSectionRow,
-  type HomepageSectionType,
-} from "@/type/db";
+  normalizeHomepageSections,
+  normalizeHomepageSectionType,
+} from "@/lib/cms/homepageSections";
 import { readCmsBlob, tableExists, writeCmsBlob } from "@/lib/cms/jsonStore";
 
 export interface SectionInput {
@@ -25,42 +24,6 @@ export interface SectionInput {
 function revalidate() {
   revalidatePath("/admin/homepage");
   revalidatePath("/");
-}
-
-/** Normalize legacy "hero" rows to "banner". */
-function normalizeSectionType(type: string): HomepageSectionType | null {
-  if (type === "hero") return "banner";
-  if (HOMEPAGE_SECTION_TYPES.includes(type as HomepageSectionType)) {
-    return type as HomepageSectionType;
-  }
-  return null;
-}
-
-/** Merge stored rows with the fixed section list (by type). Never invent new types. */
-function ensurePredefined(
-  existing: HomepageSectionRow[],
-): HomepageSectionRow[] {
-  const byType = new Map<HomepageSectionType, HomepageSectionRow>();
-  for (const row of existing) {
-    const type = normalizeSectionType(row.type);
-    if (type && !byType.has(type)) {
-      byType.set(type, { ...row, type });
-    }
-  }
-
-  return DEFAULT_HOMEPAGE_SECTIONS.map((def) => {
-    const found = byType.get(def.type);
-    if (!found) return { ...def };
-    return {
-      ...found,
-      type: def.type,
-      id: found.id || def.id,
-      config: {
-        ...(def.config ?? {}),
-        ...(found.config ?? {}),
-      },
-    };
-  }).sort((a, b) => a.sort - b.sort);
 }
 
 async function persistSections(
@@ -105,15 +68,18 @@ export async function listSections(): Promise<HomepageSectionRow[]> {
     existing = cms.homepage_sections;
   }
 
-  const ensured = ensurePredefined(existing);
+  const ensured = normalizeHomepageSections(existing);
   const missing = ensured.filter(
     (row) =>
-      !existing.some((e) => normalizeSectionType(String(e.type)) === row.type),
+      !existing.some(
+        (e) => normalizeHomepageSectionType(String(e.type)) === row.type,
+      ),
   );
   const needsMigrate = existing.some((e) => String(e.type) === "hero");
 
   if (missing.length > 0 || needsMigrate) {
-    await persistSections(ensured);
+    const result = await persistSections(ensured);
+    if (result.error) throw new Error(result.error);
   }
 
   return ensured;
@@ -129,7 +95,7 @@ export async function saveSection(
   if (!input.id) {
     return { error: "Homepage sections are predefined and cannot be created." };
   }
-  const inputType = normalizeSectionType(input.type);
+  const inputType = normalizeHomepageSectionType(input.type);
   if (!inputType) {
     return { error: "Invalid section type." };
   }
@@ -187,9 +153,11 @@ export async function saveSection(
         }
       : x,
   );
-  // Ensure row exists in blob after ensurePredefined
+  // Ensure row exists in blob after normalizeHomepageSections
   if (!cms.homepage_sections.some((x) => x.id === input.id)) {
-    cms.homepage_sections = ensurePredefined(cms.homepage_sections).map((x) =>
+    cms.homepage_sections = normalizeHomepageSections(
+      cms.homepage_sections,
+    ).map((x) =>
       x.id === input.id ? { ...x, ...payload, type: current.type } : x,
     );
   }
@@ -235,7 +203,7 @@ export async function toggleSection(
     if (error) return { error: error.message };
   } else {
     const cms = await readCmsBlob();
-    let rows = ensurePredefined(cms.homepage_sections);
+    let rows = normalizeHomepageSections(cms.homepage_sections);
     rows = rows.map((x) =>
       x.id === id ? { ...x, active, updated_at: new Date().toISOString() } : x,
     );
@@ -267,6 +235,7 @@ export async function reorderSections(
   const rows = await listSections();
   if (
     orderedIds.length !== rows.length ||
+    new Set(orderedIds).size !== rows.length ||
     !orderedIds.every((id) => rows.some((r) => r.id === id))
   ) {
     return { error: "Invalid section order." };

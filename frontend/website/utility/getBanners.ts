@@ -1,7 +1,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { bannerImageUrl } from "@/utility/imageUrl";
 import { readCmsBlob, tableExists } from "@/lib/cms/jsonStore";
-import type { BannerRow } from "@/type/db";
+import type { BannerRow, BannerSectionType } from "@/type/db";
 
 export interface Banner {
   id: string;
@@ -34,23 +34,41 @@ function isLive(row: BannerRow): boolean {
   return true;
 }
 
-export async function getBanners(): Promise<Banner[]> {
+export async function getBanners(
+  sectionType: BannerSectionType = "banner",
+): Promise<Banner[]> {
   try {
     if (await tableExists("banners")) {
       const supabase = await createSupabaseServerClient();
       const { data, error } = await supabase
         .from("banners")
         .select("*")
+        .eq("section_type", sectionType)
         .eq("active", true)
         .order("sort", { ascending: true })
         .order("created_at", { ascending: false });
       if (!error && data) {
         return (data as BannerRow[]).filter(isLive).map(mapBanner);
       }
+      const missingSectionType =
+        error?.code === "42703" || error?.message.includes("section_type");
+      if (missingSectionType) {
+        if (sectionType === "banner_v2") return [];
+        const legacy = await supabase
+          .from("banners")
+          .select("*")
+          .eq("active", true)
+          .order("sort", { ascending: true })
+          .order("created_at", { ascending: false });
+        if (!legacy.error && legacy.data) {
+          return (legacy.data as BannerRow[]).filter(isLive).map(mapBanner);
+        }
+      }
     }
 
     const cms = await readCmsBlob();
     return cms.banners
+      .filter((banner) => banner.section_type === sectionType)
       .filter(isLive)
       .sort((a, b) => a.sort - b.sort)
       .map(mapBanner);

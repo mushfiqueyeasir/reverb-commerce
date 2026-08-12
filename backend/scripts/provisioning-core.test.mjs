@@ -93,4 +93,106 @@ test("renders the complete store seed without psql directives", () => {
   assert.doesNotMatch(rendered, /^\\(?:set|if|endif)/m);
   assert.match(rendered, /^begin;/m);
   assert.match(rendered, /^commit;/m);
+
+  const jsonBanners = rendered.match(
+    /'banners', jsonb_build_array\(([\s\S]*?)\n      \),\n      'homepage_sections'/,
+  )?.[1];
+  const jsonHomepage = rendered.match(
+    /'homepage_sections', jsonb_build_array\(([\s\S]*?)\n      \),\n      'about_sections'/,
+  )?.[1];
+  const tableBanners = rendered.match(
+    /insert into public\.banners \(([\s\S]*?)\n-- Remove the generated migration layout/,
+  )?.[1];
+  const tableHomepage = rendered.match(
+    /insert into public\.homepage_sections \(([\s\S]*?)\ninsert into public\.promotions/,
+  )?.[1];
+  const v2Types = [
+    "banner_v2",
+    "categories_v2",
+    "featured_v2",
+    "reviews_v2",
+    "promo_v2",
+    "richtext_v2",
+  ];
+
+  assert.ok(jsonBanners);
+  assert.ok(jsonHomepage);
+  assert.ok(tableBanners);
+  assert.ok(tableHomepage);
+  assert.equal(
+    [...jsonHomepage.matchAll(/jsonb_build_object\('id', '60000000/g)].length,
+    12,
+  );
+  assert.equal(
+    [...tableHomepage.matchAll(/^  \('60000000-0000-4000-8000-/gm)].length,
+    12,
+  );
+  for (const type of v2Types) {
+    assert.match(
+      jsonHomepage,
+      new RegExp(`'type', '${type}'[^\\n]*'active', false`),
+    );
+    assert.match(tableHomepage, new RegExp(`'${type}'[^\\n]*, false,`));
+  }
+  assert.match(jsonBanners, /'section_type', 'banner'/);
+  assert.doesNotMatch(jsonBanners, /banner_v2/);
+  assert.match(tableBanners, /id, section_type,[\s\S]*?'banner',/);
+  assert.doesNotMatch(tableBanners, /banner_v2/);
+});
+
+test("defines an idempotent disabled homepage V2 migration", () => {
+  const migration = readFileSync(
+    join(
+      import.meta.dirname,
+      "..",
+      "supabase",
+      "migrations",
+      "0025_homepage_section_v2.sql",
+    ),
+    "utf8",
+  );
+  const v2Types = [
+    "banner_v2",
+    "categories_v2",
+    "featured_v2",
+    "reviews_v2",
+    "promo_v2",
+    "richtext_v2",
+  ];
+
+  for (const type of v2Types) {
+    assert.equal(
+      [...migration.matchAll(new RegExp(`'${type}'`, "g"))].length,
+      2,
+    );
+  }
+  assert.match(migration, /where existing\.type = section_defaults\.type/);
+  assert.match(
+    migration,
+    /sort_base\.max_sort \+ ordered_defaults\.missing_position/,
+  );
+  assert.match(migration, /ordered_defaults\.active/);
+  assert.equal(
+    [...migration.matchAll(/'60000000-0000-4000-8000-/g)].length,
+    12,
+  );
+});
+
+test("backfills and constrains banner section ownership", () => {
+  const migration = readFileSync(
+    join(
+      import.meta.dirname,
+      "..",
+      "supabase",
+      "migrations",
+      "0026_banner_section_discriminator.sql",
+    ),
+    "utf8",
+  );
+
+  assert.match(migration, /set section_type = 'banner'/);
+  assert.match(migration, /section_type in \('banner', 'banner_v2'\)/);
+  assert.match(migration, /alter column section_type set not null/);
+  assert.match(migration, /on public\.banners \(section_type, active, sort\)/);
+  assert.doesNotMatch(migration, /insert into public\.banners/);
 });

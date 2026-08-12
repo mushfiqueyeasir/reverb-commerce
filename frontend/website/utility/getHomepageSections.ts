@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { readCmsBlob, tableExists } from "@/lib/cms/jsonStore";
+import { normalizeHomepageSections } from "@/lib/cms/homepageSections";
 import type { HomepageSectionRow, HomepageSectionType } from "@/type/db";
 
 export interface HomepageSection {
@@ -12,15 +13,10 @@ export interface HomepageSection {
   config: Record<string, unknown>;
 }
 
-function normalizeType(type: string): HomepageSectionType {
-  if (type === "hero") return "banner";
-  return type as HomepageSectionType;
-}
-
 function mapSection(row: HomepageSectionRow): HomepageSection {
   return {
     id: row.id,
-    type: normalizeType(row.type),
+    type: row.type,
     title: row.title,
     subtitle: row.subtitle,
     body: row.body,
@@ -39,15 +35,18 @@ export async function getHomepageSections(): Promise<HomepageSection[]> {
         .eq("active", true)
         .order("sort", { ascending: true });
 
-      if (!error && data && data.length > 0) {
-        return (data as HomepageSectionRow[]).map(mapSection);
+      if (!error) {
+        return normalizeHomepageSections((data ?? []) as HomepageSectionRow[], {
+          appendMissing: false,
+        }).map(mapSection);
       }
     }
 
     const cms = await readCmsBlob();
-    return cms.homepage_sections
-      .filter((s) => s.active)
-      .sort((a, b) => a.sort - b.sort)
+    return normalizeHomepageSections(cms.homepage_sections, {
+      appendMissing: false,
+    })
+      .filter((section) => section.active)
       .map(mapSection);
   } catch {
     return [];

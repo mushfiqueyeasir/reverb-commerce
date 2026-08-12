@@ -10,10 +10,15 @@ import {
   tableExists,
   writeCmsBlob,
 } from "@/lib/cms/jsonStore";
-import type { BannerRow } from "@/type/db";
+import {
+  isBannerSectionType,
+  type BannerRow,
+  type BannerSectionType,
+} from "@/type/db";
 
 export interface BannerInput {
   id?: string;
+  section_type: BannerSectionType;
   title: string | null;
   subtitle: string | null;
   image_path: string | null;
@@ -33,18 +38,38 @@ function revalidate() {
   revalidatePath("/");
 }
 
-export async function listBanners(): Promise<BannerRow[]> {
+export async function listBanners(
+  sectionType: BannerSectionType,
+): Promise<BannerRow[]> {
+  if (!isBannerSectionType(sectionType)) return [];
   if (await tableExists("banners")) {
     const supabase = await createSupabaseServerClient();
-    const { data } = await supabase
+    const { data, error } = await supabase
+      .from("banners")
+      .select("*")
+      .eq("section_type", sectionType)
+      .order("sort", { ascending: true })
+      .order("created_at", { ascending: false });
+    if (!error) return (data ?? []) as BannerRow[];
+
+    const missingSectionType =
+      error.code === "42703" || error.message.includes("section_type");
+    if (!missingSectionType || sectionType === "banner_v2") return [];
+
+    const legacy = await supabase
       .from("banners")
       .select("*")
       .order("sort", { ascending: true })
       .order("created_at", { ascending: false });
-    return (data ?? []) as BannerRow[];
+    if (legacy.error) return [];
+    return ((legacy.data ?? []) as Omit<BannerRow, "section_type">[]).map(
+      (row) => ({ ...row, section_type: "banner" }),
+    );
   }
   const cms = await readCmsBlob();
-  return [...cms.banners].sort((a, b) => a.sort - b.sort);
+  return cms.banners
+    .filter((banner) => banner.section_type === sectionType)
+    .sort((a, b) => a.sort - b.sort);
 }
 
 export async function saveBanner(
@@ -54,16 +79,22 @@ export async function saveBanner(
   if (!canWrite(s.role)) {
     return { error: "You do not have permission to do this." };
   }
+  if (!isBannerSectionType(input.section_type)) {
+    return { error: "Invalid banner section." };
+  }
   if (!input.image_path) return { error: "A banner image is required." };
   if (!input.title?.trim()) {
     return { error: "A headline is required for every banner slide." };
   }
 
   const now = new Date().toISOString();
-  const existing = await listBanners();
+  const existing = await listBanners(input.section_type);
   const previous = input.id
     ? existing.find((b) => b.id === input.id)
     : undefined;
+  if (input.id && !previous) {
+    return { error: "Banner slide not found in this section." };
+  }
   const maxSort = existing.reduce((m, b) => Math.max(m, b.sort), 0);
   const sort =
     typeof input.sort === "number" && Number.isFinite(input.sort)
@@ -73,6 +104,7 @@ export async function saveBanner(
         : maxSort + 10;
 
   const payload = {
+    section_type: input.section_type,
     title: input.title!.trim(),
     subtitle: input.subtitle,
     image_path: input.image_path,
@@ -89,7 +121,11 @@ export async function saveBanner(
   if (await tableExists("banners")) {
     const supabase = await createSupabaseServerClient();
     const query = input.id
-      ? supabase.from("banners").update(payload).eq("id", input.id)
+      ? supabase
+          .from("banners")
+          .update(payload)
+          .eq("id", input.id)
+          .eq("section_type", input.section_type)
       : supabase.from("banners").insert(payload);
     const { data, error } = await query.select("id").single();
     if (error) return { error: error.message };
@@ -135,23 +171,34 @@ export async function saveBanner(
 
 export async function deleteBanner(
   id: string,
+  sectionType: BannerSectionType,
 ): Promise<{ error?: string } | void> {
   const s = await requireAdminSession();
   if (!canWrite(s.role)) {
     return { error: "You do not have permission to do this." };
   }
+  if (!isBannerSectionType(sectionType)) {
+    return { error: "Invalid banner section." };
+  }
 
-  const existing = await listBanners();
+  const existing = await listBanners(sectionType);
   const banner = existing.find((b) => b.id === id);
-  const bannerLabel = banner?.title?.trim() || id;
+  if (!banner) return { error: "Banner slide not found in this section." };
+  const bannerLabel = banner.title?.trim() || id;
 
   if (await tableExists("banners")) {
     const supabase = await createSupabaseServerClient();
-    const { error } = await supabase.from("banners").delete().eq("id", id);
+    const { error } = await supabase
+      .from("banners")
+      .delete()
+      .eq("id", id)
+      .eq("section_type", sectionType);
     if (error) return { error: error.message };
   } else {
     const cms = await readCmsBlob();
-    cms.banners = cms.banners.filter((b) => b.id !== id);
+    cms.banners = cms.banners.filter(
+      (b) => b.id !== id || b.section_type !== sectionType,
+    );
     const res = await writeCmsBlob(cms);
     if (res.error) return { error: res.error };
   }
@@ -172,27 +219,35 @@ export async function deleteBanner(
 export async function toggleBanner(
   id: string,
   active: boolean,
+  sectionType: BannerSectionType,
 ): Promise<{ error?: string } | void> {
   const s = await requireAdminSession();
   if (!canWrite(s.role)) {
     return { error: "You do not have permission to do this." };
   }
+  if (!isBannerSectionType(sectionType)) {
+    return { error: "Invalid banner section." };
+  }
 
-  const existing = await listBanners();
+  const existing = await listBanners(sectionType);
   const banner = existing.find((b) => b.id === id);
-  const bannerLabel = banner?.title?.trim() || id;
+  if (!banner) return { error: "Banner slide not found in this section." };
+  const bannerLabel = banner.title?.trim() || id;
 
   if (await tableExists("banners")) {
     const supabase = await createSupabaseServerClient();
     const { error } = await supabase
       .from("banners")
       .update({ active, updated_at: new Date().toISOString() })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("section_type", sectionType);
     if (error) return { error: error.message };
   } else {
     const cms = await readCmsBlob();
     cms.banners = cms.banners.map((b) =>
-      b.id === id ? { ...b, active, updated_at: new Date().toISOString() } : b,
+      b.id === id && b.section_type === sectionType
+        ? { ...b, active, updated_at: new Date().toISOString() }
+        : b,
     );
     const res = await writeCmsBlob(cms);
     if (res.error) return { error: res.error };
@@ -212,15 +267,20 @@ export async function toggleBanner(
 
 export async function reorderBanners(
   orderedIds: string[],
+  sectionType: BannerSectionType,
 ): Promise<{ error?: string } | void> {
   const s = await requireAdminSession();
   if (!canWrite(s.role)) {
     return { error: "You do not have permission to do this." };
   }
+  if (!isBannerSectionType(sectionType)) {
+    return { error: "Invalid banner section." };
+  }
 
-  const rows = await listBanners();
+  const rows = await listBanners(sectionType);
   if (
     orderedIds.length !== rows.length ||
+    new Set(orderedIds).size !== rows.length ||
     !orderedIds.every((id) => rows.some((r) => r.id === id))
   ) {
     return { error: "Invalid slide order." };
@@ -240,12 +300,14 @@ export async function reorderBanners(
       const { error } = await supabase
         .from("banners")
         .update({ sort: row.sort, updated_at: now })
-        .eq("id", row.id);
+        .eq("id", row.id)
+        .eq("section_type", sectionType);
       if (error) return { error: error.message };
     }
   } else {
     const cms = await readCmsBlob();
-    cms.banners = next;
+    const reordered = new Map(next.map((row) => [row.id, row]));
+    cms.banners = cms.banners.map((row) => reordered.get(row.id) ?? row);
     const res = await writeCmsBlob(cms);
     if (res.error) return { error: res.error };
   }

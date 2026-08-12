@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { requireAdminSession } from "@/lib/admin/auth";
 import { PageHeader, BackLink } from "@/components/admin/PageHeader";
+import { isBannerSectionType } from "@/type/db";
 import { BannerForm } from "../../../banners/BannerForm";
 import { listBanners } from "../../../banners/actions";
 import { listSections } from "../../actions";
@@ -17,19 +18,16 @@ export default async function EditHomepageBannerPage({
   await requireAdminSession();
   const { id } = await params;
   const { section: sectionParam } = await searchParams;
-  const [banners, sections] = await Promise.all([
-    listBanners(),
-    listSections(),
-  ]);
+  const sections = await listSections();
+  const bannerSection = sectionParam
+    ? sections.find((section) => section.id === sectionParam)
+    : sections.find((section) => section.type === "banner");
+  if (!bannerSection || !isBannerSectionType(bannerSection.type)) notFound();
+  const banners = await listBanners(bannerSection.type);
   const banner = banners.find((b) => b.id === id);
   if (!banner) notFound();
 
-  const bannerSection =
-    sections.find((s) => s.id === sectionParam && s.type === "banner") ??
-    sections.find((s) => s.type === "banner");
-  const returnTo = bannerSection
-    ? `/admin/homepage/${bannerSection.id}?tab=slides`
-    : "/admin/homepage";
+  const returnTo = `/admin/homepage/${bannerSection.id}?tab=slides`;
 
   return (
     <div>
@@ -38,7 +36,11 @@ export default async function EditHomepageBannerPage({
         title="Edit banner slide"
         description={banner.title || "Untitled slide"}
       />
-      <BannerForm banner={banner} returnTo={returnTo} />
+      <BannerForm
+        banner={banner}
+        sectionType={bannerSection.type}
+        returnTo={returnTo}
+      />
     </div>
   );
 }

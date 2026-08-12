@@ -186,7 +186,11 @@ function buildWebsiteKnowledge({
       href: "/about-us",
       sourceType: "about",
       content: knowledgeText(
-        aboutSections.map(({ type, title, config }) => ({ type, title, config })),
+        aboutSections.map(({ type, title, config }) => ({
+          type,
+          title,
+          config,
+        })),
         8_000,
       ),
     },
@@ -197,14 +201,12 @@ function buildWebsiteKnowledge({
       sourceType: "homepage",
       content: knowledgeText(
         {
-          banners: banners.map(
-            ({ title, subtitle, ctaLabel, ctaUrl }) => ({
-              title,
-              subtitle,
-              ctaLabel,
-              ctaUrl,
-            }),
-          ),
+          banners: banners.map(({ title, subtitle, ctaLabel, ctaUrl }) => ({
+            title,
+            subtitle,
+            ctaLabel,
+            ctaUrl,
+          })),
           sections: homepageSections.map(
             ({ type, title, subtitle, body, config }) => ({
               type,
@@ -239,14 +241,16 @@ function buildWebsiteKnowledge({
       title: "Wishlist",
       href: "/wishlist",
       sourceType: "navigation",
-      content: "Visitors can review products they have saved to their wishlist.",
+      content:
+        "Visitors can review products they have saved to their wishlist.",
     },
     {
       id: "track-order",
       title: "Track an order",
       href: "/track-order",
       sourceType: "navigation",
-      content: "Visitors can use the Track Order page to check an existing order.",
+      content:
+        "Visitors can use the Track Order page to check an existing order.",
     },
     {
       id: "contact-page",
@@ -372,7 +376,9 @@ export async function POST(request: NextRequest) {
       getContentPage("refund"),
       getAboutSections(),
       getHomepageSections(),
-      getBanners(),
+      Promise.all([getBanners("banner"), getBanners("banner_v2")]).then(
+        ([v1, v2]) => [...v1, ...v2],
+      ),
       getCategories().catch(() => []),
       getPromotions().catch(() => []),
       getReviews().catch(() => []),

@@ -21,13 +21,19 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Eye, GripVertical, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import BannerV2 from "@/components/HomePage/BannerV2";
 import CategorySection from "@/components/HomePage/Category";
+import CategoryV2 from "@/components/HomePage/CategoryV2";
 import FeaturedProducts from "@/components/HomePage/FeaturedProducts";
+import FeaturedProductsV2 from "@/components/HomePage/FeaturedProductsV2";
 import Hero from "@/components/HomePage/Hero";
 import Marquee from "@/components/HomePage/Marquee";
 import PromoStrip from "@/components/HomePage/PromoStrip";
+import PromoV2 from "@/components/HomePage/PromoV2";
 import ReviewSlider from "@/components/HomePage/ReviewSlider";
+import ReviewsV2 from "@/components/HomePage/ReviewsV2";
 import RichTextSection from "@/components/HomePage/RichTextSection";
+import RichTextSectionV2 from "@/components/HomePage/RichTextSectionV2";
 import type { Category } from "@/type/categoryType";
 import {
   DEFAULT_BANNER_DESCRIPTION,
@@ -52,6 +58,11 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
+import {
+  getHomepageSectionDisplayName,
+  getHomepageSectionFamily,
+  getHomepageSectionVersion,
+} from "@/lib/cms/homepageSections";
 import { cn } from "@/lib/utils";
 import { toggleSection, reorderSections } from "./actions";
 
@@ -115,6 +126,11 @@ const previewBanners: Banner[] = [
     ctaUrl: "/product",
   },
 ];
+
+const previewBannersV2 = previewBanners.map((banner) => ({
+  ...banner,
+  title: banner.title?.replaceAll("*", "") ?? null,
+}));
 
 const previewCategories: Category[] = [
   "New arrivals",
@@ -208,6 +224,12 @@ function configString(
   return typeof value === "string" && value.trim() ? value : null;
 }
 
+function configLimit(config: Record<string, unknown>): number | undefined {
+  const value = config.limit;
+  if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
+  return Math.min(24, Math.max(1, Math.floor(value)));
+}
+
 function previewStats(config: Record<string, unknown>): BannerStatItem[] {
   if (!Array.isArray(config.stats)) return DEFAULT_BANNER_STATS;
   const stats = config.stats
@@ -250,6 +272,18 @@ function BannerPreview({ section }: { section: HomepageSectionRow }) {
   );
 }
 
+function BannerV2Preview({ section }: { section: HomepageSectionRow }) {
+  return (
+    <BannerV2
+      banners={previewBannersV2}
+      description={
+        configString(section.config, "description") ??
+        DEFAULT_BANNER_DESCRIPTION
+      }
+    />
+  );
+}
+
 function CategoriesPreview({ section }: { section: HomepageSectionRow }) {
   return (
     <CategorySection
@@ -263,10 +297,26 @@ function CategoriesPreview({ section }: { section: HomepageSectionRow }) {
   );
 }
 
+function CategoriesV2Preview({ section }: { section: HomepageSectionRow }) {
+  return (
+    <CategoryV2
+      categories={previewCategories}
+      title={section.title}
+      subtitle={section.subtitle}
+      eyebrow={configString(section.config, "eyebrow")}
+      ctaLabel={configString(section.config, "cta_label")}
+      ctaHref={configString(section.config, "cta_url") ?? "/product"}
+      limit={configLimit(section.config)}
+      preview
+    />
+  );
+}
+
 function FeaturedPreview({ section }: { section: HomepageSectionRow }) {
+  const limit = configLimit(section.config) ?? previewProducts.length;
   return (
     <FeaturedProducts
-      products={previewProducts}
+      products={previewProducts.slice(0, limit)}
       title={section.title}
       subtitle={section.subtitle}
       eyebrow={configString(section.config, "eyebrow")}
@@ -276,10 +326,40 @@ function FeaturedPreview({ section }: { section: HomepageSectionRow }) {
   );
 }
 
+function FeaturedV2Preview({ section }: { section: HomepageSectionRow }) {
+  const limit = configLimit(section.config) ?? previewProducts.length;
+  return (
+    <FeaturedProductsV2
+      products={previewProducts.slice(0, limit)}
+      title={section.title}
+      subtitle={section.subtitle}
+      eyebrow={configString(section.config, "eyebrow")}
+      ctaLabel={configString(section.config, "cta_label")}
+      ctaHref={configString(section.config, "cta_url") ?? "/product"}
+      preview
+    />
+  );
+}
+
 function ReviewsPreview({ section }: { section: HomepageSectionRow }) {
+  const limit = configLimit(section.config) ?? previewReviews.length;
   return (
     <ReviewSlider
-      reviews={previewReviews}
+      reviews={previewReviews.slice(0, limit)}
+      title={section.title}
+      subtitle={section.subtitle}
+      eyebrow={configString(section.config, "eyebrow")}
+      ctaLabel={configString(section.config, "cta_label")}
+      ctaHref={configString(section.config, "cta_url") ?? "/reviews"}
+    />
+  );
+}
+
+function ReviewsV2Preview({ section }: { section: HomepageSectionRow }) {
+  const limit = configLimit(section.config) ?? previewReviews.length;
+  return (
+    <ReviewsV2
+      reviews={previewReviews.slice(0, limit)}
       title={section.title}
       subtitle={section.subtitle}
       eyebrow={configString(section.config, "eyebrow")}
@@ -292,6 +372,26 @@ function ReviewsPreview({ section }: { section: HomepageSectionRow }) {
 function PromoPreview({ section }: { section: HomepageSectionRow }) {
   return (
     <PromoStrip
+      promotion={previewPromotion}
+      title={section.title}
+      subtitle={section.subtitle}
+      ctaHref={
+        configString(section.config, "cta_url") ??
+        previewPromotion.ctaUrl ??
+        "/product"
+      }
+      ctaLabel={
+        configString(section.config, "cta_label") ??
+        previewPromotion.ctaLabel ??
+        "Shop the drop"
+      }
+    />
+  );
+}
+
+function PromoV2Preview({ section }: { section: HomepageSectionRow }) {
+  return (
+    <PromoV2
       promotion={previewPromotion}
       title={section.title}
       subtitle={section.subtitle}
@@ -324,8 +424,47 @@ function RichTextPreview({ section }: { section: HomepageSectionRow }) {
   );
 }
 
+function RichTextV2Preview({ section }: { section: HomepageSectionRow }) {
+  return (
+    <RichTextSectionV2
+      title={section.title || "Designed with purpose."}
+      subtitle={section.subtitle || "Our story"}
+      body={
+        section.body ||
+        "This space introduces your story, values, and the details that make your collection unique."
+      }
+      eyebrow={configString(section.config, "eyebrow")}
+      ctaLabel={configString(section.config, "cta_label")}
+      ctaHref={configString(section.config, "cta_url")}
+      config={section.config}
+      imageUrl={previewImages[1]}
+      preview
+    />
+  );
+}
+
 function SectionPreview({ section }: { section: HomepageSectionRow }) {
-  switch (section.type) {
+  const family = getHomepageSectionFamily(section.type);
+  const version = getHomepageSectionVersion(section.type);
+
+  if (version === 2) {
+    switch (family) {
+      case "banner":
+        return <BannerV2Preview section={section} />;
+      case "categories":
+        return <CategoriesV2Preview section={section} />;
+      case "featured":
+        return <FeaturedV2Preview section={section} />;
+      case "reviews":
+        return <ReviewsV2Preview section={section} />;
+      case "promo":
+        return <PromoV2Preview section={section} />;
+      case "richtext":
+        return <RichTextV2Preview section={section} />;
+    }
+  }
+
+  switch (family) {
     case "banner":
       return <BannerPreview section={section} />;
     case "categories":
@@ -342,6 +481,9 @@ function SectionPreview({ section }: { section: HomepageSectionRow }) {
 }
 
 function PreviewDialog({ section }: { section: HomepageSectionRow }) {
+  const displayName =
+    getHomepageSectionDisplayName(section.type) ?? section.type;
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -352,14 +494,14 @@ function PreviewDialog({ section }: { section: HomepageSectionRow }) {
       </DialogTrigger>
       <DialogContent className="max-w-[min(1600px,calc(100vw-3rem))] gap-0 overflow-hidden rounded-2xl p-0">
         <DialogHeader className="border-b border-border px-6 py-5 pr-14">
-          <DialogTitle className="font-display capitalize">
-            {section.type} preview
+          <DialogTitle className="font-display">
+            {displayName} preview
           </DialogTitle>
           <DialogDescription>
             Storefront layout shown with placeholder content.
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="h-[75dvh] bg-background text-foreground [&_a]:pointer-events-none [&_button]:pointer-events-none">
+        <ScrollArea className="h-[75dvh] bg-background text-foreground [&_a]:pointer-events-none [&_button]:pointer-events-none [&_button[data-preview-interactive]]:pointer-events-auto">
           <SectionPreview section={section} />
         </ScrollArea>
       </DialogContent>
@@ -374,6 +516,9 @@ function SortableRow({
   section: HomepageSectionRow;
   canWrite: boolean;
 }) {
+  const displayName =
+    getHomepageSectionDisplayName(section.type) ?? section.type;
+  const family = getHomepageSectionFamily(section.type);
   const {
     attributes,
     listeners,
@@ -415,15 +560,11 @@ function SortableRow({
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="secondary" className="capitalize">
-              {section.type}
-            </Badge>
+            <Badge variant="secondary">{displayName}</Badge>
             <p className="truncate font-medium text-foreground">
               {section.title || (
                 <span className="text-muted-foreground">
-                  {section.type === "banner"
-                    ? "Carousel, stats & marquee"
-                    : "— (auto)"}
+                  {family === "banner" ? "Carousel content" : "— (auto)"}
                 </span>
               )}
             </p>

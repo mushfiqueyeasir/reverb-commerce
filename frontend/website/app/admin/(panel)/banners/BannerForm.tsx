@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
-import type { BannerRow } from "@/type/db";
+import type { BannerRow, BannerSectionType } from "@/type/db";
 import { BUCKETS } from "@/lib/supabase/config";
 import {
   ImageUploader,
@@ -44,9 +44,11 @@ function localInputToIso(local: string): string | null {
 
 export function BannerForm({
   banner,
+  sectionType,
   returnTo = "/admin/homepage",
 }: {
   banner?: BannerRow;
+  sectionType: BannerSectionType;
   returnTo?: string;
 }) {
   const router = useRouter();
@@ -82,6 +84,7 @@ export function BannerForm({
     startTransition(async () => {
       const res = await saveBanner({
         id: banner?.id,
+        section_type: sectionType,
         title: title.trim(),
         subtitle: subtitle.trim() || null,
         image_path: images[0]?.path ?? null,
@@ -114,13 +117,21 @@ export function BannerForm({
               <FormField
                 label="Headline"
                 htmlFor="title"
-                hint='Wrap words in *asterisks* to color them brand coral. Example: NOT JUST *RIDE*. *RIDE* WITH STYLE. Use ". " (period + space) or a new line for line breaks.'
+                hint={
+                  sectionType === "banner"
+                    ? 'Wrap words in *asterisks* to use the brand color. Use ". " or a new line for line breaks.'
+                    : "Use a concise editorial headline for this slide."
+                }
               >
                 <Textarea
                   id="title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="NOT JUST *RIDE*. *RIDE* WITH STYLE."
+                  placeholder={
+                    sectionType === "banner"
+                      ? "NOT JUST *RIDE*. *RIDE* WITH STYLE."
+                      : "Made for every moment."
+                  }
                   required
                   rows={3}
                   className={adminTextareaClass}
@@ -132,7 +143,9 @@ export function BannerForm({
                     Preview
                   </p>
                   <p className="font-display text-2xl font-bold uppercase leading-[0.95] tracking-tight sm:text-3xl">
-                    {renderBannerTitle(title.trim())}
+                    {sectionType === "banner"
+                      ? renderBannerTitle(title.trim())
+                      : title.trim()}
                   </p>
                 </div>
               ) : null}

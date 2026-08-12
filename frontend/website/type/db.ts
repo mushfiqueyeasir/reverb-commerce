@@ -269,8 +269,25 @@ export interface SiteSettingsRow {
   updated_at: string;
 }
 
+export type BannerSectionType = "banner" | "banner_v2";
+
+export const BANNER_SECTION_TYPES: BannerSectionType[] = [
+  "banner",
+  "banner_v2",
+];
+
+export function isBannerSectionType(
+  value: unknown,
+): value is BannerSectionType {
+  return (
+    typeof value === "string" &&
+    BANNER_SECTION_TYPES.includes(value as BannerSectionType)
+  );
+}
+
 export interface BannerRow {
   id: string;
+  section_type: BannerSectionType;
   title: string | null;
   subtitle: string | null;
   image_path: string;
@@ -285,8 +302,18 @@ export interface BannerRow {
   updated_at: string;
 }
 
-export type HomepageSectionType =
+export type HomepageSectionV1Type =
   "banner" | "categories" | "featured" | "reviews" | "promo" | "richtext";
+
+export type HomepageSectionV2Type =
+  | "banner_v2"
+  | "categories_v2"
+  | "featured_v2"
+  | "reviews_v2"
+  | "promo_v2"
+  | "richtext_v2";
+
+export type HomepageSectionType = HomepageSectionV1Type | HomepageSectionV2Type;
 
 export const HOMEPAGE_SECTION_TYPES: HomepageSectionType[] = [
   "banner",
@@ -295,6 +322,12 @@ export const HOMEPAGE_SECTION_TYPES: HomepageSectionType[] = [
   "reviews",
   "promo",
   "richtext",
+  "banner_v2",
+  "categories_v2",
+  "featured_v2",
+  "reviews_v2",
+  "promo_v2",
+  "richtext_v2",
 ];
 
 export interface BannerStatItem {
@@ -337,7 +370,7 @@ export interface HomepageSectionRow {
 /** Fixed homepage layout — toggle visibility / edit copy, do not create new types. */
 export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
   {
-    id: "section-banner",
+    id: "60000000-0000-4000-8000-000000000001",
     type: "banner",
     title: null,
     subtitle: null,
@@ -354,7 +387,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     updated_at: new Date(0).toISOString(),
   },
   {
-    id: "section-categories",
+    id: "60000000-0000-4000-8000-000000000002",
     type: "categories",
     title: "Shop by Category",
     subtitle: "Find your fit",
@@ -366,7 +399,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     updated_at: new Date(0).toISOString(),
   },
   {
-    id: "section-featured",
+    id: "60000000-0000-4000-8000-000000000003",
     type: "featured",
     title: "Featured Gear",
     subtitle: "Latest drops",
@@ -378,7 +411,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     updated_at: new Date(0).toISOString(),
   },
   {
-    id: "section-reviews",
+    id: "60000000-0000-4000-8000-000000000005",
     type: "reviews",
     title: "From the Community",
     subtitle: null,
@@ -390,7 +423,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     updated_at: new Date(0).toISOString(),
   },
   {
-    id: "section-promo",
+    id: "60000000-0000-4000-8000-000000000004",
     type: "promo",
     title: null,
     subtitle: null,
@@ -402,12 +435,84 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     updated_at: new Date(0).toISOString(),
   },
   {
-    id: "section-richtext",
+    id: "60000000-0000-4000-8000-000000000006",
     type: "richtext",
     title: "Our Story",
     subtitle: null,
     body: null,
     sort: 5,
+    active: false,
+    config: {},
+    created_at: new Date(0).toISOString(),
+    updated_at: new Date(0).toISOString(),
+  },
+  {
+    id: "60000000-0000-4000-8000-000000000007",
+    type: "banner_v2",
+    title: null,
+    subtitle: null,
+    body: null,
+    sort: 6,
+    active: false,
+    config: {},
+    created_at: new Date(0).toISOString(),
+    updated_at: new Date(0).toISOString(),
+  },
+  {
+    id: "60000000-0000-4000-8000-000000000008",
+    type: "categories_v2",
+    title: "Shop by Category",
+    subtitle: "Find your fit",
+    body: null,
+    sort: 7,
+    active: false,
+    config: {},
+    created_at: new Date(0).toISOString(),
+    updated_at: new Date(0).toISOString(),
+  },
+  {
+    id: "60000000-0000-4000-8000-000000000009",
+    type: "featured_v2",
+    title: "Featured Gear",
+    subtitle: "Latest drops",
+    body: null,
+    sort: 8,
+    active: false,
+    config: {},
+    created_at: new Date(0).toISOString(),
+    updated_at: new Date(0).toISOString(),
+  },
+  {
+    id: "60000000-0000-4000-8000-000000000010",
+    type: "reviews_v2",
+    title: "From the Community",
+    subtitle: null,
+    body: null,
+    sort: 9,
+    active: false,
+    config: {},
+    created_at: new Date(0).toISOString(),
+    updated_at: new Date(0).toISOString(),
+  },
+  {
+    id: "60000000-0000-4000-8000-000000000011",
+    type: "promo_v2",
+    title: null,
+    subtitle: null,
+    body: null,
+    sort: 10,
+    active: false,
+    config: {},
+    created_at: new Date(0).toISOString(),
+    updated_at: new Date(0).toISOString(),
+  },
+  {
+    id: "60000000-0000-4000-8000-000000000012",
+    type: "richtext_v2",
+    title: "Our Story",
+    subtitle: null,
+    body: null,
+    sort: 11,
     active: false,
     config: {},
     created_at: new Date(0).toISOString(),

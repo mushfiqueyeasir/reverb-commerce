@@ -12,6 +12,9 @@
   --primary-rgb: 255, 92, 112;
   --foreground-rgb: 245, 243, 239;
   --background-rgb: 5, 5, 5;
+  --v2-primary-rgb: 255 92 112;
+  --v2-foreground-rgb: 245 243 239;
+  --v2-background-rgb: 5 5 5;
   --border-soft: rgba(255, 255, 255, 0.08);
 
   --color-primary-base: #ff5c70;

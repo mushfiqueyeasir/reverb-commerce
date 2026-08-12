@@ -160,6 +160,9 @@ export function paletteToCssVars(
   const primaryRgb = hexToRgbChannels(p.primary);
   const foregroundRgb = hexToRgbChannels(p.foreground);
   const backgroundRgb = hexToRgbChannels(p.background);
+  const v2PrimaryRgb = primaryRgb.replaceAll(",", "");
+  const v2ForegroundRgb = foregroundRgb.replaceAll(",", "");
+  const v2BackgroundRgb = backgroundRgb.replaceAll(",", "");
   return {
     "--background": p.background,
     "--surface": p.surface,
@@ -171,6 +174,9 @@ export function paletteToCssVars(
     "--primary-rgb": primaryRgb,
     "--foreground-rgb": foregroundRgb,
     "--background-rgb": backgroundRgb,
+    "--v2-primary-rgb": v2PrimaryRgb,
+    "--v2-foreground-rgb": v2ForegroundRgb,
+    "--v2-background-rgb": v2BackgroundRgb,
     "--color-primary-base": p.primary,
     "--color-primary-foreground-base": p.primaryForeground,
     "--primary-foreground": p.primaryForeground,

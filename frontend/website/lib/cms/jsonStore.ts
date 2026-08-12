@@ -1,10 +1,11 @@
 import "server-only";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
-  DEFAULT_HOMEPAGE_SECTIONS,
+  isBannerSectionType,
   type BannerRow,
   type HomepageSectionRow,
 } from "@/type/db";
+import { normalizeHomepageSections } from "./homepageSections";
 import {
   DEFAULT_CURRENCY_SETTINGS,
   DEFAULT_DELIVERY_CHARGES,
@@ -122,7 +123,7 @@ export const DEFAULT_PAGES: Record<CmsPageSlug, CmsPage> = {
 function emptyCms(): CmsBlob {
   return {
     banners: [],
-    homepage_sections: DEFAULT_HOMEPAGE_SECTIONS.map((s) => ({ ...s })),
+    homepage_sections: normalizeHomepageSections([]),
     about_sections: DEFAULT_ABOUT_SECTIONS.map((s) => ({ ...s })),
     pages: { ...DEFAULT_PAGES },
     announcement: {
@@ -140,16 +141,30 @@ function emptyCms(): CmsBlob {
   };
 }
 
+function normalizeBanners(raw: unknown): BannerRow[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter(
+      (row): row is Record<string, unknown> =>
+        Boolean(row) && typeof row === "object",
+    )
+    .map((row) => ({
+      ...(row as unknown as BannerRow),
+      section_type: isBannerSectionType(row.section_type)
+        ? row.section_type
+        : "banner",
+    }));
+}
+
 function normalize(raw: unknown): CmsBlob {
   const base = emptyCms();
   if (!raw || typeof raw !== "object") return base;
   const o = raw as Partial<CmsBlob>;
   return {
-    banners: Array.isArray(o.banners) ? o.banners : [],
-    homepage_sections:
-      Array.isArray(o.homepage_sections) && o.homepage_sections.length > 0
-        ? o.homepage_sections
-        : DEFAULT_HOMEPAGE_SECTIONS.map((s) => ({ ...s })),
+    banners: normalizeBanners(o.banners),
+    homepage_sections: normalizeHomepageSections(
+      Array.isArray(o.homepage_sections) ? o.homepage_sections : [],
+    ),
     about_sections: ensureAboutSections(
       Array.isArray(o.about_sections) ? o.about_sections : [],
     ),
