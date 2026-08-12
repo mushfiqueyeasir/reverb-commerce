@@ -16,33 +16,53 @@ export const HOMEPAGE_SECTION_METADATA: Record<
   HomepageSectionType,
   HomepageSectionMetadata
 > = {
-  banner: { family: "banner", version: 1, displayName: "Banner" },
-  categories: { family: "categories", version: 1, displayName: "Categories" },
+  banner: { family: "banner", version: 1, displayName: "Hero - Classic" },
+  categories: {
+    family: "categories",
+    version: 1,
+    displayName: "Categories - Mosaic",
+  },
   featured: {
     family: "featured",
     version: 1,
-    displayName: "Featured Products",
+    displayName: "Products - Grid",
   },
-  reviews: { family: "reviews", version: 1, displayName: "Reviews" },
-  promo: { family: "promo", version: 1, displayName: "Promotion" },
-  richtext: { family: "richtext", version: 1, displayName: "Rich Text" },
-  banner_v2: { family: "banner", version: 2, displayName: "Banner V2" },
+  reviews: {
+    family: "reviews",
+    version: 1,
+    displayName: "Reviews - Marquee",
+  },
+  promo: { family: "promo", version: 1, displayName: "Promotion - Banner" },
+  richtext: { family: "richtext", version: 1, displayName: "Story - Classic" },
+  banner_v2: {
+    family: "banner",
+    version: 2,
+    displayName: "Hero - Cinematic",
+  },
   categories_v2: {
     family: "categories",
     version: 2,
-    displayName: "Categories V2",
+    displayName: "Categories - Collection Index",
   },
   featured_v2: {
     family: "featured",
     version: 2,
-    displayName: "Featured Products V2",
+    displayName: "Products - Runway",
   },
-  reviews_v2: { family: "reviews", version: 2, displayName: "Reviews V2" },
-  promo_v2: { family: "promo", version: 2, displayName: "Promotion V2" },
+  reviews_v2: {
+    family: "reviews",
+    version: 2,
+    displayName: "Reviews - Showcase",
+  },
+  promo_v2: {
+    family: "promo",
+    version: 2,
+    displayName: "Promotion - Kinetic Offer",
+  },
   richtext_v2: {
     family: "richtext",
     version: 2,
-    displayName: "Rich Text V2",
+    displayName: "Story - Editorial",
   },
 };
 

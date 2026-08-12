@@ -106,7 +106,7 @@ describe("homepage section normalization", () => {
     expect(getHomepageSectionFamily("featured_v2")).toBe("featured");
     expect(getHomepageSectionVersion("featured_v2")).toBe(2);
     expect(getHomepageSectionDisplayName("featured_v2")).toBe(
-      "Featured Products V2",
+      "Products - Runway",
     );
     expect(getHomepageSectionMetadata("unknown")).toBeNull();
   });

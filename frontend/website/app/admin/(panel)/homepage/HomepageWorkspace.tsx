@@ -13,8 +13,8 @@ export function HomepageWorkspace({
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">
-        Drag to reorder. Edit a section to control its content. Open Banner to
-        manage slides, stats, and marquee.
+        Drag sections into the order you want. Preview a design, show or hide
+        it, or choose Edit to change its content.
       </p>
       <HomepageTable data={sections} canWrite={canWrite} />
     </div>

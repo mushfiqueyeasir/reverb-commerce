@@ -86,18 +86,28 @@ function ActiveToggle({
   }
 
   return (
-    <Switch
-      checked={active}
-      disabled={pending}
-      onCheckedChange={(next) =>
-        startTransition(async () => {
-          const res = await toggleSection(id, next);
-          if (res?.error) toast.error(res.error);
-          else toast.success(next ? "Shown" : "Hidden");
-        })
-      }
-      aria-label="Toggle visibility"
-    />
+    <div className="flex min-h-11 items-center gap-2 rounded-full px-2">
+      <span
+        className={cn(
+          "text-xs font-medium",
+          active ? "text-foreground" : "text-muted-foreground",
+        )}
+      >
+        {active ? "Shown" : "Hidden"}
+      </span>
+      <Switch
+        checked={active}
+        disabled={pending}
+        onCheckedChange={(next) =>
+          startTransition(async () => {
+            const res = await toggleSection(id, next);
+            if (res?.error) toast.error(res.error);
+            else toast.success(next ? "Shown" : "Hidden");
+          })
+        }
+        aria-label={active ? "Hide section" : "Show section"}
+      />
+    </div>
   );
 }
 
@@ -483,6 +493,7 @@ function SectionPreview({ section }: { section: HomepageSectionRow }) {
 function PreviewDialog({ section }: { section: HomepageSectionRow }) {
   const displayName =
     getHomepageSectionDisplayName(section.type) ?? section.type;
+  const version = getHomepageSectionVersion(section.type);
 
   return (
     <Dialog>
@@ -494,8 +505,14 @@ function PreviewDialog({ section }: { section: HomepageSectionRow }) {
       </DialogTrigger>
       <DialogContent className="max-w-[min(1600px,calc(100vw-3rem))] gap-0 overflow-hidden rounded-2xl p-0">
         <DialogHeader className="border-b border-border px-6 py-5 pr-14">
-          <DialogTitle className="font-display">
-            {displayName} preview
+          <DialogTitle className="flex items-baseline gap-2 font-display">
+            <span>{displayName}</span>
+            {version && version > 1 ? (
+              <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
+                (v{version})
+              </span>
+            ) : null}
+            <span>preview</span>
           </DialogTitle>
           <DialogDescription>
             Storefront layout shown with placeholder content.
@@ -518,7 +535,7 @@ function SortableRow({
 }) {
   const displayName =
     getHomepageSectionDisplayName(section.type) ?? section.type;
-  const family = getHomepageSectionFamily(section.type);
+  const version = getHomepageSectionVersion(section.type);
   const {
     attributes,
     listeners,
@@ -558,21 +575,14 @@ function SortableRow({
           <span className="size-9 shrink-0" />
         )}
 
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="secondary">{displayName}</Badge>
-            <p className="truncate font-medium text-foreground">
-              {section.title || (
-                <span className="text-muted-foreground">
-                  {family === "banner" ? "Carousel content" : "— (auto)"}
-                </span>
-              )}
-            </p>
-          </div>
-          {section.subtitle ? (
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              {section.subtitle}
-            </p>
+        <div className="flex min-w-0 flex-1 items-baseline gap-2">
+          <p className="truncate font-display text-base font-semibold text-foreground">
+            {displayName}
+          </p>
+          {version && version > 1 ? (
+            <span className="shrink-0 font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
+              (v{version})
+            </span>
           ) : null}
         </div>
       </div>
@@ -584,14 +594,10 @@ function SortableRow({
           active={section.active}
           canWrite={canWrite}
         />
-        <Button
-          variant="ghost"
-          size="icon"
-          asChild
-          className="size-11 rounded-full sm:size-9"
-        >
-          <Link href={`/admin/homepage/${section.id}`} aria-label="Edit">
+        <Button variant="ghost" size="sm" asChild className="rounded-full">
+          <Link href={`/admin/homepage/${section.id}`}>
             <Pencil className="size-4" />
+            Edit
           </Link>
         </Button>
       </div>
@@ -654,12 +660,6 @@ export function HomepageTable({
 
   return (
     <div className="space-y-3">
-      {canWrite ? (
-        <p className="text-sm text-muted-foreground">
-          Drag the handle to reorder sections on the storefront.
-        </p>
-      ) : null}
-
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
