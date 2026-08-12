@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Mail, Phone } from "lucide-react";
 import {
+  FacebookIcon,
   InstagramIcon,
   TwitterIcon,
   YoutubeIcon,
@@ -49,6 +50,12 @@ export default function Footer({ settings }: FooterProps) {
   ];
 
   const socialLinks = [
+    {
+      key: "facebook",
+      href: socials.facebook,
+      icon: <FacebookIcon className="h-4 w-4" size={16} />,
+      label: "Facebook",
+    },
     {
       key: "instagram",
       href: socials.instagram,

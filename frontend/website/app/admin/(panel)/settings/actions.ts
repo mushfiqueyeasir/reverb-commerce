@@ -112,7 +112,8 @@ export async function saveSettings(
       : {};
 
   // Always keep a CMS copy so favicon works before the DB column exists.
-  const socials = {
+  const socials: Record<string, unknown> = {
+    ...existing,
     ...input.socials,
     _cms: {
       ...existingCms,
@@ -130,6 +131,9 @@ export async function saveSettings(
       palette: normalizePalette(input.palette),
     },
   };
+  for (const provider of ["facebook", "instagram", "twitter"]) {
+    if (!input.socials[provider]) delete socials[provider];
+  }
 
   const base = {
     store_name: input.store_name.trim(),
