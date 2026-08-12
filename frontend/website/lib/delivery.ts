@@ -1,15 +1,15 @@
 export type DeliveryZone = "inside-dhaka" | "outside-dhaka";
 
 export interface DeliveryCharges {
-  /** Cash-on-delivery charge for Dhaka city orders (store currency units). */
   insideDhaka: number;
-  /** Cash-on-delivery charge for orders outside Dhaka. */
   outsideDhaka: number;
+  freeDelivery: boolean;
 }
 
 export const DEFAULT_DELIVERY_CHARGES: DeliveryCharges = {
   insideDhaka: 70,
   outsideDhaka: 120,
+  freeDelivery: false,
 };
 
 export function normalizeDeliveryCharges(raw: unknown): DeliveryCharges {
@@ -29,6 +29,7 @@ export function normalizeDeliveryCharges(raw: unknown): DeliveryCharges {
       Number.isFinite(outside) && outside >= 0
         ? Math.round(outside)
         : base.outsideDhaka,
+    freeDelivery: o.freeDelivery === true,
   };
 }
 
@@ -36,6 +37,7 @@ export function shippingCostForZone(
   charges: DeliveryCharges,
   zone: DeliveryZone,
 ): number {
+  if (charges.freeDelivery) return 0;
   return zone === "outside-dhaka" ? charges.outsideDhaka : charges.insideDhaka;
 }
 

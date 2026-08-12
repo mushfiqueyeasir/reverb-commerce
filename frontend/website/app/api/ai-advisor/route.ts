@@ -16,6 +16,7 @@ import { getHomepageSections } from "@/utility/getHomepageSections";
 import { getPromotions } from "@/utility/getPromotion";
 import { getReviews } from "@/utility/getReview";
 import { getSiteSettings } from "@/utility/getSettings";
+import { shippingCostForZone } from "@/lib/delivery";
 import type {
   AiAdvisorProduct,
   AiAdvisorResponse,
@@ -175,8 +176,15 @@ function buildWebsiteKnowledge({
       href: "/checkout",
       sourceType: "delivery",
       content: knowledgeText({
-        insideDhaka: settings.deliveryCharges.insideDhaka,
-        outsideDhaka: settings.deliveryCharges.outsideDhaka,
+        freeDelivery: settings.deliveryCharges.freeDelivery,
+        insideDhaka: shippingCostForZone(
+          settings.deliveryCharges,
+          "inside-dhaka",
+        ),
+        outsideDhaka: shippingCostForZone(
+          settings.deliveryCharges,
+          "outside-dhaka",
+        ),
         currency: settings.currency,
       }),
     },

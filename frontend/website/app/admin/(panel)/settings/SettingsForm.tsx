@@ -74,6 +74,7 @@ import {
   type SettingsInput,
 } from "./actions";
 import { CourierSettings, courierDraftFromPublic } from "./CourierSettings";
+import { PaymentSettings, paymentDraftFromPublic } from "./PaymentSettings";
 
 function orNull(v: string): string | null {
   const t = v.trim();
@@ -167,6 +168,7 @@ export function SettingsForm({
   const [outsideDhakaCharge, setOutsideDhakaCharge] = useState(
     String(deliveryState.outsideDhaka),
   );
+  const [freeDelivery, setFreeDelivery] = useState(deliveryState.freeDelivery);
 
   const chatState = normalizeChatWidgets(
     initialChatWidgets ?? DEFAULT_CHAT_WIDGETS,
@@ -230,16 +232,9 @@ export function SettingsForm({
   );
   const [smtpHasPassword] = useState(initialSmtp.hasPassword);
 
-  const [bkashEnabled, setBkashEnabled] = useState(initialBkash.enabled);
-  const [bkashSandbox, setBkashSandbox] = useState(initialBkash.sandbox);
-  const [bkashUsername, setBkashUsername] = useState(
-    initialBkash.username ?? "",
+  const [payments, setPayments] = useState(() =>
+    paymentDraftFromPublic(initialBkash),
   );
-  const [bkashPassword, setBkashPassword] = useState("");
-  const [bkashAppKey, setBkashAppKey] = useState(initialBkash.appKey ?? "");
-  const [bkashAppSecret, setBkashAppSecret] = useState("");
-  const [bkashHasPassword] = useState(initialBkash.hasPassword);
-  const [bkashHasAppSecret] = useState(initialBkash.hasAppSecret);
   const [courier, setCourier] = useState(() =>
     courierDraftFromPublic(initialCourier),
   );
@@ -296,6 +291,7 @@ export function SettingsForm({
     const deliveryCharges = normalizeDeliveryCharges({
       insideDhaka: Number(insideDhakaCharge),
       outsideDhaka: Number(outsideDhakaCharge),
+      freeDelivery,
     });
 
     if (
@@ -380,13 +376,14 @@ export function SettingsForm({
         return;
       }
 
+      const bkash = payments.providers.bkash;
       const bkashRes = await saveBkashSettings({
-        enabled: bkashEnabled,
-        sandbox: bkashSandbox,
-        username: orNull(bkashUsername),
-        password: bkashPassword.trim() ? bkashPassword : null,
-        appKey: orNull(bkashAppKey),
-        appSecret: bkashAppSecret.trim() ? bkashAppSecret : null,
+        enabled: bkash.enabled,
+        sandbox: bkash.sandbox,
+        username: orNull(bkash.username),
+        password: bkash.password.trim() ? bkash.password : null,
+        appKey: orNull(bkash.appKey),
+        appSecret: bkash.appSecret.trim() ? bkash.appSecret : null,
       });
       if (bkashRes?.error) {
         toast.error(bkashRes.error);
@@ -419,8 +416,22 @@ export function SettingsForm({
 
       toast.success("Settings saved");
       setSmtpPassword("");
-      setBkashPassword("");
-      setBkashAppSecret("");
+      setPayments((current) => {
+        const bkash = current.providers.bkash;
+        return {
+          ...current,
+          providers: {
+            ...current.providers,
+            bkash: {
+              ...bkash,
+              password: "",
+              appSecret: "",
+              hasPassword: bkash.hasPassword || Boolean(bkash.password),
+              hasAppSecret: bkash.hasAppSecret || Boolean(bkash.appSecret),
+            },
+          },
+        };
+      });
       setCourier((current) => ({
         ...current,
         providers: Object.fromEntries(
@@ -855,8 +866,30 @@ export function SettingsForm({
 
             <TabsContent value="delivery" className="mt-0 space-y-5">
               <p className="text-sm text-muted-foreground">
-                COD charge per order — Inside / Outside Dhaka at checkout.
+                Configure delivery charges for Inside and Outside Dhaka.
               </p>
+              <div
+                className={cn(
+                  "flex items-center justify-between rounded-2xl border px-4 py-4",
+                  freeDelivery
+                    ? "border-primary/50 bg-primary/5"
+                    : "border-border bg-card/50",
+                )}
+              >
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    Free delivery
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Charge zero for every order while keeping the rates below.
+                  </p>
+                </div>
+                <Switch
+                  checked={freeDelivery}
+                  onCheckedChange={setFreeDelivery}
+                  aria-label="Enable free delivery"
+                />
+              </div>
               <div className="grid gap-5 sm:grid-cols-2">
                 <FormField
                   label="Inside Dhaka"
@@ -886,9 +919,14 @@ export function SettingsForm({
                 </FormField>
               </div>
               <p className="text-xs text-muted-foreground">
-                Amounts use your store currency (
-                <span className="text-foreground">{defaultCurrency}</span>
-                ).
+                {freeDelivery ? (
+                  "Free delivery is active. Saved rates will apply again when it is disabled."
+                ) : (
+                  <>
+                    Amounts use your store currency (
+                    <span className="text-foreground">{defaultCurrency}</span>).
+                  </>
+                )}
               </p>
             </TabsContent>
 
@@ -900,103 +938,12 @@ export function SettingsForm({
               />
             </TabsContent>
 
-            <TabsContent value="payments" className="mt-0 space-y-5">
-              <p className="text-sm text-muted-foreground">
-                Cash on delivery is always available. Enable bKash Tokenized
-                Checkout (mode 0011) when credentials are ready. Store currency
-                must be BDT for bKash at checkout.
-              </p>
-
-              <div className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
-                <div>
-                  <p className="text-sm font-medium">Enable bKash</p>
-                  <p className="text-xs text-muted-foreground">
-                    Show bKash as a payment option at checkout.
-                  </p>
-                </div>
-                <Switch
-                  checked={bkashEnabled}
-                  onCheckedChange={setBkashEnabled}
-                />
-              </div>
-
-              <div className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
-                <div>
-                  <p className="text-sm font-medium">Sandbox mode</p>
-                  <p className="text-xs text-muted-foreground">
-                    Use bKash sandbox URLs for testing. Turn off for live
-                    payments.
-                  </p>
-                </div>
-                <Switch
-                  checked={bkashSandbox}
-                  onCheckedChange={setBkashSandbox}
-                />
-              </div>
-
-              {defaultCurrency !== "BDT" ? (
-                <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
-                  Default currency is {defaultCurrency}. Switch Commerce →
-                  Currency to BDT before offering bKash at checkout.
-                </p>
-              ) : null}
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <FormField label="Username">
-                  <Input
-                    value={bkashUsername}
-                    onChange={(e) => setBkashUsername(e.target.value)}
-                    placeholder="Merchant portal username"
-                    className={adminInputClass}
-                    autoComplete="off"
-                  />
-                </FormField>
-                <FormField
-                  label="Password"
-                  hint={
-                    bkashHasPassword && !bkashPassword
-                      ? "Saved — leave blank to keep current password."
-                      : undefined
-                  }
-                >
-                  <Input
-                    type="password"
-                    value={bkashPassword}
-                    onChange={(e) => setBkashPassword(e.target.value)}
-                    placeholder={bkashHasPassword ? "••••••••••••" : "Password"}
-                    className={adminInputClass}
-                    autoComplete="new-password"
-                  />
-                </FormField>
-                <FormField label="App Key">
-                  <Input
-                    value={bkashAppKey}
-                    onChange={(e) => setBkashAppKey(e.target.value)}
-                    placeholder="x-app-key"
-                    className={adminInputClass}
-                    autoComplete="off"
-                  />
-                </FormField>
-                <FormField
-                  label="App Secret"
-                  hint={
-                    bkashHasAppSecret && !bkashAppSecret
-                      ? "Saved — leave blank to keep current secret."
-                      : undefined
-                  }
-                >
-                  <Input
-                    type="password"
-                    value={bkashAppSecret}
-                    onChange={(e) => setBkashAppSecret(e.target.value)}
-                    placeholder={
-                      bkashHasAppSecret ? "••••••••••••" : "App secret"
-                    }
-                    className={adminInputClass}
-                    autoComplete="new-password"
-                  />
-                </FormField>
-              </div>
+            <TabsContent value="payments" className="mt-0">
+              <PaymentSettings
+                value={payments}
+                onChange={setPayments}
+                defaultCurrency={defaultCurrency}
+              />
             </TabsContent>
           </Tabs>
         </TabsContent>

@@ -164,7 +164,7 @@ export default function CheckoutOrderSummary({
           <span className="text-muted-foreground">
             Delivery · {deliveryZoneLabel(shippingMethod)}
           </span>
-          <span>{format(shipping)}</span>
+          <span>{shipping === 0 ? "Free" : format(shipping)}</span>
         </div>
         <div className="flex justify-between border-t border-border pt-3 text-base font-semibold">
           <span>Total ({code})</span>

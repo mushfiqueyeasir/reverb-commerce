@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useCheckoutStore } from "@/store/checkoutStore";
 import { useCartStore } from "@/store/cartStore";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -246,12 +247,12 @@ export default function CheckoutForm({
               {
                 value: "inside-dhaka" as const,
                 label: "Inside Dhaka",
-                amount: deliveryCharges.insideDhaka,
+                amount: shippingCostForZone(deliveryCharges, "inside-dhaka"),
               },
               {
                 value: "outside-dhaka" as const,
                 label: "Outside Dhaka",
-                amount: deliveryCharges.outsideDhaka,
+                amount: shippingCostForZone(deliveryCharges, "outside-dhaka"),
               },
             ] as const
           ).map((zone) => {
@@ -270,7 +271,9 @@ export default function CheckoutForm({
               >
                 <span className="block font-medium">{zone.label}</span>
                 <span className="mt-1 block text-muted-foreground">
-                  {format(zone.amount)} delivery
+                  {zone.amount === 0
+                    ? "Free delivery"
+                    : `${format(zone.amount)} delivery`}
                 </span>
               </button>
             );
@@ -278,7 +281,9 @@ export default function CheckoutForm({
         </div>
         <p className="text-xs text-muted-foreground">
           Delivery charge for this order:{" "}
-          <span className="text-foreground">{format(shippingCost)}</span>
+          <span className="text-foreground">
+            {shippingCost === 0 ? "Free" : format(shippingCost)}
+          </span>
         </p>
       </div>
 
@@ -311,9 +316,22 @@ export default function CheckoutForm({
               )}
               onClick={() => updateFormData({ paymentMethod: "bkash" })}
             >
-              <span className="block font-medium">bKash</span>
-              <span className="mt-1 block text-muted-foreground">
-                Pay securely with bKash wallet
+              <span className="flex items-center gap-3">
+                <span className="grid h-9 w-16 place-items-center rounded-lg bg-white px-2 py-1">
+                  <Image
+                    src="/images/payments/bkash.png"
+                    alt="bKash"
+                    width={115}
+                    height={67}
+                    className="max-h-7 w-auto max-w-full object-contain"
+                  />
+                </span>
+                <span>
+                  <span className="block font-medium">bKash</span>
+                  <span className="mt-0.5 block text-muted-foreground">
+                    Pay securely with bKash wallet
+                  </span>
+                </span>
               </span>
             </button>
           ) : null}
