@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import StoreInput from "@/components/Common/Input";
 import { signInAdmin } from "@/app/admin/auth-audit-actions";
 import { useStoreName } from "@/components/providers/StoreBrandProvider";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const PARTICLES = Array.from({ length: 14 });
 
@@ -81,16 +82,24 @@ function LoginForm() {
 
 function FormSkeleton() {
   return (
-    <div className="space-y-5" aria-busy="true" aria-label="Loading">
-      <div className="space-y-2">
-        <div className="h-4 w-16 animate-pulse rounded bg-white/[0.06]" />
-        <div className="h-12 animate-pulse rounded-lg bg-white/[0.06]" />
+    <div
+      className="space-y-5"
+      aria-busy="true"
+      aria-label="Loading"
+      role="status"
+    >
+      <span className="sr-only">Loading sign-in form</span>
+      <div aria-hidden="true" className="space-y-5">
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-12 rounded-lg" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-12 rounded-lg" />
+        </div>
+        <Skeleton className="h-12 rounded-full" />
       </div>
-      <div className="space-y-2">
-        <div className="h-4 w-20 animate-pulse rounded bg-white/[0.06]" />
-        <div className="h-12 animate-pulse rounded-lg bg-white/[0.06]" />
-      </div>
-      <div className="h-12 animate-pulse rounded-full bg-white/[0.06]" />
     </div>
   );
 }
