@@ -1,7 +1,6 @@
 import "server-only";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   COURIER_PROVIDERS,
   type CourierProvider,
@@ -140,20 +139,16 @@ export async function saveCourierSettingsRow(
     ];
   });
 
-  const server = await createSupabaseServerClient();
-  const { error } = await server.rpc("save_courier_settings", {
+  const admin = createSupabaseAdminClient();
+  const { error } = await admin.rpc("save_courier_settings", {
     p_settings: settingsPayload,
     p_active_provider: input.activeProvider,
   });
   if (error) {
-    if (
-      /courier_settings|schema cache|does not exist|save_courier_settings/i.test(
-        error.message,
-      )
-    ) {
+    if (["42P01", "42883", "PGRST202", "PGRST205"].includes(error.code)) {
       return {
         error:
-          "Courier settings tables are missing. Apply migration 0017_courier_integrations.sql, then try again.",
+          "Courier settings tables are missing. Apply the latest database migrations, then try again.",
       };
     }
     return { error: error.message };

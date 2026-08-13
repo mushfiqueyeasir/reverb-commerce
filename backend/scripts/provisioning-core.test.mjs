@@ -432,3 +432,26 @@ test("backfills and constrains banner section ownership", () => {
   assert.match(migration, /on public\.banners \(section_type, active, sort\)/);
   assert.doesNotMatch(migration, /insert into public\.banners/);
 });
+
+test("courier settings save supports service role and no active provider", () => {
+  const migration = readFileSync(
+    join(
+      import.meta.dirname,
+      "..",
+      "supabase",
+      "migrations",
+      "0031_service_role_courier_settings.sql",
+    ),
+    "utf8",
+  );
+
+  assert.match(migration, /auth\.role\(\) <> 'service_role'/);
+  assert.match(
+    migration,
+    /coalesce\(item_provider = p_active_provider, false\)/,
+  );
+  assert.match(
+    migration,
+    /grant execute on function public\.save_courier_settings\(jsonb, text\) to service_role/,
+  );
+});
