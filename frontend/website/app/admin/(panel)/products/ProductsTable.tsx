@@ -165,7 +165,9 @@ export function ProductsTable({
       <AdminList
         items={data}
         emptyMessage={
-          search || category ? "No products match these filters." : "No products yet."
+          search || category
+            ? "No products match these filters."
+            : "No products yet."
         }
         renderLeading={(item) => (
           <div className="relative size-12 overflow-hidden rounded-md border border-border bg-muted">
@@ -194,7 +196,9 @@ export function ProductsTable({
             <Badge variant="outline">
               {formatMoney(item.current_price, symbol)}
             </Badge>
-            <Badge variant="outline">Stock {formatNumber(item.totalStock)}</Badge>
+            <Badge variant="outline">
+              Stock {formatNumber(item.totalStock)}
+            </Badge>
             {item.categories.slice(0, 2).map((itemCategory) => (
               <Badge key={itemCategory} variant="secondary">
                 {itemCategory}
@@ -204,7 +208,12 @@ export function ProductsTable({
         )}
         renderTrailing={(item) => (
           <>
-            <Button asChild variant="ghost" size="icon" className="rounded-full">
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+            >
               <Link href={`/admin/products/${item.id}`} aria-label="Edit">
                 <Pencil className="size-4" />
               </Link>
@@ -234,8 +243,8 @@ export function ProductsTable({
 
       <div className="flex flex-col gap-3 rounded-xl border border-border bg-card/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
-          Showing {firstResult.toLocaleString()}–{lastResult.toLocaleString()} of{" "}
-          {total.toLocaleString()} products
+          Showing {firstResult.toLocaleString()}–{lastResult.toLocaleString()}{" "}
+          of {total.toLocaleString()} products
         </p>
         <div className="flex items-center gap-2">
           {page > 1 ? (

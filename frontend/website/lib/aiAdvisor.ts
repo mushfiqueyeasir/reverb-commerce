@@ -216,8 +216,8 @@ export function parseModelAdvisorResponse(
     ? [
         ...new Set(
           result.sourceIds
-            .filter((sourceId): sourceId is string =>
-              typeof sourceId === "string",
+            .filter(
+              (sourceId): sourceId is string => typeof sourceId === "string",
             )
             .map((sourceId) => sourceId.trim())
             .filter(Boolean),

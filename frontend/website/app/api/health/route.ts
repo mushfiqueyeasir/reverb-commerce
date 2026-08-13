@@ -88,8 +88,7 @@ export async function GET() {
   }
 
   let privilegedAuth:
-    | { status: "ok" }
-    | { status: "error" | "skipped"; message: string };
+    { status: "ok" } | { status: "error" | "skipped"; message: string };
 
   if (!supabaseUrl || !serviceRoleKey || !isHttpUrl(supabaseUrl)) {
     privilegedAuth = {

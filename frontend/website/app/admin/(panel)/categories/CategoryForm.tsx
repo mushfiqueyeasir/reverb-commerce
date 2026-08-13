@@ -48,13 +48,7 @@ export function CategoryForm({
   const [description, setDescription] = useState(category?.description ?? "");
   const [categoryType, setCategoryType] = useState<
     "primary" | "subcategory" | null
-  >(
-    category
-      ? category.parent_id
-        ? "subcategory"
-        : "primary"
-      : null,
-  );
+  >(category ? (category.parent_id ? "subcategory" : "primary") : null);
   const [parentId, setParentId] = useState(category?.parent_id ?? "");
   const [image, setImage] = useState<UploadedImage[]>(
     category?.image_path ? [{ path: category.image_path }] : [],
@@ -134,10 +128,7 @@ export function CategoryForm({
           title="Choose category type"
           description="Decide how this category should appear in the catalog."
         >
-          <CategoryTypeChooser
-            selected={null}
-            onSelect={chooseCategoryType}
-          />
+          <CategoryTypeChooser selected={null} onSelect={chooseCategoryType} />
         </AdminCard>
         <FormActions>
           <Button

@@ -25,7 +25,11 @@ export async function saveCategory(
   if (!input.name?.trim()) return { error: "Name is required." };
   if (!input.slug?.trim()) return { error: "Slug is required." };
   const imagePath = input.image_path?.trim() || null;
-  if (imagePath && /^https?:\/\//i.test(imagePath) && !/^https:\/\//i.test(imagePath)) {
+  if (
+    imagePath &&
+    /^https?:\/\//i.test(imagePath) &&
+    !/^https:\/\//i.test(imagePath)
+  ) {
     return { error: "Remote image URLs must use HTTPS." };
   }
 
@@ -59,8 +63,7 @@ export async function saveCategory(
   }
 
   let sort = Number.isFinite(input.sort) ? Number(input.sort) : undefined;
-  const parentChanged =
-    input.id && (existing?.parent_id ?? null) !== parentId;
+  const parentChanged = input.id && (existing?.parent_id ?? null) !== parentId;
   if (sort == null && input.id && !parentChanged) {
     sort = (existing?.sort as number | undefined) ?? 10;
   }
@@ -167,7 +170,10 @@ export async function reorderCategories(input: {
   if (!canWrite(s.role)) {
     return { error: "You do not have permission to do this." };
   }
-  if (!input.orderedIds.length || new Set(input.orderedIds).size !== input.orderedIds.length) {
+  if (
+    !input.orderedIds.length ||
+    new Set(input.orderedIds).size !== input.orderedIds.length
+  ) {
     return { error: "Invalid category order." };
   }
 

@@ -89,7 +89,8 @@ export default function Navbar({
             href="/"
             className={cn(
               "flex min-w-0 items-center gap-2",
-              centered && "md:col-start-2 md:row-start-1 md:justify-self-center",
+              centered &&
+                "md:col-start-2 md:row-start-1 md:justify-self-center",
             )}
             aria-label={storeName}
           >
@@ -187,8 +188,7 @@ export default function Navbar({
           <div
             className={cn(
               "hidden shrink-0 items-center gap-0.5 sm:gap-1 md:flex",
-              centered &&
-                "md:col-start-3 md:row-start-1 md:justify-self-end",
+              centered && "md:col-start-3 md:row-start-1 md:justify-self-end",
             )}
           >
             <IconBtn label="Search" onClick={() => setIsSearchOpen(true)}>
@@ -283,10 +283,7 @@ function branchIsActive(
 }
 
 function flattenMenuLinks(items: MenuLink[]): MenuLink[] {
-  return items.flatMap((item) => [
-    item,
-    ...flattenMenuLinks(item.items ?? []),
-  ]);
+  return items.flatMap((item) => [item, ...flattenMenuLinks(item.items ?? [])]);
 }
 
 function MenuLinkItem({
@@ -425,52 +422,52 @@ function CategoryMegaMenu({
           <div className="p-5 pr-7">
             {selectedGroup ? (
               <>
-              <Link
-                href={selectedGroup.href}
-                className="group relative flex min-h-36 overflow-hidden rounded-2xl border border-border bg-surface"
-              >
-                {selectedGroup.imageUrl ? (
-                  <Image
-                    src={selectedGroup.imageUrl}
-                    alt=""
-                    fill
-                    sizes="640px"
-                    className="object-cover transition duration-700 group-hover:scale-105"
-                  />
-                ) : null}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/15" />
-                <div className="relative flex w-full items-end justify-between gap-4 p-5 text-white">
-                  <div>
-                    <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-white/65">
-                      Primary category
-                    </p>
-                    <h3 className="mt-2 font-display text-2xl font-semibold">
-                      {selectedGroup.label}
-                    </h3>
-                  </div>
-                  <span className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.14em]">
-                    Explore <ArrowRight className="size-4" />
-                  </span>
-                </div>
-              </Link>
-
-              {selectedChildren.length ? (
-                <div className="mt-5 grid grid-cols-2 gap-1">
-                  {selectedChildren.map((item) => (
-                    <MenuLinkItem
-                      key={item.href}
-                      item={item}
-                      pathname={pathname}
-                      activeCategory={activeCategory}
-                      className="py-3"
+                <Link
+                  href={selectedGroup.href}
+                  className="group relative flex min-h-36 overflow-hidden rounded-2xl border border-border bg-surface"
+                >
+                  {selectedGroup.imageUrl ? (
+                    <Image
+                      src={selectedGroup.imageUrl}
+                      alt=""
+                      fill
+                      sizes="640px"
+                      className="object-cover transition duration-700 group-hover:scale-105"
                     />
-                  ))}
-                </div>
-              ) : (
-                <p className="mt-6 text-sm text-muted-foreground">
-                  Explore all products in this collection.
-                </p>
-              )}
+                  ) : null}
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/15" />
+                  <div className="relative flex w-full items-end justify-between gap-4 p-5 text-white">
+                    <div>
+                      <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-white/65">
+                        Primary category
+                      </p>
+                      <h3 className="mt-2 font-display text-2xl font-semibold">
+                        {selectedGroup.label}
+                      </h3>
+                    </div>
+                    <span className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.14em]">
+                      Explore <ArrowRight className="size-4" />
+                    </span>
+                  </div>
+                </Link>
+
+                {selectedChildren.length ? (
+                  <div className="mt-5 grid grid-cols-2 gap-1">
+                    {selectedChildren.map((item) => (
+                      <MenuLinkItem
+                        key={item.href}
+                        item={item}
+                        pathname={pathname}
+                        activeCategory={activeCategory}
+                        className="py-3"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-6 text-sm text-muted-foreground">
+                    Explore all products in this collection.
+                  </p>
+                )}
               </>
             ) : null}
           </div>

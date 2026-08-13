@@ -123,7 +123,8 @@ export default function Footer({ settings, preview = false }: FooterProps) {
         <div
           className={cn(
             "mt-6 space-y-2 text-sm text-muted-foreground",
-            compact && "flex flex-wrap justify-center gap-x-5 gap-y-2 space-y-0",
+            compact &&
+              "flex flex-wrap justify-center gap-x-5 gap-y-2 space-y-0",
           )}
         >
           {settings.contact_email ? (

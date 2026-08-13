@@ -27,7 +27,9 @@ export async function getCategories(): Promise<Category[]> {
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return flattenCategoryHierarchy(((data as CategoryRow[]) ?? []).map(mapCategory));
+  return flattenCategoryHierarchy(
+    ((data as CategoryRow[]) ?? []).map(mapCategory),
+  );
 }
 
 export async function getCategoryById(id: string): Promise<Category | null> {

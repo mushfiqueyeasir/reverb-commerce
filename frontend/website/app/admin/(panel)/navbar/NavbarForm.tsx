@@ -115,7 +115,9 @@ export function NavbarForm({ initialConfig }: { initialConfig: NavbarConfig }) {
         return;
       }
       setConfig((current) => ({ ...current, variant }));
-      toast.success(`${variant === "classic" ? "Classic" : "Centered"} navbar enabled`);
+      toast.success(
+        `${variant === "classic" ? "Classic" : "Centered"} navbar enabled`,
+      );
       router.refresh();
     });
   };
@@ -215,7 +217,9 @@ export function NavbarForm({ initialConfig }: { initialConfig: NavbarConfig }) {
 
           <div>
             <div className="mb-3">
-              <p className="text-sm font-medium text-foreground">Custom links</p>
+              <p className="text-sm font-medium text-foreground">
+                Custom links
+              </p>
               <p className="mt-1 text-xs text-muted-foreground">
                 Drag links to set their order. Use /path or an https:// URL.
               </p>
@@ -251,10 +255,7 @@ export function NavbarForm({ initialConfig }: { initialConfig: NavbarConfig }) {
                         }
                       />
                     </FormField>
-                    <FormField
-                      label="Link"
-                      htmlFor={`navbar-href-${item.id}`}
-                    >
+                    <FormField label="Link" htmlFor={`navbar-href-${item.id}`}>
                       <Input
                         id={`navbar-href-${item.id}`}
                         className={adminInputClass}

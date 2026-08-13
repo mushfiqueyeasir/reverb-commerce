@@ -170,8 +170,7 @@ export default function SearchSidebar({
 
             <div className="mt-auto hidden items-center gap-2 pt-8 font-mono text-[9px] uppercase tracking-[0.24em] text-muted-foreground lg:flex">
               <span className="size-1.5 animate-pulse rounded-full bg-primary" />
-               Website + inventory connected
-
+              Website + inventory connected
             </div>
           </aside>
 
@@ -242,8 +241,8 @@ export default function SearchSidebar({
                       Ask about anything.
                     </span>
                     <span className="mt-2 block max-w-lg text-sm leading-6 text-muted-foreground">
-                      Get help with products, delivery, returns, company details,
-                      navigation, and more.
+                      Get help with products, delivery, returns, company
+                      details, navigation, and more.
                     </span>
                   </span>
                   <span className="relative grid size-12 shrink-0 place-items-center rounded-full border border-border transition group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground sm:size-14">

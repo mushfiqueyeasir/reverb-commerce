@@ -44,10 +44,7 @@ function firstParam(value: string | string[] | undefined) {
   return (Array.isArray(value) ? value[0] : value)?.trim() ?? "";
 }
 
-function pageUrl(
-  page: number,
-  filters: { search: string; category: string },
-) {
+function pageUrl(page: number, filters: { search: string; category: string }) {
   const params = new URLSearchParams();
   if (page > 1) params.set("page", String(page));
   if (filters.search) params.set("search", filters.search);
@@ -139,31 +136,33 @@ export default async function ProductsPage({
 
   const symbol = settings.currency_symbol || "$";
   const rawRows: unknown[] = (productRes.data as unknown[]) ?? [];
-  const rows: ProductTableRow[] = (rawRows as ProductQueryRow[]).map((product) => {
-    const images = [...(product.product_images ?? [])].sort(
-      (left, right) => left.sort - right.sort,
-    );
-    const main = images.find((image) => image.is_main) ?? images[0];
-    const totalStock = (product.product_variants ?? []).reduce(
-      (sum, variant) => sum + (variant.stock_quantity ?? 0),
-      0,
-    );
-    const categories = (product.product_categories ?? [])
-      .map((link) => link.categories?.name)
-      .filter((name): name is string => Boolean(name));
+  const rows: ProductTableRow[] = (rawRows as ProductQueryRow[]).map(
+    (product) => {
+      const images = [...(product.product_images ?? [])].sort(
+        (left, right) => left.sort - right.sort,
+      );
+      const main = images.find((image) => image.is_main) ?? images[0];
+      const totalStock = (product.product_variants ?? []).reduce(
+        (sum, variant) => sum + (variant.stock_quantity ?? 0),
+        0,
+      );
+      const categories = (product.product_categories ?? [])
+        .map((link) => link.categories?.name)
+        .filter((name): name is string => Boolean(name));
 
-    return {
-      id: product.id,
-      title: product.title,
-      slug: product.slug,
-      status: product.status,
-      current_price: product.current_price,
-      mainImage: productImageUrl(main?.path),
-      totalStock,
-      categories,
-      sort: product.sort ?? 0,
-    };
-  });
+      return {
+        id: product.id,
+        title: product.title,
+        slug: product.slug,
+        status: product.status,
+        current_price: product.current_price,
+        mainImage: productImageUrl(main?.path),
+        totalStock,
+        categories,
+        sort: product.sort ?? 0,
+      };
+    },
+  );
 
   return (
     <div>

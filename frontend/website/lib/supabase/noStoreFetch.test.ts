@@ -38,7 +38,10 @@ describe("createNoStoreSupabaseFetch", () => {
   it("preserves a user access token with a modern publishable key", async () => {
     const apiKey = "sb_publishable_public";
     const { fetchImplementation, requests } = captureFetch();
-    const supabaseFetch = createNoStoreSupabaseFetch(apiKey, fetchImplementation);
+    const supabaseFetch = createNoStoreSupabaseFetch(
+      apiKey,
+      fetchImplementation,
+    );
 
     await supabaseFetch("https://example.supabase.co/auth/v1/user", {
       headers: {
@@ -55,7 +58,10 @@ describe("createNoStoreSupabaseFetch", () => {
   it("preserves the bearer fallback for a legacy JWT key", async () => {
     const apiKey = "header.payload.signature";
     const { fetchImplementation, requests } = captureFetch();
-    const supabaseFetch = createNoStoreSupabaseFetch(apiKey, fetchImplementation);
+    const supabaseFetch = createNoStoreSupabaseFetch(
+      apiKey,
+      fetchImplementation,
+    );
 
     await supabaseFetch("https://example.supabase.co/rest/v1/items", {
       headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
@@ -67,11 +73,13 @@ describe("createNoStoreSupabaseFetch", () => {
   it("preserves Request headers when init does not replace them", async () => {
     const apiKey = "sb_publishable_public";
     const { fetchImplementation, requests } = captureFetch();
-    const supabaseFetch = createNoStoreSupabaseFetch(apiKey, fetchImplementation);
-    const request = new Request(
-      "https://example.supabase.co/rest/v1/items",
-      { headers: { "x-request": "request" } },
+    const supabaseFetch = createNoStoreSupabaseFetch(
+      apiKey,
+      fetchImplementation,
     );
+    const request = new Request("https://example.supabase.co/rest/v1/items", {
+      headers: { "x-request": "request" },
+    });
 
     await supabaseFetch(request);
 
@@ -81,11 +89,13 @@ describe("createNoStoreSupabaseFetch", () => {
   it("uses init headers instead of stale Request headers", async () => {
     const apiKey = "sb_publishable_public";
     const { fetchImplementation, requests } = captureFetch();
-    const supabaseFetch = createNoStoreSupabaseFetch(apiKey, fetchImplementation);
-    const request = new Request(
-      "https://example.supabase.co/rest/v1/items",
-      { headers: { authorization: "Bearer stale", "x-request": "request" } },
+    const supabaseFetch = createNoStoreSupabaseFetch(
+      apiKey,
+      fetchImplementation,
     );
+    const request = new Request("https://example.supabase.co/rest/v1/items", {
+      headers: { authorization: "Bearer stale", "x-request": "request" },
+    });
 
     await supabaseFetch(request, { headers: { "x-init": "init" } });
 

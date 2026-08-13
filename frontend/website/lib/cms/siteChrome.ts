@@ -93,7 +93,8 @@ export const DEFAULT_NAVBAR: NavbarConfig = {
 
 export const DEFAULT_FOOTER: FooterConfig = {
   variant: "classic",
-  description: "Browse products, discover new arrivals, and shop securely online.",
+  description:
+    "Browse products, discover new arrivals, and shop securely online.",
   columns: [
     {
       id: "shop",
@@ -167,10 +168,7 @@ export function isExternalChromeHref(value: string): boolean {
   return /^https:\/\//i.test(value.trim());
 }
 
-function normalizeLink(
-  value: unknown,
-  fallbackId: string,
-): FooterLink | null {
+function normalizeLink(value: unknown, fallbackId: string): FooterLink | null {
   const item = record(value);
   if (!item) return null;
   const label = text(item.label, "", 60);
@@ -240,7 +238,10 @@ export function normalizeFooterConfig(
     return fallback;
   }
   const columns = uniqueIds(
-    (Array.isArray(input.columns) ? input.columns.slice(0, 3) : DEFAULT_FOOTER.columns)
+    (Array.isArray(input.columns)
+      ? input.columns.slice(0, 3)
+      : DEFAULT_FOOTER.columns
+    )
       .map((value, columnIndex): FooterColumn | null => {
         const column = record(value);
         if (!column) return null;

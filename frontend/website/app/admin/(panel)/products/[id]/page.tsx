@@ -2,11 +2,7 @@ import { notFound } from "next/navigation";
 import { requireRole } from "@/lib/admin/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader, BackLink } from "@/components/admin/PageHeader";
-import type {
-  ProductRow,
-  ProductImageRow,
-  ProductVariantRow,
-} from "@/type/db";
+import type { ProductRow, ProductImageRow, ProductVariantRow } from "@/type/db";
 import { resolveSizeChart } from "@/lib/products/sizeChart";
 import { getCategories } from "@/utility/getCategory";
 import {

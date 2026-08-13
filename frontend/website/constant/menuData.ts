@@ -29,9 +29,7 @@ function categoryMenuItems(categories: Category[]): MenuLink[] {
     items: (children.get(category._id) ?? []).map(mapCategory),
   });
 
-  return categories
-    .filter((category) => !category.parentId)
-    .map(mapCategory);
+  return categories.filter((category) => !category.parentId).map(mapCategory);
 }
 
 export function getMenuData(

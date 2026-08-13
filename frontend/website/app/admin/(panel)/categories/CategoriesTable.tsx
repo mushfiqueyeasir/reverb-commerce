@@ -101,9 +101,7 @@ export function CategoriesTable({
     setOrderedData((current) => {
       let siblingIndex = 0;
       return current.map((item) =>
-        item.parentId === currentParentId
-          ? nextItems[siblingIndex++]
-          : item,
+        item.parentId === currentParentId ? nextItems[siblingIndex++] : item,
       );
     });
 
@@ -196,7 +194,9 @@ export function CategoriesTable({
         </DndContext>
       ) : (
         <p className="rounded-2xl border border-dashed border-border bg-card/50 px-4 py-12 text-center text-sm text-muted-foreground">
-          {query ? "No categories match this search." : "No categories at this level."}
+          {query
+            ? "No categories match this search."
+            : "No categories at this level."}
         </p>
       )}
     </div>
@@ -216,8 +216,14 @@ function SortableCategoryCard({
   onOpen: () => void;
   onDeleted: () => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: item.id, disabled: !canDrag });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id, disabled: !canDrag });
 
   return (
     <div
@@ -248,7 +254,9 @@ function SortableCategoryCard({
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/70 px-4 py-3">
         <div className="flex flex-wrap gap-2">
           {item.isDefault ? <Badge>Default</Badge> : null}
-          {item.parentId ? <Badge variant="secondary">Subcategory</Badge> : null}
+          {item.parentId ? (
+            <Badge variant="secondary">Subcategory</Badge>
+          ) : null}
           {item.directChildCount ? (
             <Badge variant="secondary">
               {item.directChildCount} subcategor
@@ -284,12 +292,7 @@ function SortableCategoryCard({
               View <ArrowRight />
             </Button>
           ) : null}
-          <Button
-            asChild
-            variant="ghost"
-            size="icon"
-            className="rounded-full"
-          >
+          <Button asChild variant="ghost" size="icon" className="rounded-full">
             <Link
               href={`/admin/categories/${item.id}`}
               aria-label={`Edit ${item.name}`}

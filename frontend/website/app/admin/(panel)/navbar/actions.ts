@@ -3,10 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdminSession, isAdmin } from "@/lib/admin/auth";
 import { writeAuditLog } from "@/lib/admin/auditLog";
-import {
-  readCmsBlobForWrite,
-  writeCmsSection,
-} from "@/lib/cms/jsonStore";
+import { readCmsBlobForWrite, writeCmsSection } from "@/lib/cms/jsonStore";
 import {
   NAVBAR_VARIANTS,
   normalizeNavbarConfig,

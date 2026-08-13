@@ -104,14 +104,9 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     }
 
     if (filters.categories.length > 0) {
-      const allowedSlugs = getDescendantSlugs(
-        categories,
-        filters.categories,
-      );
+      const allowedSlugs = getDescendantSlugs(categories, filters.categories);
       filtered = filtered.filter((p) =>
-        p.categories.some((cat) =>
-          allowedSlugs.has(cat.categoryUrl.current),
-        ),
+        p.categories.some((cat) => allowedSlugs.has(cat.categoryUrl.current)),
       );
     }
 

@@ -145,7 +145,8 @@ export function ProductForm({
     const visibleIds = new Set<string>();
     const addDescendants = (category: CategoryOption) => {
       visibleIds.add(category.id);
-      for (const child of children.get(category.id) ?? []) addDescendants(child);
+      for (const child of children.get(category.id) ?? [])
+        addDescendants(child);
     };
     if (query) {
       for (const category of categories) {

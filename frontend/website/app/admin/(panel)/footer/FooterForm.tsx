@@ -173,7 +173,9 @@ export function FooterForm({ initialConfig }: { initialConfig: FooterConfig }) {
         return;
       }
       setConfig((current) => ({ ...current, variant }));
-      toast.success(`${variant === "classic" ? "Classic" : "Compact"} footer enabled`);
+      toast.success(
+        `${variant === "classic" ? "Classic" : "Compact"} footer enabled`,
+      );
       router.refresh();
     });
   };
@@ -188,9 +190,7 @@ export function FooterForm({ initialConfig }: { initialConfig: FooterConfig }) {
       ...config.legalLinks,
     ];
     if (
-      links.some(
-        (link) => !link.label.trim() || !isSafeChromeHref(link.href),
-      )
+      links.some((link) => !link.label.trim() || !isSafeChromeHref(link.href))
     ) {
       toast.error("Each footer link needs a label and a valid link.");
       return;
@@ -333,12 +333,7 @@ export function FooterForm({ initialConfig }: { initialConfig: FooterConfig }) {
                           link={link}
                           prefix={column.title}
                           onChange={(key, value) =>
-                            updateColumnLink(
-                              columnIndex,
-                              linkIndex,
-                              key,
-                              value,
-                            )
+                            updateColumnLink(columnIndex, linkIndex, key, value)
                           }
                           onRemove={() =>
                             removeColumnLink(columnIndex, linkIndex)
@@ -389,9 +384,7 @@ export function FooterForm({ initialConfig }: { initialConfig: FooterConfig }) {
                 <LinkFields
                   link={link}
                   prefix="legal"
-                  onChange={(key, value) =>
-                    updateLegalLink(index, key, value)
-                  }
+                  onChange={(key, value) => updateLegalLink(index, key, value)}
                   onRemove={() => removeLegalLink(index)}
                 />
               )}
