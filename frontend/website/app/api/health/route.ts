@@ -5,7 +5,7 @@ import {
   getSupabaseServiceRoleKey,
   getSupabaseUrl,
 } from "@/lib/config.server";
-import { noStoreFetch } from "@/lib/supabase/noStoreFetch";
+import { createNoStoreSupabaseFetch } from "@/lib/supabase/noStoreFetch";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -58,7 +58,7 @@ export async function GET() {
     try {
       const supabase = createClient(supabaseUrl, anonKey, {
         auth: { persistSession: false, autoRefreshToken: false },
-        global: { fetch: noStoreFetch },
+        global: { fetch: createNoStoreSupabaseFetch(anonKey) },
       });
       const { data, error } = await supabase
         .from("site_settings")
@@ -87,12 +87,48 @@ export async function GET() {
     }
   }
 
-  const healthy = configuration.status === "ok" && database.status === "ok";
+  let privilegedAuth:
+    | { status: "ok" }
+    | { status: "error" | "skipped"; message: string };
+
+  if (!supabaseUrl || !serviceRoleKey || !isHttpUrl(supabaseUrl)) {
+    privilegedAuth = {
+      status: "skipped",
+      message: "Supabase privileged configuration is unavailable.",
+    };
+  } else {
+    try {
+      const supabase = createClient(supabaseUrl, serviceRoleKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+        global: { fetch: createNoStoreSupabaseFetch(serviceRoleKey) },
+      });
+      const { error } = await supabase.auth.admin.listUsers({
+        page: 1,
+        perPage: 1,
+      });
+      privilegedAuth = error
+        ? {
+            status: "error",
+            message: "The privileged Auth connectivity check failed.",
+          }
+        : { status: "ok" };
+    } catch {
+      privilegedAuth = {
+        status: "error",
+        message: "The privileged Auth connectivity check failed.",
+      };
+    }
+  }
+
+  const healthy =
+    configuration.status === "ok" &&
+    database.status === "ok" &&
+    privilegedAuth.status === "ok";
 
   return NextResponse.json(
     {
       status: healthy ? "ok" : "unhealthy",
-      checks: { configuration, database },
+      checks: { configuration, database, privilegedAuth },
       timestamp: new Date().toISOString(),
     },
     {

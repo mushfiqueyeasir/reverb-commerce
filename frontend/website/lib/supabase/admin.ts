@@ -2,7 +2,7 @@ import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
 import { getSupabaseServiceRoleKey, getSupabaseUrl } from "@/lib/config.server";
-import { noStoreFetch } from "./noStoreFetch";
+import { createNoStoreSupabaseFetch } from "./noStoreFetch";
 
 // Service-role client. Bypasses RLS — server-only, never import in client code.
 // Used for storefront order writes (place_order RPC) and privileged admin ops.
@@ -18,6 +18,6 @@ export function createSupabaseAdminClient() {
   }
   return createClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
-    global: { fetch: noStoreFetch },
+    global: { fetch: createNoStoreSupabaseFetch(serviceKey) },
   });
 }

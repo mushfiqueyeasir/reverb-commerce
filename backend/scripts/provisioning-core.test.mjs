@@ -2,14 +2,32 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { createClient } from "@supabase/supabase-js";
 import {
   buildPlaceholderAssets,
+  createSupabaseFetch,
   deriveStoreDefaults,
   normalizeHttpsUrl,
   renderSqlTemplate,
   sqlLiteral,
   validateClientId,
 } from "./provisioning-core.mjs";
+
+function captureFetch(responseBody = null) {
+  const requests = [];
+  const fetchImplementation = async (input, init) => {
+    requests.push(new Request(input, init));
+    return new Response(
+      responseBody === null ? null : JSON.stringify(responseBody),
+      {
+        status: 200,
+        headers:
+          responseBody === null ? {} : { "Content-Type": "application/json" },
+      },
+    );
+  };
+  return { fetchImplementation, requests };
+}
 
 test("validates and normalizes provisioning identifiers", () => {
   assert.equal(validateClientId("sample-store"), "sample-store");
@@ -21,6 +39,175 @@ test("validates and normalizes provisioning identifiers", () => {
   assert.throws(() => normalizeHttpsUrl("http://example.com", "SITE_URL"));
   assert.throws(() =>
     normalizeHttpsUrl("https://example.com/path", "SITE_URL"),
+  );
+});
+
+test("removes only modern Supabase API key bearer fallbacks", async () => {
+  for (const apiKey of ["sb_publishable_public", "sb_secret_private"]) {
+    const { fetchImplementation, requests } = captureFetch();
+    const supabaseFetch = createSupabaseFetch(apiKey, fetchImplementation);
+    await supabaseFetch("https://example.supabase.co/rest/v1/items", {
+      headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+    });
+    assert.equal(requests[0].headers.get("apikey"), apiKey);
+    assert.equal(requests[0].headers.get("authorization"), null);
+  }
+
+  const { fetchImplementation, requests } = captureFetch();
+  const supabaseFetch = createSupabaseFetch(
+    "sb_publishable_public",
+    fetchImplementation,
+  );
+  await supabaseFetch("https://example.supabase.co/auth/v1/user", {
+    headers: {
+      apikey: "sb_publishable_public",
+      Authorization: "Bearer user.jwt.token",
+    },
+  });
+  assert.equal(
+    requests[0].headers.get("authorization"),
+    "Bearer user.jwt.token",
+  );
+
+  const legacyKey = "header.payload.signature";
+  const legacy = captureFetch();
+  await createSupabaseFetch(legacyKey, legacy.fetchImplementation)(
+    "https://example.supabase.co/rest/v1/items",
+    {
+      headers: {
+        apikey: legacyKey,
+        Authorization: `Bearer ${legacyKey}`,
+      },
+    },
+  );
+  assert.equal(
+    legacy.requests[0].headers.get("authorization"),
+    `Bearer ${legacyKey}`,
+  );
+});
+
+test("uses modern secret keys for Supabase storage without a bearer", async () => {
+  const secretKey = "sb_secret_private";
+  const { fetchImplementation, requests } = captureFetch({
+    Key: "branding/store-template/v1/logo.png",
+  });
+  const supabase = createClient("https://example.supabase.co", secretKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: createSupabaseFetch(secretKey, fetchImplementation) },
+  });
+
+  const { error } = await supabase.storage
+    .from("branding")
+    .upload("store-template/v1/logo.png", Buffer.from("png"), {
+      contentType: "image/png",
+      upsert: true,
+    });
+
+  assert.equal(error, null);
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].headers.get("apikey"), secretKey);
+  assert.equal(requests[0].headers.get("authorization"), null);
+  assert.equal(requests[0].headers.get("x-upsert"), "true");
+});
+
+test("uses modern project keys across Supabase Auth and PostgREST", async () => {
+  const requests = [];
+  const fetchImplementation = async (input, init) => {
+    const request = new Request(input, init);
+    requests.push(request);
+    const url = new URL(request.url);
+    if (url.pathname === "/auth/v1/token") {
+      return Response.json({
+        access_token: "user.jwt.token",
+        token_type: "bearer",
+        expires_in: 3600,
+        refresh_token: "refresh-token",
+        user: {
+          id: "00000000-0000-4000-8000-000000000001",
+          aud: "authenticated",
+          role: "authenticated",
+          email: "admin@example.com",
+          app_metadata: {},
+          user_metadata: {},
+          identities: [],
+          created_at: new Date().toISOString(),
+        },
+      });
+    }
+    if (url.pathname === "/auth/v1/admin/users") {
+      return Response.json({ users: [], aud: "authenticated" });
+    }
+    if (url.pathname === "/auth/v1/logout") {
+      return new Response(null, { status: 204 });
+    }
+    if (url.pathname === "/rest/v1/profiles") {
+      return Response.json({
+        id: "00000000-0000-4000-8000-000000000001",
+        role: "admin",
+      });
+    }
+    return Response.json({ message: "unexpected request" }, { status: 500 });
+  };
+
+  const secretKey = "sb_secret_private";
+  const admin = createClient("https://example.supabase.co", secretKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: createSupabaseFetch(secretKey, fetchImplementation) },
+  });
+  const { error: adminError } = await admin.auth.admin.listUsers({
+    page: 1,
+    perPage: 1,
+  });
+  assert.equal(adminError, null);
+
+  const publishableKey = "sb_publishable_public";
+  const publicClient = createClient(
+    "https://example.supabase.co",
+    publishableKey,
+    {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: {
+        fetch: createSupabaseFetch(publishableKey, fetchImplementation),
+      },
+    },
+  );
+  const { error: signInError } = await publicClient.auth.signInWithPassword({
+    email: "admin@example.com",
+    password: "example-password",
+  });
+  assert.equal(signInError, null);
+  const { data: profile, error: profileError } = await publicClient
+    .from("profiles")
+    .select("id, role")
+    .maybeSingle();
+  assert.equal(profileError, null);
+  assert.equal(profile?.role, "admin");
+  const { error: signOutError } = await publicClient.auth.signOut();
+  assert.equal(signOutError, null);
+
+  const adminRequest = requests.find((request) =>
+    request.url.includes("/auth/v1/admin/users"),
+  );
+  const signInRequest = requests.find((request) =>
+    request.url.includes("/auth/v1/token"),
+  );
+  const profileRequest = requests.find((request) =>
+    request.url.includes("/rest/v1/profiles"),
+  );
+  const signOutRequest = requests.find((request) =>
+    request.url.includes("/auth/v1/logout"),
+  );
+  assert.equal(adminRequest?.headers.get("apikey"), secretKey);
+  assert.equal(adminRequest?.headers.get("authorization"), null);
+  assert.equal(signInRequest?.headers.get("apikey"), publishableKey);
+  assert.equal(signInRequest?.headers.get("authorization"), null);
+  assert.equal(
+    profileRequest?.headers.get("authorization"),
+    "Bearer user.jwt.token",
+  );
+  assert.equal(
+    signOutRequest?.headers.get("authorization"),
+    "Bearer user.jwt.token",
   );
 });
 
@@ -198,6 +385,27 @@ test("defines an idempotent disabled homepage V2 migration", () => {
     [...migration.matchAll(/'60000000-0000-4000-8000-/g)].length,
     12,
   );
+});
+
+test("keeps provisioning credentials in GitHub environment secrets", () => {
+  const workflow = readFileSync(
+    join(
+      import.meta.dirname,
+      "..",
+      "..",
+      ".github",
+      "workflows",
+      "deploy-new-customer.yml",
+    ),
+    "utf8",
+  );
+  assert.doesNotMatch(workflow, /^\s+supabase_access_token:/m);
+  assert.match(
+    workflow,
+    /SUPABASE_ACCESS_TOKEN: \$\{\{ secrets\.SUPABASE_ACCESS_TOKEN \}\}/,
+  );
+  assert.match(workflow, /default: provision/);
+  assert.match(workflow, /PROVISION_MODE: \$\{\{ inputs\.provision_mode \}\}/);
 });
 
 test("backfills and constrains banner section ownership", () => {

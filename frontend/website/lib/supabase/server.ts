@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/config.server";
-import { noStoreFetch } from "./noStoreFetch";
+import { createNoStoreSupabaseFetch } from "./noStoreFetch";
 
 // SSR Supabase client bound to the request cookies. Use in Server Components,
 // Route Handlers, and Server Actions. In pure Server Components cookie writes
@@ -18,7 +18,7 @@ export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
 
   return createServerClient(supabaseUrl, anonKey, {
-    global: { fetch: noStoreFetch },
+    global: { fetch: createNoStoreSupabaseFetch(anonKey) },
     cookies: {
       getAll() {
         return cookieStore.getAll();

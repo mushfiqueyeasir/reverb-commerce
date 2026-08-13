@@ -7,9 +7,17 @@ on:
         description: "New store domain, for example https://www.example.com/"
         required: true
         type: string
-      supabase_access_token:
-        description: "Temporary Supabase Management API token"
+      provision_mode:
+        description: "Use provision for a new store or resume for a recorded partial project"
         required: true
+        default: provision
+        type: choice
+        options:
+          - provision
+          - resume
+      supabase_project_ref:
+        description: "Required project ref when resuming a partial Supabase project"
+        required: false
         type: string
 
 permissions:
@@ -66,12 +74,12 @@ jobs:
     name: Provision ${{ inputs.site_url }}
     needs: preflight
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     environment: store-provisioning
     permissions:
       contents: write
     concurrency:
-      group: provision-store-${{ inputs.site_url }}
+      group: provision-store
       cancel-in-progress: false
     outputs:
       production_url: ${{ steps.provision.outputs.production_url }}
@@ -104,20 +112,16 @@ jobs:
         working-directory: backend
         run: npm ci
 
-      - name: Mask temporary Supabase token
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ inputs.supabase_access_token }}
-        run: echo "::add-mask::$SUPABASE_ACCESS_TOKEN"
-
       - name: Create and verify store
         id: provision
         working-directory: backend
         env:
           SITE_URL: ${{ inputs.site_url }}
-          PROVISION_MODE: resume
+          PROVISION_MODE: ${{ inputs.provision_mode }}
           RELEASE_SHA: ${{ github.sha }}
           RELEASE_REF: main
-          SUPABASE_ACCESS_TOKEN: ${{ inputs.supabase_access_token }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ inputs.supabase_project_ref }}
           SUPABASE_ORG_SLUG: ${{ vars.SUPABASE_ORG_SLUG }}
           SUPABASE_REGION: ${{ vars.SUPABASE_REGION || 'ap-southeast-1' }}
           SUPABASE_INSTANCE_SIZE: ${{ vars.SUPABASE_INSTANCE_SIZE }}

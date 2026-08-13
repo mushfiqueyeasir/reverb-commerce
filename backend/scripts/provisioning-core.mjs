@@ -100,6 +100,22 @@ export function generateDatabasePassword() {
   return `${randomBytes(24).toString("base64url")}Aa1!`;
 }
 
+export function createSupabaseFetch(apiKey, fetchImplementation = fetch) {
+  return async (input, init = {}) => {
+    const headers = new Headers(
+      init.headers ?? (input instanceof Request ? input.headers : {}),
+    );
+    if (
+      (apiKey.startsWith("sb_publishable_") ||
+        apiKey.startsWith("sb_secret_")) &&
+      headers.get("authorization") === `Bearer ${apiKey}`
+    ) {
+      headers.delete("authorization");
+    }
+    return fetchImplementation(input, { ...init, headers });
+  };
+}
+
 export async function requestJson(
   url,
   { token, method = "GET", body, expected = [200] } = {},

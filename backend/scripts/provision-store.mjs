@@ -9,6 +9,7 @@ import {
 import { basename, join } from "node:path";
 import {
   buildPlaceholderAssets,
+  createSupabaseFetch,
   deriveStoreDefaults,
   generateDatabasePassword,
   HttpError,
@@ -67,7 +68,7 @@ function getConfig() {
     existsSync(join(clientsDirectory, clientId)),
   );
   const clientId = validateClientId(optional("CLIENT_ID", derived.clientId));
-  const mode = optional("PROVISION_MODE", "resume");
+  const mode = optional("PROVISION_MODE", "provision");
   if (!new Set(["provision", "resume"]).has(mode)) {
     throw new Error("PROVISION_MODE must be provision or resume");
   }
@@ -94,9 +95,10 @@ function getConfig() {
     shippingFlat: numericString("SHIPPING_FLAT", "80"),
     freeShippingThreshold: numericString("FREE_SHIPPING_THRESHOLD", "1000"),
     supabaseToken: required("SUPABASE_ACCESS_TOKEN"),
-    supabaseOrganizationSlug: optional("SUPABASE_ORG_SLUG"),
+    supabaseOrganizationSlug: required("SUPABASE_ORG_SLUG"),
     supabaseRegion: optional("SUPABASE_REGION", "ap-southeast-1"),
     supabaseInstanceSize: optional("SUPABASE_INSTANCE_SIZE"),
+    supabaseProjectRef: optional("SUPABASE_PROJECT_REF"),
     vercelToken: required("VERCEL_TOKEN"),
     vercelTeamId: optional("VERCEL_TEAM_ID"),
     gitRepository: optional(
@@ -113,6 +115,15 @@ function getConfig() {
     workflowRunId: optional("GITHUB_RUN_ID", "local"),
     projectName: `store-${clientId}`,
   };
+  if (config.supabaseProjectRef && !/^[a-z]{20}$/.test(config.supabaseProjectRef)) {
+    throw new Error("SUPABASE_PROJECT_REF must be a 20-letter project ref");
+  }
+  if (config.mode === "provision" && config.supabaseProjectRef) {
+    throw new Error("SUPABASE_PROJECT_REF is only valid in resume mode");
+  }
+  if (config.mode === "resume" && !config.supabaseProjectRef) {
+    throw new Error("SUPABASE_PROJECT_REF is required in resume mode");
+  }
   if (config.adminPassword.length < 10) {
     throw new Error(
       "BOOTSTRAP_ADMIN_PASSWORD must contain at least 10 characters",
@@ -194,23 +205,43 @@ async function listSupabaseProjects(config) {
 }
 
 async function findSupabaseProject(config, projects) {
-  for (const project of projects.filter(
-    (candidate) => candidate.name === config.projectName,
-  )) {
+  const candidates = config.supabaseProjectRef
+    ? projects.filter(
+        (candidate) => candidate.ref === config.supabaseProjectRef,
+      )
+    : projects.filter((candidate) => candidate.name === config.projectName);
+  const matches = [];
+  for (const project of candidates) {
+    let resolved = project;
     const organizationSlug =
       project.organization_slug ?? project.organization?.slug;
-    if (organizationSlug === config.supabaseOrganizationSlug) return project;
     if (!organizationSlug && project.ref) {
       const details = await supabaseRequest(
         config,
         `/v1/projects/${encodeURIComponent(project.ref)}`,
       );
-      if (details?.organization_slug === config.supabaseOrganizationSlug) {
-        return { ...project, ...details };
-      }
+      resolved = { ...project, ...details };
+    }
+    const resolvedOrganization =
+      resolved.organization_slug ?? resolved.organization?.slug;
+    if (
+      resolved.name === config.projectName &&
+      resolvedOrganization === config.supabaseOrganizationSlug
+    ) {
+      matches.push(resolved);
     }
   }
-  return null;
+  if (matches.length > 1) {
+    throw new Error(
+      `Multiple Supabase projects exist for ${config.projectName}; specify SUPABASE_PROJECT_REF in resume mode`,
+    );
+  }
+  if (config.supabaseProjectRef && matches.length === 0) {
+    throw new Error(
+      `Supabase resume project was not found: ${config.supabaseProjectRef}`,
+    );
+  }
+  return matches[0] ?? null;
 }
 
 async function waitForSupabase(config, projectRef) {
@@ -250,6 +281,9 @@ async function createOrResumeSupabase(config) {
   }
   if (existing) {
     console.log(`Resuming Supabase project ${existing.ref}.`);
+    summary(
+      `Supabase project: \`${existing.ref}\` (resume with this exact project ref if the workflow fails).`,
+    );
     await waitForSupabase(config, existing.ref);
     return { project: existing, created: false };
   }
@@ -292,6 +326,9 @@ async function createOrResumeSupabase(config) {
       "Supabase create-project response did not include a project ref",
     );
   console.log(`Created Supabase project ${project.ref}.`);
+  summary(
+    `Supabase project: \`${project.ref}\` (resume with this exact project ref if the workflow fails).`,
+  );
   await waitForSupabase(config, project.ref);
   return { project, created: true };
 }
@@ -493,6 +530,7 @@ async function getSupabaseKeys(config, projectRef) {
 async function uploadPlaceholderAssets(projectUrl, secretKey) {
   const supabase = createClient(projectUrl, secretKey, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: createSupabaseFetch(secretKey) },
   });
   for (const asset of buildPlaceholderAssets()) {
     const { error } = await supabase.storage
@@ -500,9 +538,9 @@ async function uploadPlaceholderAssets(projectUrl, secretKey) {
       .upload(asset.path, asset.content, {
         contentType: "image/png",
         cacheControl: "3600",
-        upsert: false,
+        upsert: true,
       });
-    if (error && !/already exists|duplicate/i.test(error.message)) {
+    if (error) {
       throw new Error(
         `Failed to upload ${asset.bucket}/${asset.path}: ${error.message}`,
       );
@@ -536,6 +574,7 @@ async function configureAuthAndAdmin(
   config,
   projectRef,
   projectUrl,
+  publishableKey,
   secretKey,
 ) {
   const allowed = [config.siteUrl, config.aliasUrl]
@@ -559,6 +598,7 @@ async function configureAuthAndAdmin(
 
   const supabase = createClient(projectUrl, secretKey, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: createSupabaseFetch(secretKey) },
   });
   let user = null;
   let userCount = 0;
@@ -576,6 +616,7 @@ async function configureAuthAndAdmin(
     );
     if (usersData.users.length < 100 || user) break;
   }
+  const existingUser = Boolean(user);
   if (!user) {
     if (userCount)
       throw new Error(
@@ -593,6 +634,19 @@ async function configureAuthAndAdmin(
       );
     user = data.user;
   }
+  if (existingUser) {
+    const { data, error } = await supabase.auth.admin.updateUserById(user.id, {
+      password: config.adminPassword,
+      email_confirm: true,
+      user_metadata: { full_name: "Store Administrator" },
+    });
+    if (error || !data.user) {
+      throw new Error(
+        `Unable to reconcile bootstrap administrator: ${error?.message ?? "missing user"}`,
+      );
+    }
+    user = data.user;
+  }
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .update({ role: "admin", full_name: "Store Administrator" })
@@ -603,6 +657,38 @@ async function configureAuthAndAdmin(
     throw new Error(
       `Unable to promote bootstrap administrator: ${profileError?.message ?? "profile was not updated"}`,
     );
+
+  const publicSupabase = createClient(projectUrl, publishableKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: createSupabaseFetch(publishableKey) },
+  });
+  const { data: session, error: signInError } =
+    await publicSupabase.auth.signInWithPassword({
+      email: config.adminEmail,
+      password: config.adminPassword,
+    });
+  if (signInError || session.user?.id !== user.id) {
+    throw new Error(
+      `Unable to verify bootstrap administrator login: ${signInError?.message ?? "unexpected user"}`,
+    );
+  }
+  const { data: verifiedProfile, error: verificationError } =
+    await publicSupabase
+      .from("profiles")
+      .select("id, role")
+      .eq("id", user.id)
+      .maybeSingle();
+  if (verificationError || verifiedProfile?.role !== "admin") {
+    throw new Error(
+      `Unable to verify bootstrap administrator access: ${verificationError?.message ?? "admin profile was not readable"}`,
+    );
+  }
+  const { error: signOutError } = await publicSupabase.auth.signOut();
+  if (signOutError) {
+    throw new Error(
+      `Unable to finish bootstrap administrator verification: ${signOutError.message}`,
+    );
+  }
 }
 
 function vercelUrl(config, path, parameters = {}) {
@@ -1008,7 +1094,13 @@ async function main() {
 
   await uploadPlaceholderAssets(projectUrl, keys.secretKey);
   await seedStore(config, projectRef);
-  await configureAuthAndAdmin(config, projectRef, projectUrl, keys.secretKey);
+  await configureAuthAndAdmin(
+    config,
+    projectRef,
+    projectUrl,
+    keys.publishableKey,
+    keys.secretKey,
+  );
 
   const vercelProject = await createOrResumeVercel(config, existingVercel);
   await setVercelEnvironment(config, vercelProject.id, projectUrl, keys);

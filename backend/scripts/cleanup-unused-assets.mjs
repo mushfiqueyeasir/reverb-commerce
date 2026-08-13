@@ -21,7 +21,11 @@ import {
   repositoryRoot,
   validateClient,
 } from "./client-registry.mjs";
-import { maskSecret, requestJson } from "./provisioning-core.mjs";
+import {
+  createSupabaseFetch,
+  maskSecret,
+  requestJson,
+} from "./provisioning-core.mjs";
 
 const BUCKETS = [
   "product-images",
@@ -516,6 +520,7 @@ async function main() {
 
   const supabase = createClient(url, config.serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: createSupabaseFetch(config.serviceRoleKey) },
   });
 
   console.log(
