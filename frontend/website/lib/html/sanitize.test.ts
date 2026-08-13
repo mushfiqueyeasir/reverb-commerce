@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { isPublicManagedSlug } from "../cms/managedPages";
 import { sanitizeCmsHtml } from "./sanitize";
 
 describe("sanitizeCmsHtml", () => {
@@ -16,14 +15,5 @@ describe("sanitizeCmsHtml", () => {
     expect(
       sanitizeCmsHtml('<a href="https://example.com" target="_blank">Link</a>'),
     ).toContain('rel="noopener noreferrer"');
-  });
-});
-
-describe("isPublicManagedSlug", () => {
-  it("accepts imported pages and rejects reserved routes", () => {
-    expect(isPublicManagedSlug("faqs")).toBe(true);
-    expect(isPublicManagedSlug("pre-order")).toBe(true);
-    expect(isPublicManagedSlug("terms")).toBe(false);
-    expect(isPublicManagedSlug("../admin")).toBe(false);
   });
 });

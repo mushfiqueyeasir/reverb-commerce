@@ -1,7 +1,6 @@
 import { MetadataRoute } from "next";
 import { appConfig } from "@/lib/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { isPublicManagedSlug } from "@/lib/cms/managedPages";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = appConfig.siteUrl || "";
@@ -66,16 +65,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const supabase = await createSupabaseServerClient();
-  const [productsResult, pagesResult] = await Promise.all([
-    supabase
-      .from("products")
-      .select("slug, updated_at")
-      .eq("status", "active")
-      .order("updated_at", { ascending: false }),
-    supabase.from("content_pages").select("slug, updated_at"),
-  ]);
+  const { data: products, error } = await supabase
+    .from("products")
+    .select("slug, updated_at")
+    .eq("status", "active")
+    .order("updated_at", { ascending: false });
 
-  const productRoutes: MetadataRoute.Sitemap = (productsResult.data ?? [])
+  if (error || !products) {
+    return staticRoutes;
+  }
+
+  const productRoutes: MetadataRoute.Sitemap = products
     .filter((product): product is { slug: string; updated_at: string | null } =>
       Boolean(product.slug),
     )
@@ -88,17 +88,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
 
-  const managedPageRoutes: MetadataRoute.Sitemap = (pagesResult.data ?? [])
-    .filter(
-      (page): page is { slug: string; updated_at: string | null } =>
-        typeof page.slug === "string" && isPublicManagedSlug(page.slug),
-    )
-    .map((page) => ({
-      url: `${baseUrl}/info/${page.slug}`,
-      lastModified: page.updated_at ? new Date(page.updated_at) : currentDate,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    }));
-
-  return [...staticRoutes, ...managedPageRoutes, ...productRoutes];
+  return [...staticRoutes, ...productRoutes];
 }

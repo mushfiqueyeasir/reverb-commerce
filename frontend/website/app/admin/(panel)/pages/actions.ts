@@ -15,7 +15,6 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { sanitizeCmsHtml } from "@/lib/html/sanitize";
 
 const SLUGS: CmsPageSlug[] = ["about", "terms", "privacy", "refund"];
-const MANAGED_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 const STORE_PATH: Record<CmsPageSlug, string> = {
   about: "/about-us",
@@ -24,34 +23,39 @@ const STORE_PATH: Record<CmsPageSlug, string> = {
   refund: "/refund-policy",
 };
 
-export interface ManagedCmsPage extends Omit<CmsPage, "slug"> {
-  slug: string;
-}
-
-export async function listPages(): Promise<ManagedCmsPage[]> {
+export async function listPages(): Promise<CmsPage[]> {
   if (await tableExists("content_pages")) {
     const supabase = await createSupabaseServerClient();
-    const { data } = await supabase
-      .from("content_pages")
-      .select("*")
-      .order("slug");
-    const rows = (data ?? []) as ManagedCmsPage[];
-    for (const slug of SLUGS) {
-      if (!rows.some((row) => row.slug === slug)) rows.push(DEFAULT_PAGES[slug]);
-    }
-    return rows;
+    const { data } = await supabase.from("content_pages").select("*");
+    const rows = (data ?? []) as {
+      slug: CmsPageSlug;
+      title: string;
+      body_html: string;
+      updated_at: string;
+    }[];
+    return SLUGS.map((slug) => {
+      const row = rows.find((candidate) => candidate.slug === slug);
+      return row
+        ? {
+            slug,
+            title: row.title,
+            body_html: row.body_html,
+            updated_at: row.updated_at,
+          }
+        : DEFAULT_PAGES[slug];
+    });
   }
   const cms = await readCmsBlob();
   return SLUGS.map((slug) => cms.pages[slug] ?? DEFAULT_PAGES[slug]);
 }
 
-export async function getPage(slug: string): Promise<ManagedCmsPage | null> {
+export async function getPage(slug: CmsPageSlug): Promise<CmsPage> {
   const pages = await listPages();
-  return pages.find((page) => page.slug === slug) ?? null;
+  return pages.find((page) => page.slug === slug) ?? DEFAULT_PAGES[slug];
 }
 
 export async function savePage(input: {
-  slug: string;
+  slug: CmsPageSlug;
   title: string;
   body_html: string;
 }): Promise<{ error?: string }> {
@@ -59,11 +63,11 @@ export async function savePage(input: {
   if (!canWrite(s.role)) {
     return { error: "You do not have permission to do this." };
   }
-  if (!MANAGED_SLUG_RE.test(input.slug)) return { error: "Invalid page." };
+  if (!SLUGS.includes(input.slug)) return { error: "Invalid page." };
   if (!input.title.trim()) return { error: "Title is required." };
 
   const now = new Date().toISOString();
-  const page: ManagedCmsPage = {
+  const page: CmsPage = {
     slug: input.slug,
     title: input.title.trim(),
     body_html: sanitizeCmsHtml(input.body_html),
@@ -79,14 +83,11 @@ export async function savePage(input: {
       updated_at: now,
     });
     if (error) return { error: error.message };
-  } else if (SLUGS.includes(input.slug as CmsPageSlug)) {
-    const slug = input.slug as CmsPageSlug;
+  } else {
     const cms = await readCmsBlob();
-    cms.pages[slug] = { ...page, slug };
+    cms.pages[input.slug] = page;
     const res = await writeCmsBlob(cms);
     if (res.error) return { error: res.error };
-  } else {
-    return { error: "Managed pages require the content_pages table." };
   }
 
   await writeAuditLog({
@@ -98,7 +99,6 @@ export async function savePage(input: {
   });
 
   revalidatePath("/admin/pages");
-  const fixedPath = STORE_PATH[input.slug as CmsPageSlug];
-  revalidatePath(fixedPath ?? `/info/${input.slug}`);
+  revalidatePath(STORE_PATH[input.slug]);
   return {};
 }

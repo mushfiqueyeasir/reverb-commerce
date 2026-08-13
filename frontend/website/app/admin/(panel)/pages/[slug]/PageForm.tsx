@@ -13,13 +13,14 @@ import {
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { savePage, type ManagedCmsPage } from "../actions";
+import type { CmsPage } from "@/lib/cms/jsonStore";
+import { savePage } from "../actions";
 
 export function PageForm({
   page,
   canWrite,
 }: {
-  page: ManagedCmsPage;
+  page: CmsPage;
   canWrite: boolean;
 }) {
   const router = useRouter();

@@ -20,11 +20,6 @@ const PAGE_MAPPINGS = [
   ["term-and-conditions", "terms"],
   ["privacy-policy", "privacy"],
   ["returns-exchange", "refund"],
-  ["faqs", "faqs"],
-  ["wholesale", "wholesale"],
-  ["pre-order-kawaii-cosmetics", "pre-order"],
-  ["doctor-consultant", "doctor-consultant"],
-  ["brands", "brands"],
 ];
 const FIXED_ASSETS = [
   ["https://kawaii.com.bd/wp-content/uploads/Kawaii-Logo.webp", "logo.webp"],
@@ -623,20 +618,10 @@ async function main() {
     instagram: "https://www.instagram.com/kawaii_jbeauty_bd/",
     footer_description:
       "Authentic and affordable Japanese cosmetics, skincare, hair care, and personal care in Bangladesh.",
-    footer_links: [
-      { label: "FAQs", href: "/info/faqs", column: "support" },
-      { label: "Wholesale", href: "/info/wholesale", column: "support" },
-      { label: "Pre-order", href: "/info/pre-order", column: "brand" },
-      { label: "Brands", href: "/info/brands", column: "brand" },
-      {
-        label: "Doctor consultant",
-        href: "/info/doctor-consultant",
-        column: "support",
-      },
-    ],
     payment_image_path: "kawaii-content/v1/payment-methods.png",
     _cms: cms,
   };
+  delete socials.footer_links;
 
   const pageValues = pages
     .map(
@@ -654,9 +639,12 @@ async function main() {
   await runSql(`
 begin;
 select pg_advisory_xact_lock(hashtext('kawaii-content-migration-v1'));
+delete from public.content_pages
+where slug not in ('about', 'terms', 'privacy', 'refund');
 alter table public.content_pages drop constraint if exists content_pages_slug_check;
 alter table public.content_pages drop constraint if exists content_pages_slug_format_check;
-alter table public.content_pages add constraint content_pages_slug_format_check check (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$');
+alter table public.content_pages add constraint content_pages_slug_check
+  check (slug in ('about', 'terms', 'privacy', 'refund'));
 insert into public.content_pages (slug, title, body_html, updated_at)
 values
 ${pageValues}
