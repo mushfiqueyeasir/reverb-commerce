@@ -5,8 +5,8 @@
   "lastProvisionedDeploymentUrl": "https://store-ve-gear-b73xnk27f-mushfiqueyeasirs-projects.vercel.app",
   "supabaseProjectRef": "lznxmqehyzqwqfkfgxxh",
   "supabaseUrl": "https://lznxmqehyzqwqfkfgxxh.supabase.co",
-  "trackedAt": "2026-08-13T14:16:09.559Z",
-  "schemaVersion": "0029",
+  "trackedAt": "2026-08-13T15:10:26.312Z",
+  "schemaVersion": "0030",
   "migrationChecksums": {
     "0018_clean_baseline": "2a833e68252973e451beab7de38b573f449c67c7e79c3f4bd4958e6b38b4fdeb",
     "0019_payment_courier_concurrency.sql": "0e466df50e3fd9e70ed2ab22efb7967f46e76271df8603e3c0082d664ffb1122",
@@ -19,6 +19,7 @@
     "0026_banner_section_discriminator.sql": "fbc131f2c2e513b727e88ba560e9106106a42e7a203ecc1b01fd6d2f3f6af369",
     "0027_managed_content_pages.sql": "4bb755880479f703bbd684bb9bbf7aad195d4d75d057ce964e9b68c184810df7",
     "0028_remove_managed_content_pages.sql": "eebbb02ba53e042e7d8ff54ebb1b2888042974618d03e25e6c7f91a075c91001",
-    "0029_atomic_site_chrome_settings.sql": "c5f04ad57416d9d28c2b4d89a8fc5610d18d4ef982f07ee71673c1fc8874cc03"
+    "0029_atomic_site_chrome_settings.sql": "c5f04ad57416d9d28c2b4d89a8fc5610d18d4ef982f07ee71673c1fc8874cc03",
+    "0030_category_hierarchy.sql": "45d6d04e0f1b474ea0e3190a37c65511f6d9c3d28ec3c79c247d9e20c0cbd81e"
   }
 }
