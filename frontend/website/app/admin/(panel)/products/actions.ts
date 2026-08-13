@@ -126,6 +126,9 @@ export async function saveProduct(
   } else if (input.variants.length !== 1 || input.variants[0]?.size?.trim()) {
     return { error: "A size-free product requires one general inventory row." };
   }
+  if (input.variants.some((variant) => !variant.sku?.trim())) {
+    return { error: "Every variation requires an SKU." };
+  }
   const skus = input.variants
     .map((variant) => variant.sku?.trim().toLowerCase())
     .filter((sku): sku is string => Boolean(sku));

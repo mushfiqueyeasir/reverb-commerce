@@ -9,7 +9,6 @@ import type {
 } from "@/type/db";
 import { resolveSizeChart } from "@/lib/products/sizeChart";
 import { getCategories } from "@/utility/getCategory";
-import { getCategoryBreadcrumb } from "@/lib/categories/hierarchy";
 import {
   ProductForm,
   type CategoryOption,
@@ -60,7 +59,9 @@ export default async function EditProductPage({
     .filter((category) => !category.isDefault)
     .map((category) => ({
       id: category._id,
-      name: getCategoryBreadcrumb(allCategories, category._id).join(" / "),
+      name: category.categoryName,
+      parentId: category.parentId,
+      depth: category.depth,
     }));
 
   const formData: ProductFormData = {

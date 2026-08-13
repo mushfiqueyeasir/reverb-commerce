@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Save, Plus, Trash2 } from "lucide-react";
+import { Loader2, Save, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   ImageUploader,
@@ -72,6 +72,8 @@ interface VariantRow {
 export interface CategoryOption {
   id: string;
   name: string;
+  parentId: string | null;
+  depth: number;
 }
 
 const emptyVariant = (): VariantRow => ({
@@ -118,6 +120,7 @@ export function ProductForm({
   const [categoryIds, setCategoryIds] = useState<string[]>(
     product?.categoryIds ?? [],
   );
+  const [categoryQuery, setCategoryQuery] = useState("");
   const [images, setImages] = useState<UploadedImage[]>(product?.images ?? []);
   const [variants, setVariants] = useState<VariantRow[]>(
     product?.variants?.length ? product.variants : [emptyVariant()],
@@ -125,6 +128,49 @@ export function ProductForm({
   const [sizeChart, setSizeChart] = useState<SizeChartFormRow[]>(
     product?.size_chart?.length ? product.size_chart : [],
   );
+  const categoryGroups = useMemo(() => {
+    const byId = new Map(categories.map((category) => [category.id, category]));
+    const children = new Map<string, CategoryOption[]>();
+    const roots: CategoryOption[] = [];
+    for (const category of categories) {
+      if (category.parentId && byId.has(category.parentId)) {
+        const values = children.get(category.parentId) ?? [];
+        values.push(category);
+        children.set(category.parentId, values);
+      } else {
+        roots.push(category);
+      }
+    }
+    const query = categoryQuery.trim().toLowerCase();
+    const visibleIds = new Set<string>();
+    const addDescendants = (category: CategoryOption) => {
+      visibleIds.add(category.id);
+      for (const child of children.get(category.id) ?? []) addDescendants(child);
+    };
+    if (query) {
+      for (const category of categories) {
+        if (!category.name.toLowerCase().includes(query)) continue;
+        addDescendants(category);
+        let parentId = category.parentId;
+        while (parentId) {
+          visibleIds.add(parentId);
+          parentId = byId.get(parentId)?.parentId ?? null;
+        }
+      }
+    }
+    const flatten = (category: CategoryOption): CategoryOption[] => [
+      category,
+      ...(children.get(category.id) ?? []).flatMap(flatten),
+    ];
+    return roots
+      .map((root) => {
+        const options = flatten(root).filter(
+          (category) => !query || visibleIds.has(category.id),
+        );
+        return { root, options };
+      })
+      .filter((group) => group.options.length > 0);
+  }, [categories, categoryQuery]);
 
   const cancel = async () => {
     if (imageBusy) return;
@@ -272,6 +318,10 @@ export function ProductForm({
     }
     if (!hasSizes && cleanedVariants.length !== 1) {
       toast.error("A size-free product requires one general inventory row.");
+      return;
+    }
+    if (cleanedVariants.some((variant) => !variant.sku)) {
+      toast.error("Every variation requires an SKU.");
       return;
     }
     const skus = cleanedVariants
@@ -638,21 +688,51 @@ export function ProductForm({
               No categories yet. Create one first.
             </p>
           ) : (
-            <div className="grid gap-2 sm:grid-cols-2">
-              {categories.map((c) => (
-                <label
-                  key={c.id}
-                  className="flex cursor-pointer items-center gap-2 rounded-xl border border-border px-4 py-3 text-sm normal-case tracking-normal text-foreground transition hover:border-primary/40"
-                >
-                  <input
-                    type="checkbox"
-                    className="size-4 accent-primary"
-                    checked={categoryIds.includes(c.id)}
-                    onChange={() => toggleCategory(c.id)}
-                  />
-                  {c.name}
-                </label>
-              ))}
+            <div className="space-y-4">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={categoryQuery}
+                  onChange={(event) => setCategoryQuery(event.target.value)}
+                  placeholder="Search categories…"
+                  className={`${adminInputClass} pl-10`}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {categoryIds.length} selected
+              </p>
+              {categoryGroups.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
+                  No categories match your search.
+                </div>
+              ) : (
+                <div className="grid items-start gap-3 sm:grid-cols-2">
+                  {categoryGroups.map(({ root, options }) => (
+                    <div
+                      key={root.id}
+                      className="overflow-hidden rounded-xl border border-border bg-card/60"
+                    >
+                      {options.map((category) => (
+                        <label
+                          key={category.id}
+                          className={`flex cursor-pointer items-center gap-2.5 border-b border-border px-4 py-3 text-sm normal-case tracking-normal text-foreground transition last:border-b-0 hover:bg-muted/50 ${category.id === root.id ? "bg-muted/40 font-semibold" : ""}`}
+                          style={{
+                            paddingLeft: `${16 + Math.max(0, category.depth) * 18}px`,
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            className="size-4 shrink-0 accent-primary"
+                            checked={categoryIds.includes(category.id)}
+                            onChange={() => toggleCategory(category.id)}
+                          />
+                          <span>{category.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </TabsContent>

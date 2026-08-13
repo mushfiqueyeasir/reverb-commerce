@@ -1,7 +1,6 @@
 import { requireRole } from "@/lib/admin/auth";
 import { PageHeader, BackLink } from "@/components/admin/PageHeader";
 import { getCategories } from "@/utility/getCategory";
-import { getCategoryBreadcrumb } from "@/lib/categories/hierarchy";
 import { ProductForm, type CategoryOption } from "../ProductForm";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +12,9 @@ export default async function NewProductPage() {
     .filter((category) => !category.isDefault)
     .map((category) => ({
       id: category._id,
-      name: getCategoryBreadcrumb(categoryRows, category._id).join(" / "),
+      name: category.categoryName,
+      parentId: category.parentId,
+      depth: category.depth,
     }));
 
   return (
