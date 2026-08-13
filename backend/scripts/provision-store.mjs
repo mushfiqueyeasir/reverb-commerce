@@ -95,7 +95,7 @@ function getConfig() {
     shippingFlat: numericString("SHIPPING_FLAT", "80"),
     freeShippingThreshold: numericString("FREE_SHIPPING_THRESHOLD", "1000"),
     supabaseToken: required("SUPABASE_ACCESS_TOKEN"),
-    supabaseOrganizationSlug: required("SUPABASE_ORG_SLUG"),
+    supabaseOrganizationSlug: optional("SUPABASE_ORG_SLUG"),
     supabaseRegion: optional("SUPABASE_REGION", "ap-southeast-1"),
     supabaseInstanceSize: optional("SUPABASE_INSTANCE_SIZE"),
     supabaseProjectRef: optional("SUPABASE_PROJECT_REF"),

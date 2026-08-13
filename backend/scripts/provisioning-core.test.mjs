@@ -400,12 +400,14 @@ test("keeps provisioning credentials in GitHub environment secrets", () => {
     "utf8",
   );
   assert.doesNotMatch(workflow, /^\s+supabase_access_token:/m);
+  assert.doesNotMatch(workflow, /inputs\.provision_mode/);
+  assert.doesNotMatch(workflow, /inputs\.supabase_project_ref/);
   assert.match(
     workflow,
     /SUPABASE_ACCESS_TOKEN: \$\{\{ secrets\.SUPABASE_ACCESS_TOKEN \}\}/,
   );
-  assert.match(workflow, /default: provision/);
-  assert.match(workflow, /PROVISION_MODE: \$\{\{ inputs\.provision_mode \}\}/);
+  assert.match(workflow, /PROVISION_MODE: provision/);
+  assert.doesNotMatch(workflow, /SUPABASE_ORG_SLUG:/);
 });
 
 test("backfills and constrains banner section ownership", () => {

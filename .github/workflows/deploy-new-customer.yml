@@ -7,18 +7,6 @@ on:
         description: "New store domain, for example https://www.example.com/"
         required: true
         type: string
-      provision_mode:
-        description: "Use provision for a new store or resume for a recorded partial project"
-        required: true
-        default: provision
-        type: choice
-        options:
-          - provision
-          - resume
-      supabase_project_ref:
-        description: "Required project ref when resuming a partial Supabase project"
-        required: false
-        type: string
 
 permissions:
   contents: read
@@ -117,12 +105,10 @@ jobs:
         working-directory: backend
         env:
           SITE_URL: ${{ inputs.site_url }}
-          PROVISION_MODE: ${{ inputs.provision_mode }}
+          PROVISION_MODE: provision
           RELEASE_SHA: ${{ github.sha }}
           RELEASE_REF: main
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_PROJECT_REF: ${{ inputs.supabase_project_ref }}
-          SUPABASE_ORG_SLUG: ${{ vars.SUPABASE_ORG_SLUG }}
           SUPABASE_REGION: ${{ vars.SUPABASE_REGION || 'ap-southeast-1' }}
           SUPABASE_INSTANCE_SIZE: ${{ vars.SUPABASE_INSTANCE_SIZE }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
