@@ -1,12 +1,30 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
+  GripVertical,
   Pencil,
   Search,
   Tags,
@@ -16,7 +34,9 @@ import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { deleteCategory } from "./actions";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { deleteCategory, reorderCategories } from "./actions";
 
 export interface CategoryTableRow {
   id: string;
@@ -40,22 +60,67 @@ export function CategoriesTable({
   canWrite: boolean;
 }) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
+  const [orderedData, setOrderedData] = useState(data);
   const [parentStack, setParentStack] = useState<string[]>([]);
   const [query, setQuery] = useState("");
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
   const currentParentId = parentStack.at(-1) ?? null;
   const currentParent = currentParentId
-    ? data.find((item) => item.id === currentParentId)
+    ? orderedData.find((item) => item.id === currentParentId)
     : null;
   const items = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    return data.filter(
+    return orderedData.filter(
       (item) =>
         item.parentId === currentParentId &&
         (!normalizedQuery ||
           item.name.toLowerCase().includes(normalizedQuery) ||
           item.slug.toLowerCase().includes(normalizedQuery)),
     );
-  }, [currentParentId, data, query]);
+  }, [currentParentId, orderedData, query]);
+
+  useEffect(() => {
+    setOrderedData(data);
+  }, [data]);
+
+  const onDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!canWrite || query.trim() || !over || active.id === over.id) return;
+    const oldIndex = items.findIndex((item) => item.id === active.id);
+    const newIndex = items.findIndex((item) => item.id === over.id);
+    if (oldIndex < 0 || newIndex < 0 || items[oldIndex].isDefault) return;
+
+    const previous = orderedData;
+    const nextItems = arrayMove(items, oldIndex, newIndex);
+    if (nextItems.findIndex((item) => item.isDefault) > 0) return;
+    setOrderedData((current) => {
+      let siblingIndex = 0;
+      return current.map((item) =>
+        item.parentId === currentParentId
+          ? nextItems[siblingIndex++]
+          : item,
+      );
+    });
+
+    startTransition(async () => {
+      const result = await reorderCategories({
+        parentId: currentParentId,
+        orderedIds: nextItems.map((item) => item.id),
+      });
+      if (result.error) {
+        setOrderedData(previous);
+        toast.error(result.error);
+        return;
+      }
+      toast.success("Category order updated");
+      router.refresh();
+    });
+  };
 
   const openCategory = (id: string) => {
     setParentStack((current) => [...current, id]);
@@ -106,100 +171,153 @@ export function CategoriesTable({
       </div>
 
       {items.length ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          {items.map((item) => (
-            <div
-              key={item.id}
-              className="overflow-hidden rounded-2xl border border-border bg-card/80 transition hover:border-primary/40"
-            >
-              {item.hasChildren ? (
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-4 p-4 text-left transition hover:bg-foreground/[0.03]"
-                  onClick={() => openCategory(item.id)}
-                >
-                  <CategoryImage item={item} />
-                  <CategoryDetails item={item} />
-                  <ArrowRight className="size-5 shrink-0 text-muted-foreground" />
-                </button>
-              ) : (
-                <div className="flex items-center gap-4 p-4">
-                  <CategoryImage item={item} />
-                  <CategoryDetails item={item} />
-                </div>
-              )}
-
-              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/70 px-4 py-3">
-                <div className="flex flex-wrap gap-2">
-                  {item.isDefault ? <Badge>Default</Badge> : null}
-                  {item.parentId ? (
-                    <Badge variant="secondary">Subcategory</Badge>
-                  ) : null}
-                  {item.directChildCount ? (
-                    <Badge variant="secondary">
-                      {item.directChildCount} subcategor
-                      {item.directChildCount === 1 ? "y" : "ies"}
-                    </Badge>
-                  ) : null}
-                  <Badge variant="outline">
-                    {item.productCount} product
-                    {item.productCount === 1 ? "" : "s"}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-1">
-                  {item.hasChildren ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="rounded-full"
-                      onClick={() => openCategory(item.id)}
-                    >
-                      View <ArrowRight />
-                    </Button>
-                  ) : null}
-                  <Button
-                    asChild
-                    variant="ghost"
-                    size="icon"
-                    className="rounded-full"
-                  >
-                    <Link
-                      href={`/admin/categories/${item.id}`}
-                      aria-label={`Edit ${item.name}`}
-                    >
-                      <Pencil />
-                    </Link>
-                  </Button>
-                  {canWrite && !item.isDefault && !item.hasChildren ? (
-                    <ConfirmDialog
-                      trigger={
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="rounded-full text-destructive"
-                          aria-label={`Delete ${item.name}`}
-                        >
-                          <Trash2 />
-                        </Button>
-                      }
-                      title="Delete category"
-                      description={`Delete "${item.name}"? This cannot be undone.`}
-                      confirmLabel="Delete"
-                      action={() => deleteCategory(item.id)}
-                      onDone={() => router.refresh()}
-                    />
-                  ) : null}
-                </div>
-              </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={onDragEnd}
+        >
+          <SortableContext
+            items={items.map((item) => item.id)}
+            strategy={rectSortingStrategy}
+          >
+            <div className="grid gap-4 md:grid-cols-2">
+              {items.map((item) => (
+                <SortableCategoryCard
+                  key={item.id}
+                  item={item}
+                  canWrite={canWrite}
+                  canDrag={canWrite && !query.trim() && !item.isDefault}
+                  onOpen={() => openCategory(item.id)}
+                  onDeleted={() => router.refresh()}
+                />
+              ))}
             </div>
-          ))}
-        </div>
+          </SortableContext>
+        </DndContext>
       ) : (
         <p className="rounded-2xl border border-dashed border-border bg-card/50 px-4 py-12 text-center text-sm text-muted-foreground">
           {query ? "No categories match this search." : "No categories at this level."}
         </p>
       )}
+    </div>
+  );
+}
+
+function SortableCategoryCard({
+  item,
+  canWrite,
+  canDrag,
+  onOpen,
+  onDeleted,
+}: {
+  item: CategoryTableRow;
+  canWrite: boolean;
+  canDrag: boolean;
+  onOpen: () => void;
+  onDeleted: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: item.id, disabled: !canDrag });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={cn(
+        "overflow-hidden rounded-2xl border border-border bg-card/80 transition hover:border-primary/40",
+        isDragging && "relative z-20 border-primary/60 opacity-90 shadow-2xl",
+      )}
+    >
+      {item.hasChildren ? (
+        <button
+          type="button"
+          className="flex w-full items-center gap-4 p-4 text-left transition hover:bg-foreground/[0.03]"
+          onClick={onOpen}
+        >
+          <CategoryImage item={item} />
+          <CategoryDetails item={item} />
+          <ArrowRight className="size-5 shrink-0 text-muted-foreground" />
+        </button>
+      ) : (
+        <div className="flex items-center gap-4 p-4">
+          <CategoryImage item={item} />
+          <CategoryDetails item={item} />
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/70 px-4 py-3">
+        <div className="flex flex-wrap gap-2">
+          {item.isDefault ? <Badge>Default</Badge> : null}
+          {item.parentId ? <Badge variant="secondary">Subcategory</Badge> : null}
+          {item.directChildCount ? (
+            <Badge variant="secondary">
+              {item.directChildCount} subcategor
+              {item.directChildCount === 1 ? "y" : "ies"}
+            </Badge>
+          ) : null}
+          <Badge variant="outline">
+            {item.productCount} product{item.productCount === 1 ? "" : "s"}
+          </Badge>
+        </div>
+        <div className="flex items-center gap-1">
+          {canDrag ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="cursor-grab rounded-full active:cursor-grabbing"
+              aria-label={`Drag ${item.name} to reorder`}
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical />
+            </Button>
+          ) : null}
+          {item.hasChildren ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="rounded-full"
+              onClick={onOpen}
+            >
+              View <ArrowRight />
+            </Button>
+          ) : null}
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+          >
+            <Link
+              href={`/admin/categories/${item.id}`}
+              aria-label={`Edit ${item.name}`}
+            >
+              <Pencil />
+            </Link>
+          </Button>
+          {canWrite && !item.isDefault && !item.hasChildren ? (
+            <ConfirmDialog
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full text-destructive"
+                  aria-label={`Delete ${item.name}`}
+                >
+                  <Trash2 />
+                </Button>
+              }
+              title="Delete category"
+              description={`Delete "${item.name}"? This cannot be undone.`}
+              confirmLabel="Delete"
+              action={() => deleteCategory(item.id)}
+              onDone={onDeleted}
+            />
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }

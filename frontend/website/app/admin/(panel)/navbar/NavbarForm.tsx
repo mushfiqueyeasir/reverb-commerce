@@ -32,6 +32,7 @@ import {
   type NavbarVariant,
 } from "@/lib/cms/siteChrome";
 import { cn } from "@/lib/utils";
+import type { MenuType } from "@/type/menyType";
 import { enableNavbarDesign, saveNavbar } from "./actions";
 
 export function NavbarForm({ initialConfig }: { initialConfig: NavbarConfig }) {
@@ -372,14 +373,34 @@ function NavbarDesignSelector({
 }
 
 function NavbarDesignPreview({ config }: { config: NavbarConfig }) {
-  const menuData = config.items.map((item) => ({
+  const menuData: MenuType[] = config.items.map((item) => ({
     label: item.label,
     href: item.href,
+    kind: item.kind === "categories" ? "categories" : "links",
     items:
       item.kind === "categories"
         ? [
-            { label: "New arrivals", href: "/product?category=new" },
-            { label: "Best sellers", href: "/product?category=popular" },
+            {
+              label: "All products",
+              href: "/product",
+              isDefault: true,
+            },
+            {
+              label: "Skincare",
+              href: "/product?category=skincare",
+              items: [
+                { label: "Cleansers", href: "/product?category=cleansers" },
+                { label: "Sunscreens", href: "/product?category=sunscreens" },
+              ],
+            },
+            {
+              label: "Makeup",
+              href: "/product?category=makeup",
+              items: [
+                { label: "Foundation", href: "/product?category=foundation" },
+                { label: "Lipstick", href: "/product?category=lipstick" },
+              ],
+            },
           ]
         : undefined,
   }));

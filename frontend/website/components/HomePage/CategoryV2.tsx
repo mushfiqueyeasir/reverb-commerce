@@ -129,16 +129,7 @@ export default function CategoryV2({
             <motion.article
               key={category._id}
               className={`group relative overflow-hidden rounded-[1.75rem] border border-border bg-card shadow-[0_24px_80px_rgb(0_0_0/0.2)] transition-shadow duration-500 hover:shadow-[0_32px_100px_rgb(var(--v2-primary-rgb)/0.2)] ${contactSheetSlots[index % contactSheetSlots.length]}`}
-              initial={
-                reduceMotion
-                  ? false
-                  : { opacity: 0, clipPath: "inset(0 0 100% 0)" }
-              }
-              whileInView={
-                reduceMotion
-                  ? undefined
-                  : { opacity: 1, clipPath: "inset(0 0 0% 0)" }
-              }
+              initial={false}
               whileHover={reduceMotion ? undefined : "hover"}
               variants={{
                 hover: {
@@ -146,10 +137,8 @@ export default function CategoryV2({
                   rotate: index % 2 === 0 ? -0.45 : 0.45,
                 },
               }}
-              viewport={{ once: true, amount: 0.12 }}
               transition={{
-                duration: 0.9,
-                delay: Math.min(index * 0.06, 0.36),
+                duration: 0.5,
                 ease: [0.22, 1, 0.36, 1],
               }}
             >

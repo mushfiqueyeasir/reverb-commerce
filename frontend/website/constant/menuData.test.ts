@@ -39,19 +39,35 @@ const categories: Category[] = [
 ];
 
 describe("getMenuData", () => {
-  it("links the editable default category to all products", () => {
-    expect(getMenuData(categories)[0].items).toEqual([
-      { label: "Shop everything", href: "/product", depth: 0 },
-      {
-        label: "Helmets",
-        href: "/product?category=helmets-and-gear",
-        depth: 0,
-      },
-      {
-        label: "Full face",
-        href: "/product?category=full-face",
-        depth: 1,
-      },
-    ]);
+  it("groups subcategories beneath their primary category", () => {
+    expect(getMenuData(categories)[0]).toEqual({
+      label: "Category",
+      href: "/product",
+      kind: "categories",
+      items: [
+        {
+          label: "Shop everything",
+          href: "/product",
+          imageUrl: null,
+          isDefault: true,
+          items: [],
+        },
+        {
+          label: "Helmets",
+          href: "/product?category=helmets-and-gear",
+          imageUrl: null,
+          isDefault: false,
+          items: [
+            {
+              label: "Full face",
+              href: "/product?category=full-face",
+              imageUrl: null,
+              isDefault: false,
+              items: [],
+            },
+          ],
+        },
+      ],
+    });
   });
 });

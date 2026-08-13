@@ -159,34 +159,53 @@ export async function deleteCategory(
   revalidatePath("/admin/categories");
 }
 
-export async function reorderCategories(
-  orderedIds: string[],
-): Promise<{ error?: string } | void> {
+export async function reorderCategories(input: {
+  parentId: string | null;
+  orderedIds: string[];
+}): Promise<{ error?: string }> {
   const s = await requireAdminSession();
   if (!canWrite(s.role)) {
     return { error: "You do not have permission to do this." };
   }
-  if (!orderedIds.length) return { error: "Invalid category order." };
+  if (!input.orderedIds.length || new Set(input.orderedIds).size !== input.orderedIds.length) {
+    return { error: "Invalid category order." };
+  }
 
   const supabase = await createSupabaseServerClient();
-  const { data: defaultCategory, error: defaultError } = await supabase
+  let siblingsQuery = supabase
     .from("categories")
-    .select("id")
-    .eq("is_default", true)
-    .single();
+    .select("id, is_default")
+    .order("sort", { ascending: true });
+  siblingsQuery = input.parentId
+    ? siblingsQuery.eq("parent_id", input.parentId)
+    : siblingsQuery.is("parent_id", null);
+  const { data: siblings, error: siblingsError } = await siblingsQuery;
+  if (siblingsError) return { error: siblingsError.message };
 
-  if (defaultError) return { error: defaultError.message };
-  if (orderedIds[0] !== defaultCategory.id) {
-    return { error: "The default category must remain first." };
+  const existingIds = (siblings ?? []).map((category) => category.id);
+  if (
+    existingIds.length !== input.orderedIds.length ||
+    existingIds.some((id) => !input.orderedIds.includes(id))
+  ) {
+    return { error: "Category list changed. Refresh and try again." };
+  }
+
+  const defaultCategory = siblings?.find((category) => category.is_default);
+  if (defaultCategory && input.orderedIds[0] !== defaultCategory.id) {
+    return { error: "All Products must remain first." };
   }
 
   const now = new Date().toISOString();
-
-  for (let i = 1; i < orderedIds.length; i++) {
+  for (let index = 0; index < input.orderedIds.length; index++) {
+    const id = input.orderedIds[index];
+    const sort =
+      defaultCategory && id === defaultCategory.id
+        ? 0
+        : (defaultCategory ? index : index + 1) * 10;
     const { error } = await supabase
       .from("categories")
-      .update({ sort: i * 10, updated_at: now })
-      .eq("id", orderedIds[i]);
+      .update({ sort, updated_at: now })
+      .eq("id", id);
     if (error) return { error: error.message };
   }
 
@@ -194,9 +213,14 @@ export async function reorderCategories(
     actor: s,
     action: "reorder",
     entity: "category",
-    summary: "Reordered categories",
+    entityId: input.parentId,
+    summary: input.parentId
+      ? "Reordered subcategories"
+      : "Reordered primary categories",
   });
 
   revalidatePath("/admin/categories");
-  revalidatePath("/");
+  revalidatePath("/", "layout");
+  revalidatePath("/product");
+  return {};
 }
