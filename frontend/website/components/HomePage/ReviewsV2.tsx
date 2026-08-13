@@ -131,7 +131,7 @@ export default function ReviewsV2({
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={active.id}
-                  className="grid lg:grid-cols-[1.18fr_0.82fr]"
+                  className="grid lg:grid-cols-2"
                   initial={
                     reduceMotion
                       ? false
@@ -203,7 +203,7 @@ export default function ReviewsV2({
                     </div>
                   </div>
 
-                  <figure className="relative flex min-h-[340px] flex-col justify-between border-t border-border bg-card p-7 sm:min-h-[360px] sm:p-10 lg:min-h-[650px] lg:border-l lg:border-t-0 lg:p-12 xl:p-16">
+                  <figure className="relative flex min-h-[340px] flex-col justify-between border-t border-border bg-card p-7 sm:min-h-[360px] sm:p-10 lg:h-[500px] lg:min-h-[500px] lg:border-l lg:border-t-0 lg:p-12 xl:p-16">
                     <div
                       className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-primary/15 blur-3xl"
                       aria-hidden="true"
@@ -213,8 +213,8 @@ export default function ReviewsV2({
                       strokeWidth={1}
                       aria-hidden="true"
                     />
-                    <div className="relative py-8 lg:py-12">
-                      <blockquote className="font-display text-3xl font-semibold leading-[1.04] tracking-[-0.04em] sm:text-4xl xl:text-5xl">
+                    <div className="relative min-h-0 flex-1 overflow-hidden py-6 lg:py-8">
+                      <blockquote className="line-clamp-5 font-display text-3xl font-semibold leading-[1.04] tracking-[-0.04em] sm:text-4xl xl:text-5xl">
                         “{activeCopy}”
                       </blockquote>
                     </div>
@@ -321,9 +321,6 @@ export default function ReviewsV2({
                             <span>{reviewRating.toFixed(1)}</span>
                           </span>
                         </span>
-                        {isSelected ? (
-                          <span className="absolute inset-x-3 bottom-0 h-0.5 bg-primary" aria-hidden="true" />
-                        ) : null}
                       </button>
                     );
                   })}
