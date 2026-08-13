@@ -4,6 +4,7 @@ import { Readable } from "node:stream";
 import {
   buildReviewRows,
   parseReviewsExport,
+  reviewImageFor,
   reviewInsertSql,
   selectReviews,
 } from "./import-kawaii-reviews.mjs";
@@ -120,4 +121,14 @@ test("csvRows still parses multiline fields", async () => {
   const rows = [];
   for await (const row of csvRows(exportFixture())) rows.push(row);
   assert.equal(rows.length, 12);
+});
+
+test("reviewImageFor picks a matching keyword image and falls back per slot", () => {
+  const acneUrl = reviewImageFor("Really great for acne so far!", 0);
+  assert.match(acneUrl, /^https:\/\/images\.unsplash\.com\/photo-/);
+  assert.match(acneUrl, /w=900&h=1100/);
+  assert.notEqual(acneUrl, reviewImageFor("no keyword here", 1));
+  const first = reviewImageFor("generic", 0);
+  const second = reviewImageFor("generic", 1);
+  assert.notEqual(first, second);
 });

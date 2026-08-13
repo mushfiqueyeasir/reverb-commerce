@@ -1,12 +1,11 @@
 "use client";
 
-import type { KeyboardEvent } from "react";
+import { useEffect, type KeyboardEvent } from "react";
 import { useId, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
   AnimatePresence,
-  LayoutGroup,
   motion,
   useReducedMotion,
 } from "motion/react";
@@ -39,6 +38,18 @@ export default function ReviewsV2({
   const selectedIndex = reviews.findIndex((review) => review.id === selectedId);
   const activeIndex = selectedIndex >= 0 ? selectedIndex : 0;
   const active = reviews[activeIndex];
+
+  useEffect(() => {
+    if (reduceMotion || reviews.length < 2) return;
+    const timer = window.setInterval(() => {
+      setSelectedId((current) => {
+        const index = reviews.findIndex((review) => review.id === current);
+        const nextIndex = (index + 1) % reviews.length;
+        return reviews[nextIndex]?.id ?? current;
+      });
+    }, 6000);
+    return () => window.clearInterval(timer);
+  }, [reduceMotion, reviews]);
 
   if (!active) return null;
 
@@ -240,46 +251,47 @@ export default function ReviewsV2({
             </div>
 
             <div className="border-t border-border bg-surface/70 p-3 sm:p-4">
-              <LayoutGroup id={instanceId}>
-                <div
-                  role="tablist"
-                  aria-label="Select a community review"
-                  className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [scrollbar-width:thin]"
-                >
-                  {reviews.map((review, index) => {
-                    const isSelected = index === activeIndex;
+              <div
+                role="tablist"
+                aria-label="Select a community review"
+                className="relative overflow-hidden"
+              >
+                <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-surface to-transparent sm:w-12" aria-hidden />
+                <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-surface to-transparent sm:w-12" aria-hidden />
+                <div className="flex w-max animate-marquee-reviews gap-3 pe-3 hover:[animation-play-state:paused]">
+                  {[...reviews, ...reviews, ...reviews].map((review, index) => {
+                    const isSelected = (index % reviews.length) === activeIndex;
                     const image = review.image?.trim();
                     const name =
-                      review.customerName?.trim() || `Community ${index + 1}`;
+                      review.customerName?.trim() || `Community ${(index % reviews.length) + 1}`;
                     const reviewRating = Math.min(
                       5,
                       Math.max(0, review.rating ?? 5),
                     );
 
                     return (
-                      <motion.button
+                      <button
                         key={`${review.id}-${index}`}
                         ref={(element) => {
-                          selectorRefs.current[index] = element;
+                          if (index < reviews.length)
+                            selectorRefs.current[index] = element;
                         }}
-                        id={`${instanceId}-tab-${index}`}
+                        id={`${instanceId}-tab-${index % reviews.length}`}
                         type="button"
                         data-preview-interactive
                         role="tab"
                         aria-selected={isSelected}
                         aria-controls={panelId}
-                        tabIndex={isSelected ? 0 : -1}
+                        tabIndex={index < reviews.length && isSelected ? 0 : -1}
                         onClick={() => setSelectedId(review.id)}
                         onKeyDown={(event) =>
-                          handleSelectorKeyDown(event, index)
+                          handleSelectorKeyDown(event, index % reviews.length)
                         }
-                        className={`group relative flex min-h-20 w-[min(76vw,18rem)] shrink-0 snap-center items-center gap-3 overflow-hidden rounded-2xl border p-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface sm:w-64 ${
+                        className={`group relative flex min-h-20 w-[min(76vw,18rem)] shrink-0 items-center gap-3 overflow-hidden rounded-2xl border p-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface sm:w-64 ${
                           isSelected
                             ? "border-primary bg-primary/10"
                             : "border-border bg-card hover:border-primary/50"
                         }`}
-                        whileHover={reduceMotion ? undefined : { y: -3 }}
-                        whileTap={reduceMotion ? undefined : { scale: 0.985 }}
                       >
                         <span className="relative block h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-surface">
                           {image ? (
@@ -310,18 +322,13 @@ export default function ReviewsV2({
                           </span>
                         </span>
                         {isSelected ? (
-                          <motion.span
-                            layoutId="review-selector"
-                            className="absolute inset-x-3 bottom-0 h-0.5 bg-primary"
-                            transition={{ duration: reduceMotion ? 0.01 : 0.3 }}
-                            aria-hidden="true"
-                          />
+                          <span className="absolute inset-x-3 bottom-0 h-0.5 bg-primary" aria-hidden="true" />
                         ) : null}
-                      </motion.button>
+                      </button>
                     );
                   })}
                 </div>
-              </LayoutGroup>
+              </div>
             </div>
           </div>
         </V2Reveal>

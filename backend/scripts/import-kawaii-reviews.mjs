@@ -2,6 +2,7 @@ import { createReadStream, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import sanitizeHtml from "sanitize-html";
+import sharp from "sharp";
 import { createClient } from "@supabase/supabase-js";
 import {
   loadClient,
@@ -10,7 +11,6 @@ import {
   repositoryRoot,
 } from "./client-registry.mjs";
 import {
-  createPlaceholderPng,
   createSupabaseFetch,
   requestJson,
   responseRows,
@@ -22,18 +22,73 @@ const SUPABASE_API = "https://api.supabase.com";
 const MAX_REVIEWS = 20;
 const REVIEW_IMAGE_BUCKET = "review-images";
 const REVIEW_IMAGE_PREFIX = "kawaii-reviews/v1";
-const REVIEW_IMAGE_WIDTH = 900;
-const REVIEW_IMAGE_HEIGHT = 1100;
+
+// Curated royalty-free (Unsplash) photos matched to each review's topic, since
+// reviews are product-independent. A keyword derived from the review body picks
+// the closest image, with a per-slot fallback so all 20 tiles stay relevant and
+// varied instead of one flat placeholder block.
+const REVIEW_IMAGE_BY_KEYWORD = {
+  acne: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=900&h=1100&q=80",
+  moisturizer:
+    "https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=900&h=1100&q=80",
+  toner:
+    "https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=900&h=1100&q=80",
+  retinol:
+    "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=900&h=1100&q=80",
+  cleanser:
+    "https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?auto=format&fit=crop&w=900&h=1100&q=80",
+  shampoo:
+    "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=900&h=1100&q=80",
+  conditioner:
+    "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=900&h=1100&q=80",
+  hair: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=900&h=1100&q=80",
+  sunscreen:
+    "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=900&h=1100&q=80",
+  makeup:
+    "https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=900&h=1100&q=80",
+  serum:
+    "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=900&h=1100&q=80",
+  hydrating:
+    "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=900&h=1100&q=80",
+  emulsion:
+    "https://images.unsplash.com/photo-1526947425960-945c6e72858f?auto=format&fit=crop&w=900&h=1100&q=80",
+};
+
+// Fallback pool used when no keyword matches; slot index selects deterministically.
+const REVIEW_IMAGE_FALLBACKS = [
+  "https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=900&h=1100&q=80",
+  "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=900&h=1100&q=80",
+  "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=900&h=1100&q=80",
+  "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=900&h=1100&q=80",
+  "https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=900&h=1100&q=80",
+  "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?auto=format&fit=crop&w=900&h=1100&q=80",
+  "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=900&h=1100&q=80",
+  "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=900&h=1100&q=80",
+  "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=900&h=1100&q=80",
+  "https://images.unsplash.com/photo-1596704017254-9b121068fb31?auto=format&fit=crop&w=900&h=1100&q=80",
+  "https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?auto=format&fit=crop&w=900&h=1100&q=80",
+  "https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?auto=format&fit=crop&w=900&h=1100&q=80",
+  "https://images.unsplash.com/photo-1526947425960-945c6e72858f?auto=format&fit=crop&w=900&h=1100&q=80",
+  "https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=900&h=1100&q=80",
+  "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=900&h=1100&q=80",
+  "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=900&h=1100&q=80",
+  "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=900&h=1100&q=80",
+  "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=900&h=1100&q=80",
+  "https://images.unsplash.com/photo-1580870069867-74c57ee1bb07?auto=format&fit=crop&w=900&h=1100&q=80",
+  "https://images.unsplash.com/photo-1559599101-f09722fb4948?auto=format&fit=crop&w=900&h=1100&q=80",
+];
+
+export function reviewImageFor(body, index) {
+  const haystack = String(body ?? "").toLowerCase();
+  for (const [keyword, url] of Object.entries(REVIEW_IMAGE_BY_KEYWORD)) {
+    if (haystack.includes(keyword)) return url;
+  }
+  return REVIEW_IMAGE_FALLBACKS[index % REVIEW_IMAGE_FALLBACKS.length];
+}
 
 const COMMENTS_HEADER =
   "comment_ID,comment_post_ID,comment_author,comment_author_email,comment_author_url,comment_author_IP,comment_date,comment_date_gmt,comment_content,comment_karma,comment_approved,comment_agent,comment_type,comment_parent,user_id";
 const COMMENTMETA_HEADER = "meta_id,comment_id,meta_key,meta_value";
-
-const REVIEW_PALETTES = [
-  [255, 245, 248],
-  [244, 214, 226],
-  [249, 40, 122],
-];
 
 function decodeHtml(value) {
   return String(value ?? "")
@@ -294,14 +349,21 @@ async function uploadReviewImages(token, projectRef, reviews) {
   const paths = [];
   for (const [index, review] of reviews.entries()) {
     const path = `${REVIEW_IMAGE_PREFIX}/review-${String(index + 1).padStart(2, "0")}.png`;
-    const content = createPlaceholderPng(
-      REVIEW_IMAGE_WIDTH,
-      REVIEW_IMAGE_HEIGHT,
-      REVIEW_PALETTES,
-    );
+    const sourceUrl = reviewImageFor(review.content, index);
+    const response = await fetch(sourceUrl);
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch review image ${sourceUrl}: ${response.status}`,
+      );
+    }
+    const content = Buffer.from(await response.arrayBuffer());
+    const contentType =
+      response.headers.get("content-type")?.split(";")[0].trim() ||
+      "image/jpeg";
+    const pngContent = await sharp(content).png().toBuffer();
     const { error } = await supabase.storage
       .from(REVIEW_IMAGE_BUCKET)
-      .upload(path, content, {
+      .upload(path, pngContent, {
         contentType: "image/png",
         cacheControl: "31536000",
         upsert: true,
