@@ -14,6 +14,7 @@
     "content:populate:kawaii": "node scripts/populate-kawaii-home-about.mjs",
     "categories:import:kawaii": "node scripts/import-kawaii-categories.mjs",
     "products:import:kawaii": "node scripts/import-kawaii-products.mjs",
+    "reviews:import:kawaii": "node scripts/import-kawaii-reviews.mjs",
     "skus:backfill:kawaii": "node scripts/backfill-kawaii-skus.mjs",
     "client:env:pull": "node scripts/pull-client-env.mjs",
     "client:env:backup": "node scripts/build-client-env-backup.mjs",

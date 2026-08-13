@@ -174,7 +174,7 @@ export function buildHomepageSections() {
       3,
       {
         eyebrow: "Customer review",
-        limit: 1,
+        limit: 12,
         cta_label: "Read reviews",
         cta_url: "/reviews",
       },
@@ -278,7 +278,7 @@ export function buildHomepageSections() {
       9,
       {
         eyebrow: "Community snapshot",
-        limit: 1,
+        limit: 12,
         cta_label: "See customer feedback",
         cta_url: "/reviews",
       },

@@ -46,8 +46,8 @@ test("buildHomepageSections returns all canonical active Kawaii sections", () =>
   );
   assert.equal(rows.find((row) => row.type === "featured").config.limit, 4);
   assert.equal(rows.find((row) => row.type === "featured_v2").config.limit, 5);
-  assert.equal(rows.find((row) => row.type === "reviews").config.limit, 1);
-  assert.equal(rows.find((row) => row.type === "reviews_v2").config.limit, 1);
+  assert.equal(rows.find((row) => row.type === "reviews").config.limit, 12);
+  assert.equal(rows.find((row) => row.type === "reviews_v2").config.limit, 12);
   for (const type of ["promo", "promo_v2"]) {
     assert.equal(
       rows.find((row) => row.type === type).config.promotion_id,
