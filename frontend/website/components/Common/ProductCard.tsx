@@ -132,10 +132,10 @@ export default function ProductCard({
             onClick={() => !isOutOfStock && setIsModalOpen(true)}
             disabled={isOutOfStock}
             className={cn(
-              "absolute inset-x-2.5 bottom-2.5 flex items-center justify-between rounded-full bg-foreground/95 px-3.5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-background backdrop-blur-md transition-all duration-500 sm:inset-x-4 sm:bottom-4 sm:px-5 sm:py-3 sm:text-[12px] sm:tracking-[0.2em]",
-              "translate-y-0 opacity-100",
-              "md:translate-y-4 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100",
-              "disabled:cursor-not-allowed disabled:opacity-40",
+              "absolute inset-x-2.5 bottom-2.5 flex items-center justify-between rounded-full px-3.5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] backdrop-blur-md transition-all duration-500 sm:inset-x-4 sm:bottom-4 sm:px-5 sm:py-3 sm:text-[12px] sm:tracking-[0.2em]",
+              isOutOfStock
+                ? "translate-y-0 opacity-100 bg-foreground/95 text-background disabled:cursor-not-allowed"
+                : "translate-y-0 opacity-100 bg-primary text-primary-foreground md:translate-y-4 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100",
             )}
           >
             {isOutOfStock ? "Sold Out" : "Quick Add"}
