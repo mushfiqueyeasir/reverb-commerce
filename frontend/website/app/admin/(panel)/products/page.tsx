@@ -5,34 +5,34 @@ import { requireAdminSession, canWrite } from "@/lib/admin/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSiteSettings } from "@/utility/getSettings";
 import { getCategories } from "@/utility/getCategory";
-import {
-  getCategoryBreadcrumb,
-  getDescendantIds,
-} from "@/lib/categories/hierarchy";
+import { getDescendantIds } from "@/lib/categories/hierarchy";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Button } from "@/components/ui/button";
 import { productImageUrl } from "@/utility/imageUrl";
 import {
   ProductsTable,
   type ProductFilterOption,
+  type ProductStatus,
   type ProductTableRow,
 } from "./ProductsTable";
 
 export const dynamic = "force-dynamic";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
+const PRODUCT_STATUSES: ProductStatus[] = ["active", "draft", "archived"];
 
 type ProductSearchParams = {
   page?: string | string[];
   search?: string | string[];
-  category?: string | string[];
+  categories?: string | string[];
+  status?: string | string[];
 };
 
 interface ProductQueryRow {
   id: string;
   title: string;
   slug: string;
-  status: "active" | "draft" | "archived";
+  status: ProductStatus;
   current_price: number;
   sort: number | null;
   product_images: { path: string; is_main: boolean; sort: number }[];
@@ -44,11 +44,34 @@ function firstParam(value: string | string[] | undefined) {
   return (Array.isArray(value) ? value[0] : value)?.trim() ?? "";
 }
 
-function pageUrl(page: number, filters: { search: string; category: string }) {
+function listParam(value: string | string[] | undefined) {
+  return [
+    ...new Set(
+      firstParam(value)
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+    ),
+  ];
+}
+
+function pageUrl(
+  page: number,
+  filters: {
+    search: string;
+    categories: string[];
+    statuses: ProductStatus[];
+  },
+) {
   const params = new URLSearchParams();
   if (page > 1) params.set("page", String(page));
   if (filters.search) params.set("search", filters.search);
-  if (filters.category) params.set("category", filters.category);
+  if (filters.categories.length) {
+    params.set("categories", filters.categories.join(","));
+  }
+  if (filters.statuses.length) {
+    params.set("status", filters.statuses.join(","));
+  }
   const query = params.toString();
   return `/admin/products${query ? `?${query}` : ""}`;
 }
@@ -69,29 +92,46 @@ export default async function ProductsPage({
   const page =
     Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   const search = firstParam(params.search).slice(0, 80);
-  const requestedCategory = firstParam(params.category);
+  const requestedCategories = listParam(params.categories);
+  const requestedStatuses = listParam(params.status);
   const [settings, allCategories] = await Promise.all([
     getSiteSettings(),
     getCategories(),
   ]);
-  const category = allCategories.some(
-    (item) => !item.isDefault && item._id === requestedCategory,
-  )
-    ? requestedCategory
-    : "";
-  const categoryIds = category
-    ? [...getDescendantIds(allCategories, category)]
-    : [];
-  const filters = { search, category };
+  const availableCategoryIds = new Set(
+    allCategories
+      .filter((category) => !category.isDefault)
+      .map((category) => category._id),
+  );
+  const selectedCategories = requestedCategories.filter((categoryId) =>
+    availableCategoryIds.has(categoryId),
+  );
+  const selectedStatuses = requestedStatuses.filter(
+    (status): status is ProductStatus =>
+      PRODUCT_STATUSES.includes(status as ProductStatus),
+  );
+  const expandedCategoryIds = [
+    ...new Set(
+      selectedCategories.flatMap((categoryId) => [
+        ...getDescendantIds(allCategories, categoryId),
+      ]),
+    ),
+  ];
+  const filters = {
+    search,
+    categories: selectedCategories,
+    statuses: selectedStatuses,
+  };
   const filterOptions: ProductFilterOption[] = allCategories
-    .filter((item) => !item.isDefault)
-    .map((item) => ({
-      id: item._id,
-      name: getCategoryBreadcrumb(allCategories, item._id).join(" / "),
-      depth: item.depth,
+    .filter((category) => !category.isDefault)
+    .map((category) => ({
+      id: category._id,
+      name: category.categoryName,
+      parentId: category.parentId,
+      depth: category.depth,
     }));
   const supabase = await createSupabaseServerClient();
-  const categoryFilterSelect = category
+  const categoryFilterSelect = expandedCategoryIds.length
     ? ", category_filter:product_categories!inner(category_id)"
     : "";
   const selectWithSort = `id, title, slug, status, current_price, sort,
@@ -110,8 +150,11 @@ export default async function ProductsPage({
     if (search) {
       query = query.ilike("title", `%${escapeLikePattern(search)}%`);
     }
-    if (categoryIds.length) {
-      query = query.in("category_filter.category_id", categoryIds);
+    if (expandedCategoryIds.length) {
+      query = query.in("category_filter.category_id", expandedCategoryIds);
+    }
+    if (selectedStatuses.length) {
+      query = query.in("status", selectedStatuses);
     }
     if (withSort) query = query.order("sort", { ascending: true });
     return query
@@ -191,7 +234,8 @@ export default async function ProductsPage({
         pageSize={PAGE_SIZE}
         total={total}
         search={search}
-        category={category}
+        selectedCategories={selectedCategories}
+        selectedStatuses={selectedStatuses}
         categories={filterOptions}
       />
     </div>

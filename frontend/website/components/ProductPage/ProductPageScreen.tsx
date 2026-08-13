@@ -1,41 +1,37 @@
-"use client";
-
-import { useMemo, useEffect } from "react";
-import { useProductStore } from "@/store/productStore";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { TransformedProduct } from "@/type/productType";
 import type { Category } from "@/type/categoryType";
-
-import ProductFilters from "./ProductFilters";
+import { Button } from "@/components/ui/button";
+import ProductFilters, { type StorefrontFilterState } from "./ProductFilters";
 import ProductGrid from "./ProductGrid";
 
 interface ProductPageScreenProps {
   products: TransformedProduct[];
   categories: Category[];
-  /** From the server page URL (`?category=`). */
-  initialCategory?: string;
-  /** From the server page URL (`?search=`). */
-  initialSearch?: string;
+  filters: StorefrontFilterState;
+  page: number;
+  pageSize: number;
+  total: number;
+  maxCatalogPrice: number;
+  previousHref: string | null;
+  nextHref: string | null;
 }
 
 export default function ProductPageScreen({
   products,
   categories,
-  initialCategory,
-  initialSearch,
+  filters,
+  page,
+  pageSize,
+  total,
+  maxCatalogPrice,
+  previousHref,
+  nextHref,
 }: ProductPageScreenProps) {
-  const { getFilteredProducts, filters, setCategories, setSearchQuery } =
-    useProductStore();
-
-  // Seed filters from server URL props (no useSearchParams / Suspense).
-  useEffect(() => {
-    setCategories(initialCategory ? [initialCategory] : []);
-    if (initialSearch != null) setSearchQuery(initialSearch);
-  }, [initialCategory, initialSearch, setCategories, setSearchQuery]);
-
-  const filteredProducts = useMemo(() => {
-    return getFilteredProducts(products, categories);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [products, categories, getFilteredProducts, filters]);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const firstResult = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const lastResult = Math.min(page * pageSize, total);
 
   return (
     <section className="mx-auto max-w-[1600px] px-5 pb-24 pt-24 sm:px-6 md:px-10 md:pt-36">
@@ -48,15 +44,48 @@ export default function ProductPageScreen({
         </h1>
       </div>
       <ProductFilters
-        products={products}
-        filteredProducts={filteredProducts}
         categories={categories}
-        preserveCategory={initialCategory}
+        filters={filters}
+        maxCatalogPrice={maxCatalogPrice}
+        firstResult={firstResult}
+        lastResult={lastResult}
+        total={total}
       />
-      <ProductGrid
-        products={filteredProducts}
-        preserveCategory={initialCategory}
-      />
+      <ProductGrid products={products} />
+      {total > 0 ? (
+        <nav
+          aria-label="Product pagination"
+          className="mt-12 flex flex-col items-center justify-between gap-4 rounded-2xl border border-border bg-card/60 px-4 py-4 sm:flex-row sm:px-5"
+        >
+          <p className="text-sm text-muted-foreground">
+            Page {page} of {totalPages}
+          </p>
+          <div className="flex items-center gap-2">
+            {previousHref ? (
+              <Button asChild variant="outline" className="rounded-full">
+                <Link href={previousHref} scroll>
+                  <ChevronLeft className="size-4" /> Previous
+                </Link>
+              </Button>
+            ) : (
+              <Button variant="outline" className="rounded-full" disabled>
+                <ChevronLeft className="size-4" /> Previous
+              </Button>
+            )}
+            {nextHref ? (
+              <Button asChild variant="outline" className="rounded-full">
+                <Link href={nextHref} scroll>
+                  Next <ChevronRight className="size-4" />
+                </Link>
+              </Button>
+            ) : (
+              <Button variant="outline" className="rounded-full" disabled>
+                Next <ChevronRight className="size-4" />
+              </Button>
+            )}
+          </div>
+        </nav>
+      ) : null}
     </section>
   );
 }

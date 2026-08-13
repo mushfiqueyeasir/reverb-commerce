@@ -114,6 +114,50 @@ export async function saveSection(
     ...(current.config ?? {}),
     ...(input.config ?? {}),
   };
+  if (current.type === "featured" || current.type === "featured_v2") {
+    const maximum = current.type === "featured_v2" ? 5 : 4;
+    const requestedLimit = Number(config.limit);
+    config.limit = Number.isFinite(requestedLimit)
+      ? Math.min(maximum, Math.max(1, Math.floor(requestedLimit)))
+      : maximum;
+    config.cta_label =
+      typeof config.cta_label === "string" && config.cta_label.trim()
+        ? config.cta_label.trim()
+        : "View all products";
+    config.cta_url = "/product";
+  }
+  if (current.type === "categories") {
+    if (!Array.isArray(config.category_ids)) {
+      return { error: "Mosaic categories must be an ordered list." };
+    }
+    const categoryIds = config.category_ids.filter(
+      (categoryId): categoryId is string => typeof categoryId === "string",
+    );
+    if (
+      categoryIds.length !== config.category_ids.length ||
+      categoryIds.length > 4 ||
+      new Set(categoryIds).size !== categoryIds.length
+    ) {
+      return { error: "Choose up to four unique Mosaic categories." };
+    }
+    if (categoryIds.length) {
+      const supabase = await createSupabaseServerClient();
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, parent_id, is_default")
+        .in("id", categoryIds);
+      if (error) return { error: error.message };
+      if (
+        (data ?? []).length !== categoryIds.length ||
+        (data ?? []).some(
+          (category) => category.parent_id && !category.is_default,
+        )
+      ) {
+        return { error: "Mosaic only supports root categories." };
+      }
+    }
+    config.category_ids = categoryIds;
+  }
   const payload = {
     type: current.type,
     title: input.title,

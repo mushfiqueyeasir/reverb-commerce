@@ -23,6 +23,7 @@ import {
 import { getPromotions } from "@/utility/getPromotion";
 import { brandingImageUrl } from "@/utility/imageUrl";
 import { getHomepageSectionMetadata } from "@/lib/cms/homepageSections";
+import { selectHomepageProducts } from "@/lib/products/homepageFeatured";
 import type { Metadata } from "next";
 import { generateMetadata as generateSeoMetadata } from "@/utility/generateMetadata";
 import { getBaseSeoItem } from "@/utility/getSeoSettings";
@@ -53,10 +54,24 @@ function configStr(
 function configLimit(
   config: Record<string, unknown>,
   fallback: number,
+  maximum = 24,
 ): number {
   const value = config.limit;
   if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
-  return Math.min(24, Math.max(1, Math.floor(value)));
+  return Math.min(maximum, Math.max(1, Math.floor(value)));
+}
+
+function configStringArray(
+  config: Record<string, unknown>,
+  key: string,
+): string[] | null {
+  const value = config[key];
+  if (!Array.isArray(value)) return null;
+  return [
+    ...new Set(
+      value.filter((item): item is string => typeof item === "string"),
+    ),
+  ];
 }
 
 function optionalConfigLimit(
@@ -186,19 +201,25 @@ export default async function HomePage() {
             eyebrow={configStr(cfg, "eyebrow")}
             ctaLabel={configStr(cfg, "cta_label")}
             ctaHref={configStr(cfg, "cta_url") ?? "/product"}
+            categoryIds={configStringArray(cfg, "category_ids")}
           />
         );
 
       case "featured": {
-        const featured = allTransformed.slice(0, configLimit(cfg, 8));
+        const featuredMaximum = isV2 ? 5 : 4;
+        const featured = selectHomepageProducts(
+          allTransformed,
+          configLimit(cfg, featuredMaximum, featuredMaximum),
+          featuredMaximum,
+        );
         if (featured.length === 0) return null;
         const props = {
           products: featured,
           title: section.title,
           subtitle: section.subtitle,
           eyebrow: configStr(cfg, "eyebrow"),
-          ctaLabel: configStr(cfg, "cta_label"),
-          ctaHref: configStr(cfg, "cta_url") ?? "/product",
+          ctaLabel: configStr(cfg, "cta_label") ?? "View all products",
+          ctaHref: "/product",
         };
         return isV2 ? (
           <FeaturedProductsV2 {...props} />

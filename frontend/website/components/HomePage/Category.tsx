@@ -10,6 +10,7 @@ interface CategoryProps {
   eyebrow?: string | null;
   ctaLabel?: string | null;
   ctaHref?: string;
+  categoryIds?: string[] | null;
 }
 
 const spans = ["lg:col-span-2 lg:row-span-2", "", "", "lg:col-span-2"];
@@ -19,29 +20,52 @@ export default function Category({
   title,
   subtitle,
   eyebrow,
+  ctaLabel,
+  ctaHref = "/product",
+  categoryIds,
 }: CategoryProps) {
-  const visibleCategories = categories.filter(
+  const eligibleCategories = categories.filter(
     (category) => category.isDefault || !category.parentId,
   );
+  const byId = new Map(
+    eligibleCategories.map((category) => [category._id, category]),
+  );
+  const visibleCategories = (
+    categoryIds
+      ? categoryIds
+          .map((categoryId) => byId.get(categoryId))
+          .filter((category): category is CategoryType => Boolean(category))
+      : eligibleCategories
+  ).slice(0, 4);
   if (visibleCategories.length === 0) return null;
 
   return (
     <section id="drops" className="relative py-16 sm:py-24 md:py-40">
       <div className="mx-auto max-w-[1600px] px-5 sm:px-6 md:px-10">
-        <div className="mb-8 max-w-2xl sm:mb-14">
-          <div className="mb-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
-            <span className="h-px w-8 bg-primary" />
-            {eyebrow || "Collections"}
+        <div className="mb-8 flex flex-col gap-5 sm:mb-14 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-2xl">
+            <div className="mb-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
+              <span className="h-px w-8 bg-primary" />
+              {eyebrow || "Collections"}
+            </div>
+            <h2 className="font-display text-4xl font-bold leading-[0.9] tracking-tight sm:text-5xl md:text-7xl">
+              {title || "Editorial"}{" "}
+              <span className="italic text-primary">
+                {subtitle?.split(" ")[0] || "chapters"}
+              </span>
+              {subtitle
+                ? `, ${subtitle.split(" ").slice(1).join(" ")}`
+                : ", engineered to ride."}
+            </h2>
           </div>
-          <h2 className="font-display text-4xl font-bold leading-[0.9] tracking-tight sm:text-5xl md:text-7xl">
-            {title || "Editorial"}{" "}
-            <span className="italic text-primary">
-              {subtitle?.split(" ")[0] || "chapters"}
-            </span>
-            {subtitle
-              ? `, ${subtitle.split(" ").slice(1).join(" ")}`
-              : ", engineered to ride."}
-          </h2>
+          {ctaLabel ? (
+            <Link
+              href={ctaHref}
+              className="inline-flex min-h-11 shrink-0 items-center font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground transition hover:text-foreground"
+            >
+              {ctaLabel} →
+            </Link>
+          ) : null}
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 lg:h-[900px] lg:grid-cols-4 lg:grid-rows-2">

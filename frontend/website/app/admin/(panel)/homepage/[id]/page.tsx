@@ -3,6 +3,7 @@ import { requireAdminSession, canWrite } from "@/lib/admin/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader, BackLink } from "@/components/admin/PageHeader";
 import { getHomepageSectionDisplayName } from "@/lib/cms/homepageSections";
+import { getCategories } from "@/utility/getCategory";
 import { isBannerSectionType } from "@/type/db";
 import { SectionForm } from "../SectionForm";
 import { listSections } from "../actions";
@@ -23,12 +24,13 @@ export default async function EditSectionPage({
   const { tab } = await searchParams;
   const supabase = await createSupabaseServerClient();
 
-  const [sections, promotionsRes] = await Promise.all([
+  const [sections, promotionsRes, categoryRows] = await Promise.all([
     listSections(),
     supabase
       .from("promotions")
       .select("id, title, active")
       .order("created_at", { ascending: false }),
+    getCategories(),
   ]);
 
   const section = sections.find((s) => s.id === id);
@@ -46,6 +48,12 @@ export default async function EditSectionPage({
       { id: string; title: string; active: boolean }[] | null) ?? []
   ).map((p) => ({ id: p.id, title: p.title, active: p.active }));
 
+  const categories = categoryRows
+    .filter((category) => category.isDefault || !category.parentId)
+    .map((category) => ({
+      id: category._id,
+      name: category.categoryName,
+    }));
   const initialTab = isBanner && tab === "slides" ? "slides" : "content";
 
   return (
@@ -62,6 +70,7 @@ export default async function EditSectionPage({
       <SectionForm
         section={section}
         promotions={promotions}
+        categories={categories}
         banners={banners}
         canWrite={writable}
         initialTab={initialTab}

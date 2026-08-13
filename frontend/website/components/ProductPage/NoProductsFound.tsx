@@ -1,24 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useProductStore } from "@/store/productStore";
 import { PackageX } from "lucide-react";
 
-export default function NoProductsFound({
-  preserveCategory,
-}: {
-  preserveCategory?: string;
-}) {
-  const { resetFilters } = useProductStore();
+export default function NoProductsFound() {
   const router = useRouter();
 
   const handleClearAllFilters = () => {
-    resetFilters();
-    if (preserveCategory) {
-      useProductStore.getState().setCategories([preserveCategory]);
-      router.push(`/product?category=${encodeURIComponent(preserveCategory)}`);
-      return;
-    }
     router.push("/product");
   };
 

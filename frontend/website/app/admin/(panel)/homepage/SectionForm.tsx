@@ -29,6 +29,7 @@ import {
   adminTextareaClass,
 } from "@/components/admin/FormField";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { SortableList } from "@/components/admin/SortableList";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -57,9 +58,16 @@ const FAMILY_INFO: Record<HomepageSectionV1Type, string> = {
 
 const MIN_LIMIT = 1;
 const MAX_LIMIT = 24;
+const MAX_FEATURED_LIMIT = 4;
+const MAX_MOSAIC_CATEGORIES = 4;
 
-function clampLimit(value: number): number {
-  return Math.min(MAX_LIMIT, Math.max(MIN_LIMIT, Math.floor(value)));
+function clampLimit(value: number, maximum = MAX_LIMIT): number {
+  return Math.min(maximum, Math.max(MIN_LIMIT, Math.floor(value)));
+}
+
+export interface HomepageCategoryOption {
+  id: string;
+  name: string;
 }
 
 export interface PromotionOption {
@@ -84,6 +92,19 @@ function numConfig(
 ): number {
   const v = config[key];
   return typeof v === "number" && Number.isFinite(v) ? v : fallback;
+}
+
+function stringArrayConfig(
+  config: Record<string, unknown>,
+  key: string,
+): string[] | null {
+  const value = config[key];
+  if (!Array.isArray(value)) return null;
+  return [
+    ...new Set(
+      value.filter((item): item is string => typeof item === "string"),
+    ),
+  ];
 }
 
 function boolConfig(
@@ -128,12 +149,14 @@ function parseMarqueeItems(config: Record<string, unknown>): string[] {
 export function SectionForm({
   section,
   promotions = [],
+  categories = [],
   banners = [],
   canWrite = false,
   initialTab = "content",
 }: {
   section: HomepageSectionRow;
   promotions?: PromotionOption[];
+  categories?: HomepageCategoryOption[];
   banners?: BannerRow[];
   canWrite?: boolean;
   initialTab?: "content" | "slides";
@@ -161,6 +184,20 @@ export function SectionForm({
     family === "featured" ||
     family === "reviews" ||
     (family === "richtext" && version === 2);
+  const limitMaximum =
+    section.type === "featured_v2"
+      ? 5
+      : family === "featured"
+        ? MAX_FEATURED_LIMIT
+        : MAX_LIMIT;
+  const limitFallback =
+    family === "reviews"
+      ? 24
+      : section.type === "featured_v2"
+        ? 5
+        : family === "featured"
+          ? 4
+          : 8;
   const [tab, setTab] = useState<"content" | "slides">(
     initialTab === "slides" ? "slides" : "content",
   );
@@ -174,11 +211,19 @@ export function SectionForm({
   const [limit, setLimit] = useState(() => {
     if (hasOptionalLimit && typeof config.limit !== "number") return "";
     return String(
-      clampLimit(numConfig(config, "limit", family === "reviews" ? 24 : 8)),
+      clampLimit(numConfig(config, "limit", limitFallback), limitMaximum),
     );
   });
   const [ctaLabel, setCtaLabel] = useState(
-    strConfig(config, "cta_label", family === "promo" ? "Shop the drop" : ""),
+    strConfig(
+      config,
+      "cta_label",
+      family === "promo"
+        ? "Shop the drop"
+        : family === "featured"
+          ? "View all products"
+          : "",
+    ),
   );
   const [ctaUrl, setCtaUrl] = useState(
     strConfig(
@@ -187,6 +232,16 @@ export function SectionForm({
       family === "reviews" ? "/reviews" : "/product",
     ),
   );
+  const [categoryIds, setCategoryIds] = useState(() => {
+    const configured = stringArrayConfig(config, "category_ids");
+    const initial =
+      configured ??
+      categories.slice(0, MAX_MOSAIC_CATEGORIES).map((category) => category.id);
+    const available = new Set(categories.map((category) => category.id));
+    return initial
+      .filter((categoryId) => available.has(categoryId))
+      .slice(0, MAX_MOSAIC_CATEGORIES);
+  });
   const [showMarquee, setShowMarquee] = useState(
     boolConfig(config, "show_marquee", true),
   );
@@ -201,6 +256,16 @@ export function SectionForm({
   );
   const [marqueeItems, setMarqueeItems] = useState<string[]>(() =>
     parseMarqueeItems(config),
+  );
+  const selectedCategories = categoryIds
+    .map((categoryId) =>
+      categories.find((category) => category.id === categoryId),
+    )
+    .filter((category): category is HomepageCategoryOption =>
+      Boolean(category),
+    );
+  const availableCategories = categories.filter(
+    (category) => !categoryIds.includes(category.id),
   );
 
   const updateStat = (
@@ -247,16 +312,20 @@ export function SectionForm({
       nextConfig.cta_url = ctaUrl.trim() || null;
     }
     if (hasRequiredLimit) {
-      const fallback = family === "reviews" ? 24 : 8;
       const parsedLimit = Number(limit);
       const value =
-        limit.trim() && Number.isFinite(parsedLimit) ? parsedLimit : fallback;
-      nextConfig.limit = clampLimit(value);
+        limit.trim() && Number.isFinite(parsedLimit)
+          ? parsedLimit
+          : limitFallback;
+      nextConfig.limit = clampLimit(value, limitMaximum);
     }
     if (hasOptionalLimit) {
       const value = Number(limit);
       nextConfig.limit =
         limit.trim() && Number.isFinite(value) ? clampLimit(value) : null;
+    }
+    if (section.type === "categories") {
+      nextConfig.category_ids = categoryIds.slice(0, MAX_MOSAIC_CATEGORIES);
     }
     if (isBanner) {
       nextConfig.description = description.trim() || DEFAULT_BANNER_DESCRIPTION;
@@ -592,14 +661,14 @@ export function SectionForm({
               hint={
                 hasOptionalLimit
                   ? "Leave blank to show every category."
-                  : `Choose between ${MIN_LIMIT} and ${MAX_LIMIT} items.`
+                  : `Choose between ${MIN_LIMIT} and ${limitMaximum} items.`
               }
             >
               <Input
                 id="limit"
                 type="number"
                 min={MIN_LIMIT}
-                max={MAX_LIMIT}
+                max={limitMaximum}
                 value={limit}
                 onChange={(e) => setLimit(e.target.value)}
                 placeholder={hasOptionalLimit ? "All" : undefined}
@@ -687,7 +756,102 @@ export function SectionForm({
             </FormField>
           )}
 
-          {family === "categories" && (
+          {section.type === "categories" ? (
+            <div className="space-y-4 rounded-xl border border-border bg-background/50 p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    Mosaic categories
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Choose up to four categories and drag them into display
+                    order.
+                  </p>
+                </div>
+                <div className="w-full sm:w-64">
+                  <Select
+                    value="__add__"
+                    disabled={
+                      categoryIds.length >= MAX_MOSAIC_CATEGORIES ||
+                      availableCategories.length === 0
+                    }
+                    onValueChange={(categoryId) => {
+                      if (categoryId === "__add__") return;
+                      setCategoryIds((current) =>
+                        [...current, categoryId].slice(
+                          0,
+                          MAX_MOSAIC_CATEGORIES,
+                        ),
+                      );
+                    }}
+                  >
+                    <SelectTrigger className={adminSelectClass}>
+                      <SelectValue placeholder="Add category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__add__" disabled>
+                        Add category
+                      </SelectItem>
+                      {availableCategories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              {selectedCategories.length ? (
+                <SortableList
+                  items={selectedCategories}
+                  onReorder={(items) =>
+                    setCategoryIds(items.map((category) => category.id))
+                  }
+                  getLabel={(category) => category.name}
+                  renderItem={(category, index) => (
+                    <div className="flex min-h-12 items-center gap-3 rounded-xl border border-border bg-card px-3 py-2">
+                      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                        {index + 1}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                        {category.name}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 rounded-full"
+                        onClick={() =>
+                          setCategoryIds((current) =>
+                            current.filter(
+                              (categoryId) => categoryId !== category.id,
+                            ),
+                          )
+                        }
+                        aria-label={`Remove ${category.name}`}
+                      >
+                        <Trash2 className="size-4 text-destructive" />
+                      </Button>
+                    </div>
+                  )}
+                />
+              ) : (
+                <div className="rounded-xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
+                  Add at least one category to show the Mosaic section.
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Names and images are managed in{" "}
+                <Link
+                  href="/admin/categories"
+                  className="text-primary underline-offset-2 hover:underline"
+                >
+                  Catalog → Categories
+                </Link>
+                .
+              </p>
+            </div>
+          ) : family === "categories" ? (
             <p className="rounded-xl border border-border bg-background/50 px-4 py-3 text-sm text-muted-foreground">
               Category cards come from{" "}
               <Link
@@ -698,7 +862,7 @@ export function SectionForm({
               </Link>
               . Edit images and names there.
             </p>
-          )}
+          ) : null}
 
           {activeToggle}
         </div>

@@ -4,15 +4,11 @@ import type { TransformedProduct } from "@/type/productType";
 
 interface ProductGridProps {
   products: TransformedProduct[];
-  preserveCategory?: string;
 }
 
-export default function ProductGrid({
-  products,
-  preserveCategory,
-}: ProductGridProps) {
+export default function ProductGrid({ products }: ProductGridProps) {
   if (products.length === 0) {
-    return <NoProductsFound preserveCategory={preserveCategory} />;
+    return <NoProductsFound />;
   }
 
   return (

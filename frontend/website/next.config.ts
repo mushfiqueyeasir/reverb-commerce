@@ -45,6 +45,11 @@ const nextConfig: NextConfig = {
         hostname: "images.unsplash.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "kawaii.com.bd",
+        pathname: "/wp-content/uploads/**",
+      },
       ...(supabaseHost
         ? [
             {

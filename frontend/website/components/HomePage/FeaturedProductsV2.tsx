@@ -104,7 +104,7 @@ export default function FeaturedProductsV2({
 
   if (products.length === 0) return null;
 
-  const [spotlight, ...supportingProducts] = products;
+  const [spotlight, ...supportingProducts] = products.slice(0, 5);
   const availability = productAvailability(spotlight);
   const discount = productDiscount(spotlight);
   const isReduced = spotlight.originalPrice > spotlight.currentPrice;

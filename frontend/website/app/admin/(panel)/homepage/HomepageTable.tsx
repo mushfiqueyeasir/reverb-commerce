@@ -326,29 +326,33 @@ function CategoriesV2Preview({ section }: { section: HomepageSectionRow }) {
 }
 
 function FeaturedPreview({ section }: { section: HomepageSectionRow }) {
-  const limit = configLimit(section.config) ?? previewProducts.length;
+  const limit = Math.min(4, configLimit(section.config) ?? 4);
   return (
     <FeaturedProducts
       products={previewProducts.slice(0, limit)}
       title={section.title}
       subtitle={section.subtitle}
       eyebrow={configString(section.config, "eyebrow")}
-      ctaLabel={configString(section.config, "cta_label")}
-      ctaHref={configString(section.config, "cta_url") ?? "/product"}
+      ctaLabel={
+        configString(section.config, "cta_label") ?? "View all products"
+      }
+      ctaHref="/product"
     />
   );
 }
 
 function FeaturedV2Preview({ section }: { section: HomepageSectionRow }) {
-  const limit = configLimit(section.config) ?? previewProducts.length;
+  const limit = Math.min(5, configLimit(section.config) ?? 5);
   return (
     <FeaturedProductsV2
       products={previewProducts.slice(0, limit)}
       title={section.title}
       subtitle={section.subtitle}
       eyebrow={configString(section.config, "eyebrow")}
-      ctaLabel={configString(section.config, "cta_label")}
-      ctaHref={configString(section.config, "cta_url") ?? "/product"}
+      ctaLabel={
+        configString(section.config, "cta_label") ?? "View all products"
+      }
+      ctaHref="/product"
       preview
     />
   );

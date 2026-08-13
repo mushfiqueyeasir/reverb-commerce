@@ -108,6 +108,102 @@ function mapProduct(raw: RawProduct): Product {
   };
 }
 
+export type StorefrontProductSort =
+  "featured" | "price-low" | "price-high" | "name-a-z" | "name-z-a";
+
+export interface StorefrontProductQuery {
+  search: string;
+  categoryIds: string[];
+  availability: ("in-stock" | "out-of-stock")[];
+  minPrice: number | null;
+  maxPrice: number | null;
+  sort: StorefrontProductSort;
+}
+
+export interface StorefrontProductPage {
+  products: Product[];
+  total: number;
+  maxCatalogPrice: number;
+}
+
+export async function getProductsPage(
+  filters: StorefrontProductQuery,
+  page: number,
+  pageSize: number,
+): Promise<StorefrontProductPage> {
+  const supabase = await createSupabaseServerClient();
+  const categoryJoin = filters.categoryIds.length
+    ? ", category_filter:product_categories!inner(category_id)"
+    : "";
+  const onlyInStock =
+    filters.availability.includes("in-stock") &&
+    !filters.availability.includes("out-of-stock");
+  const onlyOutOfStock =
+    filters.availability.includes("out-of-stock") &&
+    !filters.availability.includes("in-stock");
+  const stockJoin = onlyInStock
+    ? ", stock_filter:product_variants!inner(stock_quantity)"
+    : onlyOutOfStock
+      ? ", stock_filter:product_variants(stock_quantity)"
+      : "";
+  let query = supabase
+    .from("products")
+    .select(`${PRODUCT_SELECT}${categoryJoin}${stockJoin}`, { count: "exact" })
+    .eq("status", "active");
+
+  if (filters.search) {
+    query = query.ilike("title", `%${filters.search}%`);
+  }
+  if (filters.categoryIds.length) {
+    query = query.in("category_filter.category_id", filters.categoryIds);
+  }
+  if (onlyInStock) {
+    query = query.gt("stock_filter.stock_quantity", 0);
+  }
+  if (onlyOutOfStock) {
+    query = query.gt("stock_filter.stock_quantity", 0).is("stock_filter", null);
+  }
+  if (filters.minPrice !== null) {
+    query = query.gte("current_price", filters.minPrice);
+  }
+  if (filters.maxPrice !== null) {
+    query = query.lte("current_price", filters.maxPrice);
+  }
+
+  if (filters.sort === "price-low") {
+    query = query.order("current_price", { ascending: true });
+  } else if (filters.sort === "price-high") {
+    query = query.order("current_price", { ascending: false });
+  } else if (filters.sort === "name-a-z") {
+    query = query.order("title", { ascending: true });
+  } else if (filters.sort === "name-z-a") {
+    query = query.order("title", { ascending: false });
+  } else {
+    query = query
+      .order("sort", { ascending: true })
+      .order("created_at", { ascending: false });
+  }
+
+  const offset = (page - 1) * pageSize;
+  const [{ data, error, count }, maxPriceResult] = await Promise.all([
+    query.order("id", { ascending: true }).range(offset, offset + pageSize - 1),
+    supabase
+      .from("products")
+      .select("current_price")
+      .eq("status", "active")
+      .order("current_price", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+  if (error) throw error;
+  if (maxPriceResult.error) throw maxPriceResult.error;
+  return {
+    products: ((data as unknown as RawProduct[]) ?? []).map(mapProduct),
+    total: count ?? 0,
+    maxCatalogPrice: Number(maxPriceResult.data?.current_price ?? 0),
+  };
+}
+
 export async function getProducts(): Promise<Product[]> {
   const supabase = await createSupabaseServerClient();
   const ordered = await supabase
