@@ -65,7 +65,7 @@ export default function PromotionModal({ promotion }: PromotionModalProps) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className={cn(
-          "max-h-[min(88dvh,820px)] w-[calc(100%-1.5rem)] max-w-xl gap-0 overflow-hidden rounded-2xl border-0 bg-[#111] p-0 shadow-2xl shadow-black/60 sm:w-[calc(100%-2rem)] sm:rounded-3xl [&>button]:hidden",
+          "max-h-[min(88dvh,820px)] w-[calc(100%-1.5rem)] max-w-xl gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-2xl shadow-black/60 sm:w-[calc(100%-2rem)] sm:rounded-3xl [&>button]:hidden",
           // Slower, smoother enter/exit than the default dialog
           "duration-500 ease-out",
           "data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
@@ -91,7 +91,7 @@ export default function PromotionModal({ promotion }: PromotionModalProps) {
           </button>
 
           {imageUrl && (
-            <div className="relative h-[min(48dvh,380px)] w-full shrink-0 bg-black sm:h-[min(52dvh,420px)]">
+            <div className="relative h-[min(48dvh,380px)] w-full shrink-0 bg-surface sm:h-[min(52dvh,420px)]">
               <Image
                 src={imageUrl}
                 alt={promotion.title}
@@ -100,11 +100,11 @@ export default function PromotionModal({ promotion }: PromotionModalProps) {
                 sizes="(max-width: 640px) 100vw, 576px"
                 className="object-cover object-center"
               />
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#111] to-transparent" />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-card to-transparent" />
             </div>
           )}
 
-          <div className="flex min-h-0 flex-1 flex-col gap-4 bg-[#111] px-6 pb-6 pt-5 sm:gap-5 sm:px-8 sm:pb-8 sm:pt-6">
+          <div className="flex min-h-0 flex-1 flex-col gap-4 bg-card px-6 pb-6 pt-5 sm:gap-5 sm:px-8 sm:pb-8 sm:pt-6">
             <div>
               <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.28em] text-primary">
                 Limited offer

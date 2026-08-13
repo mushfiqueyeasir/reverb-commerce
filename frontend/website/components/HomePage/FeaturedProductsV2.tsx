@@ -312,19 +312,14 @@ export default function FeaturedProductsV2({
                   The supporting edit
                 </h3>
               </div>
-              <span className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground sm:block">
-                Scroll to explore
-              </span>
             </V2Reveal>
             <ol
-              className="flex snap-x snap-mandatory gap-5 overflow-x-auto pb-7 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:gap-7 [&::-webkit-scrollbar-thumb]:bg-primary [&::-webkit-scrollbar-track]:bg-surface [&::-webkit-scrollbar]:h-1"
+              className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-7"
               aria-label="Supporting featured products"
-              tabIndex={0}
             >
               {supportingProducts.map((product, index) => (
                 <motion.li
                   key={product.id}
-                  className="w-[84vw] max-w-[340px] shrink-0 snap-start sm:w-[330px] lg:w-[360px] lg:max-w-none"
                   initial={reduceMotion ? false : { opacity: 0, y: 34 }}
                   whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                   viewport={{ once: true, amount: 0.22 }}
