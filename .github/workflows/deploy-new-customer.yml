@@ -7,6 +7,18 @@ on:
         description: "New store domain, for example https://www.example.com/"
         required: true
         type: string
+      provision_mode:
+        description: "Create a store or resume a partially created store"
+        required: true
+        default: provision
+        type: choice
+        options:
+          - provision
+          - resume
+      supabase_project_ref:
+        description: "Required when resuming a partially created store"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -105,7 +117,8 @@ jobs:
         working-directory: backend
         env:
           SITE_URL: ${{ inputs.site_url }}
-          PROVISION_MODE: provision
+          PROVISION_MODE: ${{ inputs.provision_mode }}
+          SUPABASE_PROJECT_REF: ${{ inputs.supabase_project_ref }}
           RELEASE_SHA: ${{ github.sha }}
           RELEASE_REF: main
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}

@@ -507,13 +507,13 @@ async function getSupabaseKeys(config, projectRef) {
   );
   const keys = Array.isArray(response) ? response : (response?.keys ?? []);
   const publishableEntry =
+    keys.find((key) => key.type === "legacy" && key.name === "anon") ??
     keys.find((key) => key.type === "publishable" && key.name === "default") ??
-    keys.find((key) => key.type === "publishable") ??
-    keys.find((key) => key.type === "legacy" && key.name === "anon");
+    keys.find((key) => key.type === "publishable");
   const secretEntry =
+    keys.find((key) => key.type === "legacy" && key.name === "service_role") ??
     keys.find((key) => key.type === "secret" && key.name === "default") ??
-    keys.find((key) => key.type === "secret") ??
-    keys.find((key) => key.type === "legacy" && key.name === "service_role");
+    keys.find((key) => key.type === "secret");
   if (!publishableEntry || !secretEntry)
     throw new Error("Supabase project API keys are incomplete");
   const publishableKey = await revealApiKey(

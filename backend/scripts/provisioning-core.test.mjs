@@ -400,13 +400,17 @@ test("keeps provisioning credentials in GitHub environment secrets", () => {
     "utf8",
   );
   assert.doesNotMatch(workflow, /^\s+supabase_access_token:/m);
-  assert.doesNotMatch(workflow, /inputs\.provision_mode/);
-  assert.doesNotMatch(workflow, /inputs\.supabase_project_ref/);
+  assert.match(workflow, /^\s+provision_mode:/m);
+  assert.match(workflow, /^\s+supabase_project_ref:/m);
   assert.match(
     workflow,
     /SUPABASE_ACCESS_TOKEN: \$\{\{ secrets\.SUPABASE_ACCESS_TOKEN \}\}/,
   );
-  assert.match(workflow, /PROVISION_MODE: provision/);
+  assert.match(workflow, /PROVISION_MODE: \$\{\{ inputs\.provision_mode \}\}/);
+  assert.match(
+    workflow,
+    /SUPABASE_PROJECT_REF: \$\{\{ inputs\.supabase_project_ref \}\}/,
+  );
   assert.doesNotMatch(workflow, /SUPABASE_ORG_SLUG:/);
 });
 
