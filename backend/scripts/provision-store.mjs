@@ -220,7 +220,7 @@ async function waitForSupabase(config, projectRef) {
     try {
       const health = await supabaseRequest(
         config,
-        `/v1/projects/${projectRef}/health?services=${services}&timeout_ms=10000`,
+        `/v1/projects/${projectRef}/health?services=${services}`,
       );
       const checks = Array.isArray(health) ? health : (health?.services ?? []);
       if (
