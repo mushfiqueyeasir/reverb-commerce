@@ -42,19 +42,19 @@ export default function PromoV2({
       <div className="relative mx-auto max-w-[1600px] px-5 sm:px-6 lg:px-10">
         <V2Reveal>
           <motion.div
-            className="relative min-h-[440px] overflow-hidden rounded-[1.75rem] border border-primary bg-primary text-primary-foreground shadow-[0_32px_110px_rgb(var(--v2-primary-rgb)/0.28)] sm:min-h-[520px] sm:rounded-[2.5rem] lg:min-h-[610px]"
+            className="relative min-h-[440px] overflow-hidden rounded-[1.75rem] border border-border bg-surface text-foreground shadow-[0_32px_110px_rgb(var(--v2-primary-rgb)/0.18)] sm:min-h-[520px] sm:rounded-[2.5rem] lg:min-h-[610px]"
             whileHover={reduceMotion ? undefined : { scale: 1.004 }}
             transition={{ duration: 0.35 }}
           >
-            <V2Aurora className="mix-blend-screen opacity-70" />
-            <V2Grid className="opacity-20 [mask-image:linear-gradient(to_right,var(--foreground),transparent_88%)]" />
-            <V2Particles className="opacity-40" />
+            <V2Aurora className="mix-blend-screen opacity-35" />
+            <V2Grid className="opacity-15 [mask-image:linear-gradient(to_right,var(--foreground),transparent_88%)]" />
+            <V2Particles className="opacity-30" />
 
             <motion.div
               className="pointer-events-none absolute -inset-y-1/2 left-[-35%] z-20 w-1/3 -skew-x-12"
               style={{
                 background:
-                  "linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary-foreground) 34%, transparent), transparent)",
+                  "linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 24%, transparent), transparent)",
               }}
               animate={
                 reduceMotion
@@ -71,7 +71,7 @@ export default function PromoV2({
             />
 
             <motion.div
-              className="pointer-events-none absolute inset-3 z-20 rounded-2xl border-2 border-double border-primary-foreground/20 sm:inset-4 sm:rounded-[1.5rem]"
+              className="pointer-events-none absolute inset-3 z-20 rounded-2xl border-2 border-double border-primary/20 sm:inset-4 sm:rounded-[1.5rem]"
               animate={reduceMotion ? undefined : { opacity: [0.45, 1, 0.45] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               aria-hidden="true"
@@ -112,35 +112,32 @@ export default function PromoV2({
                     className="absolute inset-0"
                     style={{
                       background:
-                        "linear-gradient(90deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 72%, transparent) 22%, transparent 72%), linear-gradient(0deg, color-mix(in srgb, var(--primary) 72%, transparent), transparent 55%)",
+                        "linear-gradient(90deg, var(--surface) 0%, var(--surface) 42%, color-mix(in srgb, var(--surface) 88%, transparent) 58%, color-mix(in srgb, var(--surface) 28%, transparent) 100%), linear-gradient(0deg, color-mix(in srgb, var(--surface) 85%, transparent), transparent 65%)",
                     }}
                     aria-hidden="true"
                   />
                 </motion.div>
               </motion.div>
             ) : (
-              <div className="absolute inset-0">
-                <V2Aurora className="opacity-100" />
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "radial-gradient(circle at 78% 25%, color-mix(in srgb, var(--primary-foreground) 24%, transparent), transparent 24%), radial-gradient(circle at 68% 80%, color-mix(in srgb, var(--background) 22%, transparent), transparent 30%)",
-                  }}
-                  aria-hidden="true"
-                />
-              </div>
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(circle at 78% 25%, color-mix(in srgb, var(--primary) 14%, transparent), transparent 24%), radial-gradient(circle at 68% 80%, color-mix(in srgb, var(--background) 55%, transparent), transparent 30%)",
+                }}
+                aria-hidden="true"
+              />
             )}
 
             <div className="relative z-10 flex min-h-[440px] flex-col justify-between p-7 sm:min-h-[520px] sm:p-10 lg:min-h-[610px] lg:p-14 xl:p-16">
-              <div className="flex items-center gap-3 font-mono text-[9px] font-semibold uppercase tracking-[0.28em] sm:text-[10px]">
-                <span className="size-2 rounded-full bg-primary-foreground" />
+              <div className="flex items-center gap-3 font-mono text-[9px] font-semibold uppercase tracking-[0.28em] text-muted-foreground sm:text-[10px]">
+                <span className="size-2 rounded-full bg-primary" />
                 Current offer
               </div>
 
               <div className="relative -my-2 w-fit sm:-my-6">
                 <motion.p
-                  className="font-display text-[clamp(6.5rem,25vw,20rem)] font-black leading-[0.66] tracking-[-0.095em]"
+                  className="font-display text-[clamp(6.5rem,25vw,20rem)] font-black leading-[0.66] tracking-[-0.095em] text-primary"
                   initial={
                     reduceMotion ? false : { opacity: 0, y: 50, scale: 0.92 }
                   }
@@ -159,7 +156,7 @@ export default function PromoV2({
                   ) : null}
                 </motion.p>
                 <motion.span
-                  className="absolute -bottom-2 right-0 border-y border-primary-foreground/30 py-1 font-mono text-[9px] font-bold uppercase tracking-[0.35em] sm:bottom-0 sm:text-[11px]"
+                  className="absolute -bottom-2 right-0 border-y border-foreground/25 py-1 font-mono text-[9px] font-bold uppercase tracking-[0.35em] text-foreground sm:bottom-0 sm:text-[11px]"
                   animate={
                     reduceMotion
                       ? undefined
@@ -181,14 +178,14 @@ export default function PromoV2({
                     {heading}
                   </h2>
                   {description ? (
-                    <p className="mt-3 max-w-md text-xs font-medium leading-5 text-primary-foreground sm:mt-4 sm:text-sm sm:leading-6">
+                    <p className="mt-3 max-w-md text-xs font-medium leading-5 text-muted-foreground sm:mt-4 sm:text-sm sm:leading-6">
                       {description}
                     </p>
                   ) : null}
                 </div>
                 <Link
                   href={href}
-                  className="group inline-flex min-h-12 w-fit shrink-0 items-center gap-3 rounded-full bg-primary-foreground px-6 text-[10px] font-bold uppercase tracking-[0.2em] text-primary transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-4 focus-visible:ring-offset-primary sm:min-h-14 sm:px-7 sm:text-[11px]"
+                  className="group inline-flex min-h-12 w-fit shrink-0 items-center gap-3 rounded-full bg-primary px-6 text-[10px] font-bold uppercase tracking-[0.2em] text-primary-foreground transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:min-h-14 sm:px-7 sm:text-[11px]"
                 >
                   {label}
                   <ArrowUpRight
@@ -200,7 +197,7 @@ export default function PromoV2({
             </div>
 
             <motion.div
-              className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-1 bg-primary-foreground"
+              className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-1 bg-primary"
               animate={
                 reduceMotion
                   ? undefined
