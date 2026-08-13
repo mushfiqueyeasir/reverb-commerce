@@ -104,7 +104,7 @@ export default function MobileBottomNav({
               className="flex h-full w-full flex-col items-center justify-center gap-0.5 text-muted-foreground transition active:text-foreground"
             >
               <Search className="size-5" strokeWidth={1.75} />
-              <span className="text-[10px] font-medium tracking-wide">
+              <span className="max-w-full truncate px-1 text-[10px] font-medium tracking-wide">
                 Search
               </span>
             </button>
@@ -148,7 +148,9 @@ function TabLink({
           </span>
         )}
       </span>
-      <span className="text-[10px] font-medium tracking-wide">{label}</span>
+      <span className="max-w-full truncate px-1 text-[10px] font-medium tracking-wide">
+        {label}
+      </span>
     </Link>
   );
 }

@@ -10,7 +10,7 @@ interface HeaderProps {
 }
 
 export default function Header({ categories, settings }: HeaderProps) {
-  const menuData = getMenuData(categories);
+  const menuData = getMenuData(categories, settings.navbar);
   const storeName = settings.store_name || "Store";
 
   return (
@@ -23,6 +23,7 @@ export default function Header({ categories, settings }: HeaderProps) {
         menuData={menuData}
         logoUrl={settings.logoUrl}
         storeName={storeName}
+        config={settings.navbar}
       />
     </Suspense>
   );

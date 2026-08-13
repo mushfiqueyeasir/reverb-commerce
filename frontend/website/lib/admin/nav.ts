@@ -69,6 +69,20 @@ export const NAV_ITEMS: NavItem[] = [
   },
 
   {
+    label: "Navbar",
+    href: "/admin/navbar",
+    icon: "GalleryHorizontalEnd",
+    roles: ["admin"],
+    group: "Content",
+  },
+  {
+    label: "Footer",
+    href: "/admin/footer",
+    icon: "LayoutTemplate",
+    roles: ["admin"],
+    group: "Content",
+  },
+  {
     label: "Homepage",
     href: "/admin/homepage",
     icon: "LayoutTemplate",
@@ -76,9 +90,16 @@ export const NAV_ITEMS: NavItem[] = [
     group: "Content",
   },
   {
-    label: "About",
+    label: "Aboutpage",
     href: "/admin/about",
     icon: "BookOpen",
+    roles: ["admin", "editor", "viewer"],
+    group: "Content",
+  },
+  {
+    label: "Reviews",
+    href: "/admin/reviews",
+    icon: "Star",
     roles: ["admin", "editor", "viewer"],
     group: "Content",
   },
@@ -93,13 +114,6 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Promotions",
     href: "/admin/promotions",
     icon: "BadgePercent",
-    roles: ["admin", "editor", "viewer"],
-    group: "Content",
-  },
-  {
-    label: "Reviews",
-    href: "/admin/reviews",
-    icon: "Star",
     roles: ["admin", "editor", "viewer"],
     group: "Content",
   },

@@ -18,14 +18,23 @@ import { useWishlistStore } from "@/store/wishlistStore";
 import { isActivePath } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 import { MenuType } from "@/type/menyType";
+import type { NavbarConfig } from "@/lib/cms/siteChrome";
 
 interface NavbarProps {
   menuData: MenuType[];
   logoUrl: string | null;
   storeName: string;
+  config: NavbarConfig;
+  preview?: boolean;
 }
 
-export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
+export default function Navbar({
+  menuData,
+  logoUrl,
+  storeName,
+  config,
+  preview = false,
+}: NavbarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const itemCount = useCartStore((state) => state.getItemCount());
@@ -33,32 +42,47 @@ export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const activeCategory = searchParams.get("category")?.trim() || null;
+  const centered = config.variant === "centered";
 
   useEffect(() => {
+    if (preview) return;
     const onScroll = () => {
       setScrolled((window.scrollY || document.documentElement.scrollTop) > 20);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [preview]);
 
   return (
     <>
       <header
         className={cn(
-          "z-50 bg-transparent transition-all duration-500",
-          // Phone: overlays hero, scrolls away (not sticky). Desktop: fixed + blur on scroll.
-          "absolute inset-x-0 top-0",
-          "md:fixed md:inset-x-0 md:top-0",
+          "z-50 transition-all duration-500",
+          preview
+            ? "relative rounded-xl border border-border bg-background [&_a]:pointer-events-none [&_button]:pointer-events-none"
+            : "absolute inset-x-0 top-0 md:fixed md:inset-x-0 md:top-0",
+          centered || preview
+            ? "md:border-b md:border-border md:bg-background/90 md:backdrop-blur-xl"
+            : "bg-transparent",
           scrolled &&
-            "md:border-b md:border-border md:bg-background/60 md:backdrop-blur-xl md:backdrop-saturate-150",
+            "md:border-b md:border-border md:bg-background/80 md:backdrop-blur-xl md:backdrop-saturate-150",
         )}
       >
-        <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-2 px-4 sm:h-20 sm:px-6 md:px-10">
+        <div
+          className={cn(
+            "mx-auto h-16 max-w-[1600px] gap-2 px-4 sm:h-20 sm:px-6 md:px-10",
+            centered
+              ? "flex items-center justify-between md:grid md:h-28 md:grid-cols-[1fr_auto_1fr] md:grid-rows-[4rem_3rem]"
+              : "flex items-center justify-between md:grid md:grid-cols-[auto_minmax(0,1fr)_auto]",
+          )}
+        >
           <Link
             href="/"
-            className="flex min-w-0 items-center gap-2"
+            className={cn(
+              "flex min-w-0 items-center gap-2",
+              centered && "md:col-start-2 md:row-start-1 md:justify-self-center",
+            )}
             aria-label={storeName}
           >
             {logoUrl ? (
@@ -77,7 +101,14 @@ export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
             )}
           </Link>
 
-          <nav className="hidden items-center gap-10 md:flex">
+          <nav
+            className={cn(
+              "hidden items-center md:flex md:gap-4 lg:gap-8 xl:gap-10",
+              centered
+                ? "md:col-span-3 md:row-start-2 md:justify-self-center md:border-t md:border-border/60 md:px-10"
+                : "md:max-w-[48vw] md:justify-self-center md:overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+            )}
+          >
             {menuData.map((menu, index) => {
               if (!menu.href) return null;
               const active = isActivePath(pathname, menu.href);
@@ -158,8 +189,13 @@ export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
             })}
           </nav>
 
-          {/* Desktop-only actions — phones use the bottom shopping tab bar */}
-          <div className="hidden shrink-0 items-center gap-0.5 sm:gap-1 md:flex">
+          <div
+            className={cn(
+              "hidden shrink-0 items-center gap-0.5 sm:gap-1 md:flex",
+              centered &&
+                "md:col-start-3 md:row-start-1 md:justify-self-end",
+            )}
+          >
             <IconBtn label="Search" onClick={() => setIsSearchOpen(true)}>
               <Search className="h-4 w-4" />
             </IconBtn>
@@ -213,8 +249,12 @@ export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
         </div>
       </header>
 
-      <MobileBottomNav onSearchOpen={() => setIsSearchOpen(true)} />
-      <SearchSidebar open={isSearchOpen} onOpenChange={setIsSearchOpen} />
+      {!preview ? (
+        <>
+          <MobileBottomNav onSearchOpen={() => setIsSearchOpen(true)} />
+          <SearchSidebar open={isSearchOpen} onOpenChange={setIsSearchOpen} />
+        </>
+      ) : null}
     </>
   );
 }

@@ -25,6 +25,8 @@ export type AuditEntity =
   | "review"
   | "contact"
   | "settings"
+  | "navbar"
+  | "footer"
   | "user"
   | "security"
   | "auth"

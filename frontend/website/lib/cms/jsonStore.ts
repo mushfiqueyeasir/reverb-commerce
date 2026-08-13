@@ -45,6 +45,13 @@ import {
   ensureAboutSections,
   type AboutSectionRow,
 } from "./aboutSections";
+import {
+  DEFAULT_NAVBAR,
+  normalizeFooterConfig,
+  normalizeNavbarConfig,
+  type FooterConfig,
+  type NavbarConfig,
+} from "./siteChrome";
 
 export type {
   CmsAnnouncement,
@@ -89,6 +96,8 @@ export interface CmsBlob {
   /** Fallback when site_settings.favicon_path column is missing. */
   favicon_path: string | null;
   palette: ThemePalette;
+  navbar: NavbarConfig;
+  footer: FooterConfig;
 }
 
 const CMS_KEY = "_cms";
@@ -120,7 +129,7 @@ export const DEFAULT_PAGES: Record<CmsPageSlug, CmsPage> = {
   },
 };
 
-function emptyCms(): CmsBlob {
+function emptyCms(legacyDescription?: unknown): CmsBlob {
   return {
     banners: [],
     homepage_sections: normalizeHomepageSections([]),
@@ -138,6 +147,8 @@ function emptyCms(): CmsBlob {
     chatWidgets: { ...DEFAULT_CHAT_WIDGETS },
     favicon_path: null,
     palette: { ...DEFAULT_PALETTE },
+    navbar: structuredClone(DEFAULT_NAVBAR),
+    footer: normalizeFooterConfig(undefined, legacyDescription),
   };
 }
 
@@ -156,8 +167,8 @@ function normalizeBanners(raw: unknown): BannerRow[] {
     }));
 }
 
-function normalize(raw: unknown): CmsBlob {
-  const base = emptyCms();
+function normalize(raw: unknown, legacyDescription?: unknown): CmsBlob {
+  const base = emptyCms(legacyDescription);
   if (!raw || typeof raw !== "object") return base;
   const o = raw as Partial<CmsBlob>;
   return {
@@ -194,6 +205,8 @@ function normalize(raw: unknown): CmsBlob {
         ? o.favicon_path.trim()
         : null,
     palette: normalizePalette(o.palette),
+    navbar: normalizeNavbarConfig(o.navbar),
+    footer: normalizeFooterConfig(o.footer, legacyDescription),
   };
 }
 
@@ -219,9 +232,41 @@ export async function readCmsBlob(): Promise<CmsBlob> {
       .eq("id", 1)
       .maybeSingle();
     const socials = (data?.socials ?? {}) as Record<string, unknown>;
-    return normalize(socials[CMS_KEY]);
+    return normalize(socials[CMS_KEY], socials.footer_description);
   } catch {
     return emptyCms();
+  }
+}
+
+export async function readCmsBlobForWrite(): Promise<CmsBlob> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("site_settings")
+    .select("socials")
+    .eq("id", 1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Site settings were not found.");
+  const socials = (data.socials ?? {}) as Record<string, unknown>;
+  return normalize(socials[CMS_KEY], socials.footer_description);
+}
+
+export async function writeCmsSection(
+  section: "navbar" | "footer",
+  value: CmsBlob["navbar"] | CmsBlob["footer"],
+): Promise<{ error?: string }> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { error } = await supabase.rpc("update_cms_section", {
+      p_section: section,
+      p_value: value,
+    });
+    if (error) return { error: error.message };
+    return {};
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Failed to save CMS",
+    };
   }
 }
 

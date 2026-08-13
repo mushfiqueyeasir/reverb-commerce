@@ -28,7 +28,6 @@ const FIXED_ASSETS = [
     "https://kawaii.com.bd/wp-content/uploads/cropped-Kawaii-Logo-1-192x192.webp",
     "favicon.webp",
   ],
-  ["https://kawaii.com.bd/wp-content/uploads/payment.png", "payment-methods.png"],
 ];
 const BANNER_ASSETS = [
   ["https://kawaii.com.bd/wp-content/uploads/Banner-1-3.webp", "banner-1.webp"],
@@ -618,7 +617,6 @@ async function main() {
     instagram: "https://www.instagram.com/kawaii_jbeauty_bd/",
     footer_description:
       "Authentic and affordable Japanese cosmetics, skincare, hair care, and personal care in Bangladesh.",
-    payment_image_path: "kawaii-content/v1/payment-methods.png",
     _cms: cms,
   };
   delete socials.footer_links;

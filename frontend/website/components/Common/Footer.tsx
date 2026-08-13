@@ -11,61 +11,59 @@ import {
   YoutubeIcon,
 } from "@/components/Common/Icons";
 import type { SiteSettings } from "@/utility/getSettings";
+import type { FooterConfig, FooterLink } from "@/lib/cms/siteChrome";
+import { isExternalChromeHref } from "@/lib/cms/siteChrome";
 import { isActivePath } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
+type FooterSettings = Pick<
+  SiteSettings,
+  | "store_name"
+  | "socials"
+  | "footer"
+  | "logoUrl"
+  | "contact_email"
+  | "contact_phone"
+>;
+
 interface FooterProps {
-  settings: SiteSettings;
+  settings: FooterSettings;
+  preview?: boolean;
 }
 
-type FooterLink = { label: string; href: string };
+export function FooterPreview({ config }: { config: FooterConfig }) {
+  return (
+    <Footer
+      preview
+      settings={{
+        store_name: "Your Store",
+        socials: {
+          facebook: "https://example.com",
+          instagram: "https://example.com",
+          twitter: "https://example.com",
+        },
+        footer: config,
+        logoUrl: null,
+        contact_email: "hello@yourstore.com",
+        contact_phone: "+880 1000-000000",
+      }}
+    />
+  );
+}
 
-export default function Footer({ settings }: FooterProps) {
+export default function Footer({ settings, preview = false }: FooterProps) {
   const pathname = usePathname();
   const storeName = settings.store_name || "Store";
   const year = new Date().getFullYear();
   const socials = settings.socials ?? {};
-  const extendedSocials = socials as Record<string, unknown>;
-  const footerDescription =
-    typeof extendedSocials.footer_description === "string"
-      ? extendedSocials.footer_description
-      : "Browse products, discover new arrivals, and shop securely online.";
-  const importedLinks = Array.isArray(extendedSocials.footer_links)
-    ? extendedSocials.footer_links.filter(
-        (link): link is FooterLink & { column: "support" | "brand" } =>
-          Boolean(link) &&
-          typeof link === "object" &&
-          typeof link.label === "string" &&
-          typeof link.href === "string" &&
-          (link.column === "support" || link.column === "brand"),
-      )
-    : [];
-
-  const shopLinks: FooterLink[] = [
-    { label: "All products", href: "/product" },
-    { label: "Favorites", href: "/wishlist" },
-    { label: "Cart", href: "/cart" },
+  const config = settings.footer;
+  const compact = config.variant === "compact";
+  const columns = [
+    ...config.columns,
+    ...(config.legalLinks.length
+      ? [{ id: "legal", title: "Legal", links: config.legalLinks }]
+      : []),
   ];
-
-  const supportLinks: FooterLink[] = [
-    { label: "Track order", href: "/track-order" },
-    { label: "Shipping & returns", href: "/refund-policy" },
-    { label: "Contact", href: "/contact-us" },
-    ...importedLinks.filter((link) => link.column === "support"),
-  ];
-
-  const brandLinks: FooterLink[] = [
-    { label: "About", href: "/about-us" },
-    { label: "Reviews", href: "/reviews" },
-    ...importedLinks.filter((link) => link.column === "brand"),
-  ];
-
-  const legalLinks: FooterLink[] = [
-    { label: "Terms of service", href: "/terms-of-service" },
-    { label: "Privacy policy", href: "/privacy-policy" },
-    { label: "Shipping & returns", href: "/refund-policy" },
-  ];
-
   const socialLinks = [
     {
       key: "facebook",
@@ -91,10 +89,85 @@ export default function Footer({ settings }: FooterProps) {
       icon: <YoutubeIcon className="h-4 w-4" size={16} />,
       label: "YouTube",
     },
-  ].filter((s) => Boolean(s.href && s.href !== "#"));
+  ].filter((item) => Boolean(item.href && item.href !== "#"));
+
+  const identity = (
+    <div className={cn("max-w-sm", compact && "mx-auto text-center")}>
+      <Link
+        href="/"
+        className={cn(
+          "inline-flex items-center gap-3",
+          compact && "justify-center",
+        )}
+      >
+        {settings.logoUrl ? (
+          <Image
+            src={settings.logoUrl}
+            alt={storeName}
+            width={140}
+            height={36}
+            className="h-8 w-auto object-contain"
+          />
+        ) : (
+          <span className="font-display text-2xl font-bold tracking-tight text-foreground">
+            {storeName}
+          </span>
+        )}
+      </Link>
+      {config.description ? (
+        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+          {config.description}
+        </p>
+      ) : null}
+      {settings.contact_email || settings.contact_phone ? (
+        <div
+          className={cn(
+            "mt-6 space-y-2 text-sm text-muted-foreground",
+            compact && "flex flex-wrap justify-center gap-x-5 gap-y-2 space-y-0",
+          )}
+        >
+          {settings.contact_email ? (
+            <a
+              href={`mailto:${settings.contact_email}`}
+              className="flex items-center gap-2 transition hover:text-primary"
+            >
+              <Mail className="size-3.5 shrink-0" />
+              {settings.contact_email}
+            </a>
+          ) : null}
+          {settings.contact_phone ? (
+            <a
+              href={`tel:${settings.contact_phone}`}
+              className="flex items-center gap-2 transition hover:text-primary"
+            >
+              <Phone className="size-3.5 shrink-0" />
+              {settings.contact_phone}
+            </a>
+          ) : null}
+        </div>
+      ) : null}
+      {socialLinks.length > 0 ? (
+        <div className={cn("mt-6 flex gap-2", compact && "justify-center")}>
+          {socialLinks.map((item) => (
+            <Social
+              key={item.key}
+              href={item.href!}
+              icon={item.icon}
+              label={item.label}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
 
   return (
-    <footer className="relative overflow-hidden border-t border-border bg-background">
+    <footer
+      className={cn(
+        "relative overflow-hidden border-t border-border bg-background",
+        preview && "rounded-xl border [&_a]:pointer-events-none",
+      )}
+    >
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"
         aria-hidden
@@ -108,77 +181,42 @@ export default function Footer({ settings }: FooterProps) {
         aria-hidden
       />
 
-      <div className="relative mx-auto max-w-[1600px] px-6 pb-10 pt-16 md:px-10 md:pb-12 md:pt-20">
-        <div className="grid gap-12 lg:grid-cols-[1.35fr_repeat(4,1fr)] lg:gap-10">
-          <div className="max-w-sm">
-            <Link href="/" className="inline-flex items-center gap-3">
-              {settings.logoUrl ? (
-                <Image
-                  src={settings.logoUrl}
-                  alt={storeName}
-                  width={140}
-                  height={36}
-                  className="h-8 w-auto object-contain"
-                />
-              ) : (
-                <span className="font-display text-2xl font-bold tracking-tight text-foreground">
-                  {storeName}
-                </span>
-              )}
-            </Link>
-            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              {footerDescription}
-            </p>
-
-            <div className="mt-6 space-y-2 text-sm text-muted-foreground">
-              {settings.contact_email ? (
-                <a
-                  href={`mailto:${settings.contact_email}`}
-                  className="flex items-center gap-2 transition hover:text-primary"
-                >
-                  <Mail className="size-3.5 shrink-0" />
-                  {settings.contact_email}
-                </a>
-              ) : null}
-              {settings.contact_phone ? (
-                <a
-                  href={`tel:${settings.contact_phone}`}
-                  className="flex items-center gap-2 transition hover:text-primary"
-                >
-                  <Phone className="size-3.5 shrink-0" />
-                  {settings.contact_phone}
-                </a>
-              ) : null}
-            </div>
-
-            {socialLinks.length > 0 ? (
-              <div className="mt-6 flex gap-2">
-                {socialLinks.map((s) => (
-                  <Social
-                    key={s.key}
-                    href={s.href!}
-                    icon={s.icon}
-                    label={s.label}
+      <div
+        className={cn(
+          "relative mx-auto max-w-[1600px] px-6 pb-10 md:px-10 md:pb-12",
+          compact ? "pt-12 md:pt-14" : "pt-16 md:pt-20",
+        )}
+      >
+        {compact ? (
+          <div>
+            {identity}
+            {columns.length ? (
+              <div className="mt-12 grid gap-8 border-t border-border pt-10 sm:grid-cols-2 lg:grid-cols-4">
+                {columns.map((column) => (
+                  <Col
+                    key={column.id}
+                    title={column.title}
+                    items={column.links}
+                    pathname={pathname}
+                    compact
                   />
                 ))}
               </div>
             ) : null}
-            {settings.paymentImageUrl ? (
-              <Image
-                src={settings.paymentImageUrl}
-                alt="Accepted payment methods"
-                width={282}
-                height={25}
-                className="mt-6 h-auto max-w-full object-contain"
-              />
-            ) : null}
           </div>
-
-          <Col title="Shop" items={shopLinks} pathname={pathname} />
-          <Col title="Support" items={supportLinks} pathname={pathname} />
-          <Col title="Brand" items={brandLinks} pathname={pathname} />
-          <Col title="Legal" items={legalLinks} pathname={pathname} />
-        </div>
+        ) : (
+          <div className="grid gap-12 lg:grid-cols-5 lg:gap-10">
+            {identity}
+            {columns.map((column) => (
+              <Col
+                key={column.id}
+                title={column.title}
+                items={column.links}
+                pathname={pathname}
+              />
+            ))}
+          </div>
+        )}
 
         <div className="mt-14 flex flex-col gap-3 border-t border-border pt-8 font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <span>
@@ -202,23 +240,29 @@ function Col({
   title,
   items,
   pathname,
+  compact = false,
 }: {
   title: string;
   items: FooterLink[];
   pathname: string;
+  compact?: boolean;
 }) {
   return (
-    <div>
-      <div className="mb-5 font-mono text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
+    <div className={cn(compact && "text-center sm:text-left")}>
+      <h2 className="mb-5 font-mono text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
         {title}
-      </div>
+      </h2>
       <ul className="space-y-3">
-        {items.map((i) => {
-          const active = isActivePath(pathname, i.href);
+        {items.map((item) => {
+          const active =
+            item.href.startsWith("/") && isActivePath(pathname, item.href);
+          const external = isExternalChromeHref(item.href);
           return (
-            <li key={`${i.label}-${i.href}`}>
+            <li key={item.id}>
               <Link
-                href={i.href}
+                href={item.href}
+                target={external ? "_blank" : undefined}
+                rel={external ? "noopener noreferrer" : undefined}
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "text-sm transition",
@@ -227,7 +271,7 @@ function Col({
                     : "text-foreground/80 hover:text-primary",
                 )}
               >
-                {i.label}
+                {item.label}
               </Link>
             </li>
           );
