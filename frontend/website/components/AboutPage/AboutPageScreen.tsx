@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import { sanitizeCmsHtml } from "@/lib/html/sanitize";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -229,7 +230,7 @@ function StorySection({
           {bodyHtml ? (
             <div
               className="prose prose-invert mt-6 max-w-none text-muted-foreground prose-p:leading-relaxed prose-a:text-primary"
-              dangerouslySetInnerHTML={{ __html: bodyHtml }}
+              dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(bodyHtml) }}
             />
           ) : null}
           {extra ? (

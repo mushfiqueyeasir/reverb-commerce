@@ -5,7 +5,9 @@
   "status": "active",
   "domains": {
     "production": "https://www.vegear.com",
-    "aliases": ["https://vegear.com"]
+    "aliases": [
+      "https://vegear.com"
+    ]
   },
   "vercel": {
     "projectName": "store-ve-gear",
@@ -15,6 +17,6 @@
   "supabase": {
     "projectRef": "lznxmqehyzqwqfkfgxxh",
     "url": "https://lznxmqehyzqwqfkfgxxh.supabase.co",
-    "schemaVersion": "0021"
+    "schemaVersion": "0027"
   }
 }

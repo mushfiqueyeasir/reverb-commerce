@@ -28,6 +28,7 @@ export interface SiteSettings extends SiteSettingsRow {
   logoUrl: string | null;
   invoiceLogoUrl: string | null;
   faviconUrl: string | null;
+  paymentImageUrl: string | null;
   currencies: CurrencySettings;
   deliveryCharges: DeliveryCharges;
   chatWidgets: ChatWidgets;
@@ -43,6 +44,7 @@ const FALLBACK: SiteSettings = {
   logoUrl: null,
   invoiceLogoUrl: null,
   faviconUrl: null,
+  paymentImageUrl: null,
   contact_email: null,
   contact_phone: null,
   address: null,
@@ -91,6 +93,11 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     }
 
     const favicon_path = row.favicon_path ?? cms.favicon_path ?? null;
+    const extendedSocials = row.socials as Record<string, unknown>;
+    const paymentImagePath =
+      typeof extendedSocials.payment_image_path === "string"
+        ? extendedSocials.payment_image_path
+        : null;
 
     return {
       ...row,
@@ -106,6 +113,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       logoUrl: brandingImageUrl(row.logo_path),
       invoiceLogoUrl: brandingImageUrl(row.invoice_logo_path),
       faviconUrl: brandingImageUrl(favicon_path),
+      paymentImageUrl: brandingImageUrl(paymentImagePath),
       palette: normalizePalette(cms.palette),
     };
   } catch {

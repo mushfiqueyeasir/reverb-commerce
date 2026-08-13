@@ -1,0 +1,20 @@
+{
+  "$schema": "../../../ops/schemas/tenant-manifest.schema.json",
+  "id": "kawaii",
+  "displayName": "Kawaii",
+  "status": "onboarding",
+  "domains": {
+    "production": "https://kawaii.com.bd",
+    "aliases": []
+  },
+  "vercel": {
+    "projectName": "store-kawaii",
+    "rootDirectory": "frontend/website",
+    "productionBranch": "main"
+  },
+  "supabase": {
+    "projectRef": "dpgzrukkmoyvrzubaenx",
+    "url": "https://dpgzrukkmoyvrzubaenx.supabase.co",
+    "schemaVersion": "0027"
+  }
+}

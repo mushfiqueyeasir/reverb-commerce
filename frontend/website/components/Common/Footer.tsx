@@ -25,6 +25,21 @@ export default function Footer({ settings }: FooterProps) {
   const storeName = settings.store_name || "Store";
   const year = new Date().getFullYear();
   const socials = settings.socials ?? {};
+  const extendedSocials = socials as Record<string, unknown>;
+  const footerDescription =
+    typeof extendedSocials.footer_description === "string"
+      ? extendedSocials.footer_description
+      : "Browse products, discover new arrivals, and shop securely online.";
+  const importedLinks = Array.isArray(extendedSocials.footer_links)
+    ? extendedSocials.footer_links.filter(
+        (link): link is FooterLink & { column: "support" | "brand" } =>
+          Boolean(link) &&
+          typeof link === "object" &&
+          typeof link.label === "string" &&
+          typeof link.href === "string" &&
+          (link.column === "support" || link.column === "brand"),
+      )
+    : [];
 
   const shopLinks: FooterLink[] = [
     { label: "All products", href: "/product" },
@@ -36,11 +51,13 @@ export default function Footer({ settings }: FooterProps) {
     { label: "Track order", href: "/track-order" },
     { label: "Shipping & returns", href: "/refund-policy" },
     { label: "Contact", href: "/contact-us" },
+    ...importedLinks.filter((link) => link.column === "support"),
   ];
 
   const brandLinks: FooterLink[] = [
     { label: "About", href: "/about-us" },
     { label: "Reviews", href: "/reviews" },
+    ...importedLinks.filter((link) => link.column === "brand"),
   ];
 
   const legalLinks: FooterLink[] = [
@@ -110,7 +127,7 @@ export default function Footer({ settings }: FooterProps) {
               )}
             </Link>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              Browse products, discover new arrivals, and shop securely online.
+              {footerDescription}
             </p>
 
             <div className="mt-6 space-y-2 text-sm text-muted-foreground">
@@ -145,6 +162,15 @@ export default function Footer({ settings }: FooterProps) {
                   />
                 ))}
               </div>
+            ) : null}
+            {settings.paymentImageUrl ? (
+              <Image
+                src={settings.paymentImageUrl}
+                alt="Accepted payment methods"
+                width={282}
+                height={25}
+                className="mt-6 h-auto max-w-full object-contain"
+              />
             ) : null}
           </div>
 

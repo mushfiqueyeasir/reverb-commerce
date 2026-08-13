@@ -6,8 +6,11 @@
     "test": "node --test scripts/*.test.mjs",
     "baseline:build": "node scripts/build-clean-baseline.mjs",
     "client:validate": "node scripts/validate-clients.mjs",
+    "client:migrate": "node scripts/migrate-client.mjs",
+    "client:cms:restore": "node scripts/restore-client-cms.mjs",
     "client:provision": "node scripts/provision-client.mjs",
     "store:provision": "node scripts/provision-store.mjs",
+    "content:migrate:kawaii": "node scripts/migrate-kawaii-content.mjs",
     "client:env:pull": "node scripts/pull-client-env.mjs",
     "client:env:backup": "node scripts/build-client-env-backup.mjs",
     "client:cleanup:list": "node scripts/list-cleanup-clients.mjs",
@@ -16,6 +19,7 @@
     "cleanup:assets:dry": "node scripts/cleanup-unused-assets.mjs --dry-run"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.57.4"
+    "@supabase/supabase-js": "^2.57.4",
+    "sanitize-html": "^2.17.6"
   }
 }

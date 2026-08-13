@@ -1,0 +1,15 @@
+{
+  "formatVersion": 2,
+  "purpose": "Non-secret environment inventory. Privileged credentials intentionally remain blank.",
+  "clientId": "kawaii",
+  "sources": {
+    "frontend/website/.env.kawaii": {
+      "SUPABASE_URL": "https://dpgzrukkmoyvrzubaenx.supabase.co",
+      "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwZ3pydWtrbW95dnJ6dWJhZW54Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY2MTI4OTIsImV4cCI6MjEwMjE4ODg5Mn0.1Bye37W7-UbBwYVrPYrZP9A8C9k3yLDEeeoJvskU5Nw",
+      "SUPABASE_SERVICE_ROLE_KEY": "",
+      "SUPABASE_ACCESS_TOKEN": "",
+      "SITE_URL": "https://kawaii.com.bd",
+      "SECURITY_ENABLED": "true"
+    }
+  }
+}

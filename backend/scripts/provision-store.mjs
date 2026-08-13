@@ -450,7 +450,7 @@ async function applyDatabase(config, projectRef, projectCreated) {
       }
     }
     const baselineName = "0018_clean_baseline";
-    const baselineChecksum = sha256(baseline);
+    const baselineChecksum = sha256(baseline.replaceAll("\r\n", "\n"));
     const commitAt = baseline.toLowerCase().lastIndexOf("commit;");
     if (commitAt < 0)
       throw new Error("Clean baseline does not end with a transaction commit");
@@ -465,7 +465,7 @@ async function applyDatabase(config, projectRef, projectCreated) {
   const applied = {};
   for (const file of migrationFiles) {
     const sql = readFileSync(join(migrationsPath, file), "utf8");
-    const checksum = sha256(sql);
+    const checksum = sha256(sql.replaceAll("\r\n", "\n"));
     const existing = ledger.get(file);
     if (existing && existing !== checksum)
       throw new Error(`Migration checksum mismatch: ${file}`);
