@@ -11,6 +11,7 @@
     "client:provision": "node scripts/provision-client.mjs",
     "store:provision": "node scripts/provision-store.mjs",
     "content:migrate:kawaii": "node scripts/migrate-kawaii-content.mjs",
+    "content:populate:kawaii": "node scripts/populate-kawaii-home-about.mjs",
     "categories:import:kawaii": "node scripts/import-kawaii-categories.mjs",
     "products:import:kawaii": "node scripts/import-kawaii-products.mjs",
     "skus:backfill:kawaii": "node scripts/backfill-kawaii-skus.mjs",

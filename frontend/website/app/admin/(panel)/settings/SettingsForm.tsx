@@ -48,8 +48,8 @@ import {
 import {
   DEFAULT_PALETTE,
   PALETTE_FIELDS,
-  PALETTE_PRESETS,
   normalizePalette,
+  type PalettePreset,
   type ThemePalette,
 } from "@/lib/theme/palette";
 import { cn } from "@/lib/utils";
@@ -104,6 +104,7 @@ export function SettingsForm({
   deliveryCharges: initialDeliveryCharges,
   chatWidgets: initialChatWidgets,
   palette: initialPalette,
+  palettePresets,
   smtp: initialSmtp,
   bkash: initialBkash,
   courier: initialCourier,
@@ -117,6 +118,7 @@ export function SettingsForm({
   deliveryCharges?: DeliveryCharges | null;
   chatWidgets?: ChatWidgets | null;
   palette?: ThemePalette | null;
+  palettePresets: PalettePreset[];
   smtp: SmtpSettingsPublic;
   bkash: BkashSettingsPublic;
   courier: CourierSettingsPublic;
@@ -589,7 +591,7 @@ export function SettingsForm({
                   Presets
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {PALETTE_PRESETS.map((preset) => {
+                  {palettePresets.map((preset) => {
                     const active =
                       JSON.stringify(normalizePalette(palette)) ===
                       JSON.stringify(preset.palette);

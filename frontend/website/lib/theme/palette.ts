@@ -26,6 +26,17 @@ export interface PalettePreset {
   palette: ThemePalette;
 }
 
+export const KAWAII_WHITE_PALETTE: ThemePalette = {
+  primary: "#f9287a",
+  primaryForeground: "#050505",
+  background: "#ffffff",
+  surface: "#fff5f8",
+  card: "#ffffff",
+  foreground: "#241018",
+  mutedForeground: "#73545f",
+  border: "#f2d9e2",
+};
+
 export const PALETTE_PRESETS: PalettePreset[] = [
   {
     id: "default",
@@ -89,6 +100,27 @@ export const PALETTE_PRESETS: PalettePreset[] = [
     },
   },
 ];
+
+export function getPalettePresets(siteUrl: string): PalettePreset[] {
+  let hostname = "";
+  try {
+    hostname = new URL(siteUrl).hostname.toLowerCase();
+  } catch {
+    return PALETTE_PRESETS;
+  }
+  if (hostname !== "kawaii.com.bd" && hostname !== "www.kawaii.com.bd") {
+    return PALETTE_PRESETS;
+  }
+  return [
+    PALETTE_PRESETS[0],
+    {
+      id: "kawaii-white",
+      name: "Kawaii White",
+      palette: { ...KAWAII_WHITE_PALETTE },
+    },
+    ...PALETTE_PRESETS.slice(1).filter((preset) => preset.id !== "daylight"),
+  ];
+}
 
 const HEX_RE = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
 

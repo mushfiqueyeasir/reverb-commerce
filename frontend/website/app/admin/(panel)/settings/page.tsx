@@ -7,6 +7,7 @@ import { getBkashSettingsForAdmin } from "@/lib/payments/bkashSettings";
 import { getCourierSettingsForAdmin } from "@/lib/couriers/settings";
 import { getStorageUsage } from "@/lib/admin/storageUsage";
 import { appConfig } from "@/lib/config";
+import { getPalettePresets } from "@/lib/theme/palette";
 import type { SiteSettingsRow } from "@/type/db";
 import { SettingsForm } from "./SettingsForm";
 
@@ -72,6 +73,7 @@ export default async function SettingsPage() {
         deliveryCharges={cms.deliveryCharges}
         chatWidgets={cms.chatWidgets}
         palette={cms.palette}
+        palettePresets={getPalettePresets(appConfig.siteUrl)}
         smtp={smtp}
         bkash={bkash}
         courier={courier}
