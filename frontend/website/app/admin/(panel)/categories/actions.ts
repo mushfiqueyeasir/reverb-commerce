@@ -24,6 +24,10 @@ export async function saveCategory(
 
   if (!input.name?.trim()) return { error: "Name is required." };
   if (!input.slug?.trim()) return { error: "Slug is required." };
+  const imagePath = input.image_path?.trim() || null;
+  if (imagePath && /^https?:\/\//i.test(imagePath) && !/^https:\/\//i.test(imagePath)) {
+    return { error: "Remote image URLs must use HTTPS." };
+  }
 
   const supabase = await createSupabaseServerClient();
   const parentId = input.parent_id?.trim() || null;
@@ -80,7 +84,7 @@ export async function saveCategory(
     description: input.description?.trim() || null,
     parent_id: existing?.is_default ? null : parentId,
     sort,
-    image_path: input.image_path || null,
+    image_path: imagePath,
     updated_at: new Date().toISOString(),
   };
 

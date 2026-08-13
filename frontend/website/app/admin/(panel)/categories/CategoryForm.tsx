@@ -46,9 +46,23 @@ export function CategoryForm({
   const [slug, setSlug] = useState(category?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(Boolean(category));
   const [description, setDescription] = useState(category?.description ?? "");
+  const [categoryType, setCategoryType] = useState<
+    "primary" | "subcategory" | null
+  >(
+    category
+      ? category.parent_id
+        ? "subcategory"
+        : "primary"
+      : null,
+  );
   const [parentId, setParentId] = useState(category?.parent_id ?? "");
   const [image, setImage] = useState<UploadedImage[]>(
     category?.image_path ? [{ path: category.image_path }] : [],
+  );
+  const [remoteImageUrl, setRemoteImageUrl] = useState(
+    category?.image_path && /^https:\/\//i.test(category.image_path)
+      ? category.image_path
+      : "",
   );
   const unavailableParents = new Set(category ? [category.id] : []);
   let changed = true;
@@ -66,8 +80,16 @@ export function CategoryForm({
     }
   }
   const parentOptions = categories.filter(
-    (option) => !option.isDefault && !unavailableParents.has(option.id),
+    (option) =>
+      !option.isDefault &&
+      !option.parentId &&
+      !unavailableParents.has(option.id),
   );
+
+  const chooseCategoryType = (type: "primary" | "subcategory") => {
+    setCategoryType(type);
+    if (type === "primary") setParentId("");
+  };
 
   const onNameChange = (v: string) => {
     setName(v);
@@ -79,13 +101,20 @@ export function CategoryForm({
       toast.error("Name is required.");
       return;
     }
+    if (categoryType === "subcategory" && !parentId) {
+      toast.error("Select a parent category.");
+      return;
+    }
     startTransition(async () => {
       const res = await saveCategory({
         id: category?.id,
         name,
         slug: slug.trim() || slugify(name),
         description,
-        parent_id: category?.is_default ? null : parentId || null,
+        parent_id:
+          category?.is_default || categoryType === "primary"
+            ? null
+            : parentId || null,
         image_path: image[0]?.path ?? null,
       });
       if (res.error) {
@@ -98,8 +127,44 @@ export function CategoryForm({
     });
   };
 
+  if (categoryType === null) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-8">
+        <AdminCard
+          title="Choose category type"
+          description="Decide how this category should appear in the catalog."
+        >
+          <CategoryTypeChooser
+            selected={null}
+            onSelect={chooseCategoryType}
+          />
+        </AdminCard>
+        <FormActions>
+          <Button
+            variant="outline"
+            onClick={() => router.push("/admin/categories")}
+            className="rounded-full px-6"
+          >
+            Cancel
+          </Button>
+        </FormActions>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-2xl space-y-8">
+      {!category?.is_default ? (
+        <AdminCard
+          title="Category type"
+          description="Primary categories appear at the top level. Subcategories require a parent."
+        >
+          <CategoryTypeChooser
+            selected={categoryType}
+            onSelect={chooseCategoryType}
+          />
+        </AdminCard>
+      ) : null}
       <AdminCard
         title="Category"
         description="Name, slug, and storefront image."
@@ -128,26 +193,27 @@ export function CategoryForm({
             />
           </FormField>
 
-          <FormField
-            label="Parent category"
-            htmlFor="parent_id"
-            hint="Leave empty to create a top-level category."
-          >
-            <select
-              id="parent_id"
-              value={category?.is_default ? "" : parentId}
-              disabled={category?.is_default}
-              onChange={(event) => setParentId(event.target.value)}
-              className={`${adminSelectClass} w-full border px-3 text-sm`}
+          {categoryType === "subcategory" ? (
+            <FormField
+              label="Parent category"
+              htmlFor="parent_id"
+              hint="Choose the primary category this belongs to."
             >
-              <option value="">Top level</option>
-              {parentOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {`${"— ".repeat(option.depth)}${option.name}`}
-                </option>
-              ))}
-            </select>
-          </FormField>
+              <select
+                id="parent_id"
+                value={parentId}
+                onChange={(event) => setParentId(event.target.value)}
+                className={`${adminSelectClass} w-full border px-3 text-sm`}
+              >
+                <option value="">Select a parent category</option>
+                {parentOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {`${"— ".repeat(option.depth)}${option.name}`}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+          ) : null}
 
           <FormField
             label="Description"
@@ -163,11 +229,36 @@ export function CategoryForm({
             />
           </FormField>
 
-          <FormField label="Image">
+          <FormField
+            label="Remote image URL"
+            htmlFor="remote_image_url"
+            hint="Use an HTTPS image URL to avoid consuming store storage. Uploading below will replace it."
+          >
+            <Input
+              id="remote_image_url"
+              type="url"
+              value={remoteImageUrl}
+              placeholder="https://images.example.com/category.jpg"
+              className={adminInputClass}
+              onChange={(event) => {
+                const value = event.target.value;
+                setRemoteImageUrl(value);
+                setImage(value.trim() ? [{ path: value.trim() }] : []);
+              }}
+            />
+          </FormField>
+
+          <FormField label="Upload image">
             <ImageUploader
               bucket={BUCKETS.category}
               value={image}
-              onChange={setImage}
+              onChange={(images) => {
+                setImage(images);
+                if (images[0] && !/^https:\/\//i.test(images[0].path)) {
+                  setRemoteImageUrl("");
+                }
+                if (!images.length) setRemoteImageUrl("");
+              }}
               label="Upload category image"
               maxFileSizeMb={4}
               preview="cover"
@@ -198,6 +289,53 @@ export function CategoryForm({
           {category ? "Save changes" : "Create category"}
         </Button>
       </FormActions>
+    </div>
+  );
+}
+
+function CategoryTypeChooser({
+  selected,
+  onSelect,
+}: {
+  selected: "primary" | "subcategory" | null;
+  onSelect: (type: "primary" | "subcategory") => void;
+}) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <button
+        type="button"
+        aria-pressed={selected === "primary"}
+        onClick={() => onSelect("primary")}
+        className={`rounded-xl border p-5 text-left transition ${
+          selected === "primary"
+            ? "border-primary bg-primary/10 ring-1 ring-primary"
+            : "border-border bg-background hover:border-primary/50"
+        }`}
+      >
+        <span className="font-display text-base font-semibold text-foreground">
+          Primary category
+        </span>
+        <span className="mt-1 block text-sm text-muted-foreground">
+          A top-level category displayed directly in category navigation.
+        </span>
+      </button>
+      <button
+        type="button"
+        aria-pressed={selected === "subcategory"}
+        onClick={() => onSelect("subcategory")}
+        className={`rounded-xl border p-5 text-left transition ${
+          selected === "subcategory"
+            ? "border-primary bg-primary/10 ring-1 ring-primary"
+            : "border-border bg-background hover:border-primary/50"
+        }`}
+      >
+        <span className="font-display text-base font-semibold text-foreground">
+          Subcategory
+        </span>
+        <span className="mt-1 block text-sm text-muted-foreground">
+          A child category that must belong to an existing parent.
+        </span>
+      </button>
     </div>
   );
 }

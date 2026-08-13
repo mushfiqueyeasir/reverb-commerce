@@ -11,6 +11,24 @@ import {
 } from "./provisioning-core.mjs";
 
 const SUPABASE_API = "https://api.supabase.com";
+const CATEGORY_IMAGES = {
+  skincare:
+    "https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=1200&q=80",
+  makeup:
+    "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=1200&q=80",
+  "hair-care":
+    "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1200&q=80",
+  "bath-personal-care":
+    "https://images.unsplash.com/photo-1612817288484-6f916006741a?auto=format&fit=crop&w=1200&q=80",
+  "health-supplements":
+    "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=1200&q=80",
+  "baby-kids":
+    "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=1200&q=80",
+  "by-skin-concern":
+    "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=1200&q=80",
+  "by-skin-type":
+    "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=1200&q=80",
+};
 const categories = [
   ["Skincare", "skincare", null],
   ["Cleansers", "cleansers", "skincare"],
@@ -91,7 +109,12 @@ const categories = [
     "all-skin-types-except-sensitive-skin",
     "by-skin-type",
   ],
-].map(([name, slug, parentSlug]) => ({ name, slug, parentSlug }));
+].map(([name, slug, parentSlug]) => ({
+  name,
+  slug,
+  parentSlug,
+  imageUrl: CATEGORY_IMAGES[parentSlug ?? slug],
+}));
 const expectedSubcategoryCount = categories.filter(
   (category) => category.parentSlug,
 ).length;
@@ -148,7 +171,7 @@ const rootRows = categories
   .filter((category) => !category.parentSlug)
   .map(
     (category, index) =>
-      `(${sqlLiteral(category.name)}, ${sqlLiteral(category.slug)}, null, null, null, ${(index + 1) * 10}, false)`,
+      `(${sqlLiteral(category.name)}, ${sqlLiteral(category.slug)}, null, null, ${sqlLiteral(category.imageUrl)}, ${(index + 1) * 10}, false)`,
   )
   .join(",\n");
 const siblingPositions = new Map();
@@ -157,7 +180,7 @@ const childRows = categories
   .map((category) => {
     const position = (siblingPositions.get(category.parentSlug) ?? 0) + 1;
     siblingPositions.set(category.parentSlug, position);
-    return `(${sqlLiteral(category.name)}, ${sqlLiteral(category.slug)}, ${sqlLiteral(category.parentSlug)}, ${position * 10})`;
+    return `(${sqlLiteral(category.name)}, ${sqlLiteral(category.slug)}, ${sqlLiteral(category.parentSlug)}, ${sqlLiteral(category.imageUrl)}, ${position * 10})`;
   })
   .join(",\n");
 
@@ -179,12 +202,12 @@ delete from public.categories where not is_default;
 insert into public.categories (name, slug, parent_id, description, image_path, sort, is_default)
 values
 ${rootRows};
-with child_values (name, slug, parent_slug, sort) as (
+with child_values (name, slug, parent_slug, image_url, sort) as (
   values
 ${childRows}
 )
 insert into public.categories (name, slug, parent_id, description, image_path, sort, is_default)
-select child.name, child.slug, parent.id, null, null, child.sort, false
+select child.name, child.slug, parent.id, null, child.image_url, child.sort, false
 from child_values child
 join public.categories parent on parent.slug = child.parent_slug;
 do $$

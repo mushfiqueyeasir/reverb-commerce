@@ -48,6 +48,9 @@ export default async function CategoriesPage() {
       sort: category.sort,
       depth: category.depth,
       parentId: category.parentId,
+      directChildCount: categories.filter(
+        (candidate) => candidate.parentId === category._id,
+      ).length,
       hasChildren: categories.some(
         (candidate) => candidate.parentId === category._id,
       ),
