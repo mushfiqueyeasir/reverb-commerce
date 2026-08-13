@@ -305,20 +305,23 @@ async function runSql(config, projectRef, query, { readOnly = false } = {}) {
 }
 
 async function readMigrationLedger(config, projectRef) {
-  try {
-    const response = await runSql(
-      config,
-      projectRef,
-      "select migration_name, checksum from provisioning.schema_migrations order by migration_name",
-      { readOnly: true },
-    );
-    return new Map(
-      responseRows(response).map((row) => [row.migration_name, row.checksum]),
-    );
-  } catch (error) {
-    if (error instanceof HttpError && error.status === 500) return null;
-    throw error;
-  }
+  const existenceResponse = await runSql(
+    config,
+    projectRef,
+    "select to_regclass('provisioning.schema_migrations')::text as relation",
+    { readOnly: true },
+  );
+  if (!responseRows(existenceResponse)[0]?.relation) return null;
+
+  const response = await runSql(
+    config,
+    projectRef,
+    "select migration_name, checksum from provisioning.schema_migrations order by migration_name",
+    { readOnly: true },
+  );
+  return new Map(
+    responseRows(response).map((row) => [row.migration_name, row.checksum]),
+  );
 }
 
 function migrationLedgerSql(name, checksum, config) {
