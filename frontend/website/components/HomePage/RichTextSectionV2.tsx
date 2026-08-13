@@ -18,6 +18,10 @@ import {
   useScroll,
   useTransform,
 } from "motion/react";
+import {
+  parseHomepageStoryConfig,
+  type StoryCardIcon,
+} from "@/lib/cms/homepageStory";
 import { V2Aurora, V2Grid, V2Particles, V2Reveal } from "./V2Motion";
 
 export interface RichTextSectionV2Props {
@@ -32,14 +36,14 @@ export interface RichTextSectionV2Props {
   preview?: boolean;
 }
 
-const materialSpecs = [
-  { icon: Layers, label: "240 GSM", detail: "Heavyweight" },
-  { icon: Shirt, label: "100% Cotton", detail: "Long staple" },
-  { icon: Scissors, label: "Drop Shoulder", detail: "Signature cut" },
-  { icon: Zap, label: "Oversized Fit", detail: "Boxy, relaxed" },
-  { icon: Sparkles, label: "Pre-Shrunk", detail: "Zero surprises" },
-  { icon: Award, label: "Premium Stitch", detail: "Double-needle" },
-];
+const STORY_ICONS = {
+  layers: Layers,
+  shirt: Shirt,
+  scissors: Scissors,
+  zap: Zap,
+  sparkles: Sparkles,
+  award: Award,
+} satisfies Record<StoryCardIcon, typeof Layers>;
 
 function configString(
   config: Record<string, unknown> | undefined,
@@ -94,17 +98,12 @@ export default function RichTextSectionV2({
 
   if (!heading && !supportingText && !content) return null;
 
+  const story = parseHomepageStoryConfig(config);
   const overline =
     eyebrow?.trim() || configString(config, "eyebrow") || "Our manifesto";
   const linkLabel = ctaLabel?.trim() || configString(config, "cta_label");
   const linkHref =
     ctaHref?.trim() || configString(config, "cta_url") || "/product";
-  const paragraphs = content
-    ? plainText(content)
-        .split(/\n{2,}/)
-        .map((paragraph) => paragraph.replace(/\s+/g, " ").trim())
-        .filter(Boolean)
-    : [];
   const outlineWord = heading ? plainText(heading) : "";
   const monogram = outlineWord
     .split(/\s+/)
@@ -216,7 +215,10 @@ export default function RichTextSectionV2({
                 {imageUrl ? (
                   <Image
                     src={imageUrl}
-                    alt={heading ? `${heading} editorial` : ""}
+                    alt={
+                      story.imageAlt ||
+                      (heading ? `${heading} editorial` : "Story image")
+                    }
                     fill
                     sizes="(max-width: 640px) 92vw, (max-width: 1024px) 66vw, 58vw"
                     className="object-cover"
@@ -234,9 +236,26 @@ export default function RichTextSectionV2({
                   className="absolute inset-y-0 right-0 w-px bg-[linear-gradient(to_bottom,transparent,rgb(var(--v2-primary-rgb)/0.9),transparent)] shadow-[0_0_36px_8px_rgb(var(--v2-primary-rgb)/0.28)]"
                   aria-hidden="true"
                 />
-                {outlineWord ? (
-                  <figcaption className="absolute bottom-5 left-5 max-w-[80%] font-mono text-[9px] uppercase tracking-[0.3em] text-foreground/70 sm:bottom-7 sm:left-7 sm:text-[10px]">
-                    {outlineWord}
+                {story.imageLabel ||
+                story.imageValue ||
+                story.imageTag ||
+                outlineWord ? (
+                  <figcaption className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4 text-foreground/80 sm:bottom-7 sm:left-7 sm:right-7">
+                    <span className="min-w-0">
+                      <span className="block font-mono text-[9px] uppercase tracking-[0.3em] sm:text-[10px]">
+                        {story.imageLabel || outlineWord}
+                      </span>
+                      {story.imageValue ? (
+                        <span className="mt-1 block truncate font-display text-lg font-semibold normal-case tracking-normal">
+                          {story.imageValue}
+                        </span>
+                      ) : null}
+                    </span>
+                    {story.imageTag ? (
+                      <span className="shrink-0 font-mono text-[9px] uppercase tracking-[0.2em] text-primary sm:text-[10px]">
+                        {story.imageTag}
+                      </span>
+                    ) : null}
                   </figcaption>
                 ) : null}
               </figure>
@@ -250,7 +269,7 @@ export default function RichTextSectionV2({
             <V2Reveal delay={0.1} initiallyVisible={preview}>
               <div className="border-t border-foreground/30 pt-6 sm:bg-background/80 sm:p-8 sm:backdrop-blur-md lg:p-10">
                 <div className="mb-8 flex items-center justify-between gap-4 font-mono text-[9px] uppercase tracking-[0.28em] text-muted-foreground sm:text-[10px]">
-                  <span>Point of view</span>
+                  <span>{story.copyLabel || "Point of view"}</span>
                   <span className="size-2 bg-primary" aria-hidden="true" />
                 </div>
 
@@ -260,58 +279,58 @@ export default function RichTextSectionV2({
                   </p>
                 ) : null}
 
-                {paragraphs.length > 0 ? (
+                {content ? (
                   <div
-                    className={`space-y-5 text-sm leading-7 text-muted-foreground sm:text-base sm:leading-8 ${supportingText ? "mt-8" : ""}`}
-                  >
-                    {paragraphs.map((paragraph, index) => (
-                      <p key={`${paragraph.slice(0, 32)}-${index}`}>
-                        {paragraph}
-                      </p>
-                    ))}
-                  </div>
+                    className={`space-y-5 text-sm leading-7 text-muted-foreground [&_a]:text-primary [&_a]:underline [&_h1]:text-2xl [&_h1]:text-foreground [&_h2]:text-xl [&_h2]:text-foreground [&_h3]:text-lg [&_h3]:text-foreground [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-3 [&_strong]:text-foreground [&_ul]:list-disc [&_ul]:pl-5 sm:text-base sm:leading-8 ${supportingText ? "mt-8" : ""}`}
+                    dangerouslySetInnerHTML={{ __html: content }}
+                  />
                 ) : null}
 
-                <div className="mt-10">
-                  <div className="mb-4 flex items-center justify-between gap-4 font-mono text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
-                    <span>Material index</span>
-                    <span>06 specifications</span>
+                {story.cards.length ? (
+                  <div className="mt-10">
+                    <div className="mb-4 flex items-center justify-between gap-4 font-mono text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
+                      <span>{story.cardsLabel || "Highlights"}</span>
+                      <span>
+                        {String(story.cards.length).padStart(2, "0")} items
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {story.cards.map((card, index) => {
+                        const Icon = STORY_ICONS[card.icon];
+                        return (
+                          <motion.div
+                            key={card.id}
+                            className="group relative overflow-hidden border border-border bg-transparent p-4 transition-colors hover:border-primary/55 hover:bg-primary/5"
+                            whileHover={
+                              reduceMotion ? undefined : { y: -4, scale: 1.015 }
+                            }
+                            transition={{
+                              duration: 0.25,
+                              ease: [0.22, 1, 0.36, 1],
+                            }}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <Icon
+                                className="size-4 text-primary transition-transform duration-300 group-hover:scale-110"
+                                aria-hidden="true"
+                              />
+                              <span className="font-mono text-[8px] tracking-[0.2em] text-muted-foreground">
+                                {String(index + 1).padStart(2, "0")}
+                              </span>
+                            </div>
+                            <p className="mt-5 font-display text-base font-semibold leading-tight tracking-[-0.025em] text-foreground sm:text-lg">
+                              {card.label}
+                            </p>
+                            <p className="mt-1 font-mono text-[8px] uppercase tracking-[0.16em] text-muted-foreground sm:text-[9px]">
+                              {card.detail}
+                            </p>
+                            <span className="absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 bg-primary transition-transform duration-300 group-hover:scale-x-100" />
+                          </motion.div>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {materialSpecs.map(
-                      ({ icon: Icon, label, detail }, index) => (
-                        <motion.div
-                          key={label}
-                          className="group relative overflow-hidden border border-border bg-transparent p-4 transition-colors hover:border-primary/55 hover:bg-primary/5"
-                          whileHover={
-                            reduceMotion ? undefined : { y: -4, scale: 1.015 }
-                          }
-                          transition={{
-                            duration: 0.25,
-                            ease: [0.22, 1, 0.36, 1],
-                          }}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <Icon
-                              className="size-4 text-primary transition-transform duration-300 group-hover:scale-110"
-                              aria-hidden="true"
-                            />
-                            <span className="font-mono text-[8px] tracking-[0.2em] text-muted-foreground">
-                              {String(index + 1).padStart(2, "0")}
-                            </span>
-                          </div>
-                          <p className="mt-5 font-display text-base font-semibold leading-tight tracking-[-0.025em] text-foreground sm:text-lg">
-                            {label}
-                          </p>
-                          <p className="mt-1 font-mono text-[8px] uppercase tracking-[0.16em] text-muted-foreground sm:text-[9px]">
-                            {detail}
-                          </p>
-                          <span className="absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 bg-primary transition-transform duration-300 group-hover:scale-x-100" />
-                        </motion.div>
-                      ),
-                    )}
-                  </div>
-                </div>
+                ) : null}
 
                 {linkLabel ? (
                   <Link

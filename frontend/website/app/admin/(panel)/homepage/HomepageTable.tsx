@@ -58,6 +58,10 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
+import { useAdmin } from "@/components/admin/AdminContext";
+import { BUCKETS } from "@/lib/supabase/config";
+import { sanitizeCmsHtml } from "@/lib/html/sanitize";
+import { buildStoragePublicUrl } from "@/utility/storageUrl";
 import {
   getHomepageSectionDisplayName,
   getHomepageSectionFamily,
@@ -426,43 +430,62 @@ function PromoV2Preview({ section }: { section: HomepageSectionRow }) {
   );
 }
 
-function RichTextPreview({ section }: { section: HomepageSectionRow }) {
+function RichTextPreview({
+  section,
+  imageUrl,
+}: {
+  section: HomepageSectionRow;
+  imageUrl: string | null;
+}) {
   return (
     <RichTextSection
-      title={section.title || "Designed with purpose."}
-      subtitle={section.subtitle || "Our story"}
-      body={
-        section.body ||
-        "This space introduces your story, values, and the details that make your collection unique."
-      }
-      config={section.config}
-      imageUrl={previewImages[1]}
-    />
-  );
-}
-
-function RichTextV2Preview({ section }: { section: HomepageSectionRow }) {
-  return (
-    <RichTextSectionV2
-      title={section.title || "Designed with purpose."}
-      subtitle={section.subtitle || "Our story"}
-      body={
-        section.body ||
-        "This space introduces your story, values, and the details that make your collection unique."
-      }
+      title={section.title}
+      subtitle={section.subtitle}
+      body={section.body ? sanitizeCmsHtml(section.body) : null}
       eyebrow={configString(section.config, "eyebrow")}
       ctaLabel={configString(section.config, "cta_label")}
       ctaHref={configString(section.config, "cta_url")}
       config={section.config}
-      imageUrl={previewImages[1]}
+      imageUrl={imageUrl}
+    />
+  );
+}
+
+function RichTextV2Preview({
+  section,
+  imageUrl,
+}: {
+  section: HomepageSectionRow;
+  imageUrl: string | null;
+}) {
+  return (
+    <RichTextSectionV2
+      title={section.title}
+      subtitle={section.subtitle}
+      body={section.body ? sanitizeCmsHtml(section.body) : null}
+      eyebrow={configString(section.config, "eyebrow")}
+      ctaLabel={configString(section.config, "cta_label")}
+      ctaHref={configString(section.config, "cta_url")}
+      config={section.config}
+      imageUrl={imageUrl}
       preview
     />
   );
 }
 
 function SectionPreview({ section }: { section: HomepageSectionRow }) {
+  const { storageBaseUrl } = useAdmin();
   const family = getHomepageSectionFamily(section.type);
   const version = getHomepageSectionVersion(section.type);
+  const storyImageUrl =
+    buildStoragePublicUrl(
+      storageBaseUrl,
+      BUCKETS.branding,
+      configString(section.config, "image_path"),
+    ) ??
+    (section.config.variant === "fabric"
+      ? "/images/lovable/fabric-texture.jpg"
+      : null);
 
   if (version === 2) {
     switch (family) {
@@ -477,7 +500,7 @@ function SectionPreview({ section }: { section: HomepageSectionRow }) {
       case "promo":
         return <PromoV2Preview section={section} />;
       case "richtext":
-        return <RichTextV2Preview section={section} />;
+        return <RichTextV2Preview section={section} imageUrl={storyImageUrl} />;
     }
   }
 
@@ -493,7 +516,7 @@ function SectionPreview({ section }: { section: HomepageSectionRow }) {
     case "promo":
       return <PromoPreview section={section} />;
     case "richtext":
-      return <RichTextPreview section={section} />;
+      return <RichTextPreview section={section} imageUrl={storyImageUrl} />;
   }
 }
 
@@ -522,7 +545,7 @@ function PreviewDialog({ section }: { section: HomepageSectionRow }) {
             <span>preview</span>
           </DialogTitle>
           <DialogDescription>
-            Storefront layout shown with placeholder content.
+            Storefront layout shown with the saved section content.
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="h-[75dvh] bg-background text-foreground [&_a]:pointer-events-none [&_button]:pointer-events-none [&_button[data-preview-interactive]]:pointer-events-auto">

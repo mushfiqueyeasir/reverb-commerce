@@ -23,6 +23,7 @@ import {
 import { getPromotions } from "@/utility/getPromotion";
 import { brandingImageUrl } from "@/utility/imageUrl";
 import { getHomepageSectionMetadata } from "@/lib/cms/homepageSections";
+import { sanitizeCmsHtml } from "@/lib/html/sanitize";
 import { selectHomepageProducts } from "@/lib/products/homepageFeatured";
 import type { Metadata } from "next";
 import { generateMetadata as generateSeoMetadata } from "@/utility/generateMetadata";
@@ -265,26 +266,26 @@ export default async function HomePage() {
       }
 
       case "richtext": {
-        const imageUrl = brandingImageUrl(configStr(cfg, "image_path"));
+        const imageUrl =
+          brandingImageUrl(configStr(cfg, "image_path")) ??
+          (cfg.variant === "fabric"
+            ? "/images/lovable/fabric-texture.jpg"
+            : null);
+        const body = section.body ? sanitizeCmsHtml(section.body) : null;
+        const storyProps = {
+          title: section.title,
+          subtitle: section.subtitle,
+          body,
+          eyebrow: configStr(cfg, "eyebrow"),
+          ctaLabel: configStr(cfg, "cta_label"),
+          ctaHref: configStr(cfg, "cta_url"),
+          config: cfg,
+          imageUrl,
+        };
         return isV2 ? (
-          <RichTextSectionV2
-            title={section.title}
-            subtitle={section.subtitle}
-            body={section.body}
-            eyebrow={configStr(cfg, "eyebrow")}
-            ctaLabel={configStr(cfg, "cta_label")}
-            ctaHref={configStr(cfg, "cta_url")}
-            config={cfg}
-            imageUrl={imageUrl}
-          />
+          <RichTextSectionV2 {...storyProps} />
         ) : (
-          <RichTextSection
-            title={section.title}
-            subtitle={section.subtitle}
-            body={section.body}
-            config={cfg}
-            imageUrl={imageUrl}
-          />
+          <RichTextSection {...storyProps} />
         );
       }
 

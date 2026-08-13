@@ -9,6 +9,8 @@ import {
   normalizeHomepageSections,
   normalizeHomepageSectionType,
 } from "@/lib/cms/homepageSections";
+import { parseHomepageStoryConfig } from "@/lib/cms/homepageStory";
+import { sanitizeCmsHtml } from "@/lib/html/sanitize";
 import { readCmsBlob, tableExists, writeCmsBlob } from "@/lib/cms/jsonStore";
 
 export interface SectionInput {
@@ -158,11 +160,36 @@ export async function saveSection(
     }
     config.category_ids = categoryIds;
   }
+  if (current.type === "richtext" || current.type === "richtext_v2") {
+    if (config.cards != null && !Array.isArray(config.cards)) {
+      return { error: "Story cards must be an ordered list." };
+    }
+    if (Array.isArray(config.cards) && config.cards.length > 6) {
+      return { error: "A Story section can have a maximum of six cards." };
+    }
+    const story = parseHomepageStoryConfig(config);
+    if (
+      story.imagePath?.includes("..") ||
+      (story.imagePath?.length ?? 0) > 500
+    ) {
+      return { error: "Story image path is invalid." };
+    }
+    config.layout = current.type === "richtext_v2" ? "feature" : story.layout;
+    config.image_path = story.imagePath;
+    config.image_bucket = "branding";
+    config.image_alt = story.imageAlt;
+    config.image_label = story.imageLabel;
+    config.image_value = story.imageValue;
+    config.image_tag = story.imageTag;
+    config.copy_label = story.copyLabel;
+    config.cards_label = story.cardsLabel;
+    config.cards = story.cards;
+  }
   const payload = {
     type: current.type,
     title: input.title,
     subtitle: input.subtitle,
-    body: input.body,
+    body: input.body ? sanitizeCmsHtml(input.body) : null,
     sort: current.sort,
     active: input.active,
     config,

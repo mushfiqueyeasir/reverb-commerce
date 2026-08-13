@@ -20,6 +20,13 @@ import {
   getHomepageSectionFamily,
   getHomepageSectionVersion,
 } from "@/lib/cms/homepageSections";
+import {
+  parseHomepageStoryConfig,
+  STORY_CARD_ICONS,
+  type HomepageStoryCard,
+  type StoryCardIcon,
+} from "@/lib/cms/homepageStory";
+import { BUCKETS } from "@/lib/supabase/config";
 import { AdminCard } from "@/components/admin/AdminCard";
 import {
   FormActions,
@@ -28,6 +35,10 @@ import {
   adminSelectClass,
   adminTextareaClass,
 } from "@/components/admin/FormField";
+import {
+  ImageUploader,
+  type UploadedImage,
+} from "@/components/admin/ImageUploader";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { SortableList } from "@/components/admin/SortableList";
 import { Button } from "@/components/ui/button";
@@ -164,6 +175,7 @@ export function SectionForm({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const config = section.config ?? {};
+  const storyConfig = parseHomepageStoryConfig(config);
   const family = getHomepageSectionFamily(section.type);
   const version = getHomepageSectionVersion(section.type);
   const displayName =
@@ -178,12 +190,12 @@ export function SectionForm({
     family === "categories" ||
     family === "featured" ||
     family === "reviews" ||
-    (family === "richtext" && version === 2);
+    family === "richtext";
   const showsCta =
     family === "categories" ||
     family === "featured" ||
     family === "reviews" ||
-    (family === "richtext" && version === 2);
+    family === "richtext";
   const limitMaximum =
     section.type === "featured_v2"
       ? 5
@@ -242,6 +254,34 @@ export function SectionForm({
       .filter((categoryId) => available.has(categoryId))
       .slice(0, MAX_MOSAIC_CATEGORIES);
   });
+  const [storyLayout, setStoryLayout] = useState(storyConfig.layout);
+  const [storyImages, setStoryImages] = useState<UploadedImage[]>(
+    storyConfig.imagePath
+      ? [{ path: storyConfig.imagePath, alt: storyConfig.imageAlt }]
+      : [],
+  );
+  const [storyImageBusy, setStoryImageBusy] = useState(false);
+  const [storyImageAlt, setStoryImageAlt] = useState(
+    storyConfig.imageAlt ?? "",
+  );
+  const [storyImageLabel, setStoryImageLabel] = useState(
+    storyConfig.imageLabel ?? "",
+  );
+  const [storyImageValue, setStoryImageValue] = useState(
+    storyConfig.imageValue ?? "",
+  );
+  const [storyImageTag, setStoryImageTag] = useState(
+    storyConfig.imageTag ?? "",
+  );
+  const [storyCopyLabel, setStoryCopyLabel] = useState(
+    storyConfig.copyLabel ?? "",
+  );
+  const [storyCardsLabel, setStoryCardsLabel] = useState(
+    storyConfig.cardsLabel ?? "",
+  );
+  const [storyCards, setStoryCards] = useState<HomepageStoryCard[]>(
+    storyConfig.cards,
+  );
   const [showMarquee, setShowMarquee] = useState(
     boolConfig(config, "show_marquee", true),
   );
@@ -295,6 +335,39 @@ export function SectionForm({
     });
   };
 
+  const addStoryCard = () => {
+    if (storyCards.length >= 6) return;
+    setStoryCards((current) => [
+      ...current,
+      {
+        id: crypto.randomUUID(),
+        icon: "sparkles",
+        label: "",
+        detail: "",
+      },
+    ]);
+  };
+  const updateStoryCard = (
+    id: string,
+    key: "icon" | "label" | "detail",
+    value: string,
+  ) => {
+    setStoryCards((current) =>
+      current.map((card) => {
+        if (card.id !== id) return card;
+        if (key === "icon") {
+          return { ...card, icon: value as StoryCardIcon };
+        }
+        return key === "label"
+          ? { ...card, label: value }
+          : { ...card, detail: value };
+      }),
+    );
+  };
+  const removeStoryCard = (id: string) => {
+    setStoryCards((current) => current.filter((card) => card.id !== id));
+  };
+
   const onTabChange = (value: string) => {
     const next = value === "slides" ? "slides" : "content";
     setTab(next);
@@ -326,6 +399,24 @@ export function SectionForm({
     }
     if (section.type === "categories") {
       nextConfig.category_ids = categoryIds.slice(0, MAX_MOSAIC_CATEGORIES);
+    }
+    if (family === "richtext") {
+      nextConfig.layout =
+        section.type === "richtext_v2" ? "feature" : storyLayout;
+      nextConfig.image_path = storyImages[0]?.path ?? null;
+      nextConfig.image_bucket = "branding";
+      nextConfig.image_alt = storyImageAlt.trim() || null;
+      nextConfig.image_label = storyImageLabel.trim() || null;
+      nextConfig.image_value = storyImageValue.trim() || null;
+      nextConfig.image_tag = storyImageTag.trim() || null;
+      nextConfig.copy_label = storyCopyLabel.trim() || null;
+      nextConfig.cards_label = storyCardsLabel.trim() || null;
+      nextConfig.cards = storyCards.slice(0, 6).map((card) => ({
+        id: card.id,
+        icon: card.icon,
+        label: card.label.trim(),
+        detail: card.detail.trim(),
+      }));
     }
     if (isBanner) {
       nextConfig.description = description.trim() || DEFAULT_BANNER_DESCRIPTION;
@@ -375,7 +466,11 @@ export function SectionForm({
       >
         Cancel
       </Button>
-      <Button onClick={submit} disabled={pending} className="rounded-full px-6">
+      <Button
+        onClick={submit}
+        disabled={pending || storyImageBusy}
+        className="rounded-full px-6"
+      >
         {pending ? (
           <Loader2 className="mr-2 size-4 animate-spin" />
         ) : (
@@ -750,11 +845,228 @@ export function SectionForm({
             </div>
           )}
 
-          {family === "richtext" && (
-            <FormField label="Body">
-              <RichTextEditor value={body} onChange={setBody} />
-            </FormField>
-          )}
+          {family === "richtext" ? (
+            <>
+              <FormField label="Body">
+                <RichTextEditor value={body} onChange={setBody} />
+              </FormField>
+
+              <div className="space-y-5 rounded-xl border border-border bg-background/50 p-4">
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    Story design
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Configure the image, overlay details, and ordered highlight
+                    cards used by this Story section.
+                  </p>
+                </div>
+
+                {section.type === "richtext" ? (
+                  <FormField
+                    label="Layout"
+                    hint="Simple shows centered copy. Feature adds the image and cards."
+                  >
+                    <Select
+                      value={storyLayout}
+                      onValueChange={(value) =>
+                        setStoryLayout(value as "simple" | "feature")
+                      }
+                    >
+                      <SelectTrigger className={adminSelectClass}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="simple">Simple text</SelectItem>
+                        <SelectItem value="feature">
+                          Feature image and cards
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                ) : null}
+
+                <ImageUploader
+                  bucket={BUCKETS.branding}
+                  value={storyImages}
+                  onChange={setStoryImages}
+                  maxFiles={1}
+                  maxFileSizeMb={4}
+                  optimizeToWebp
+                  fileNamePrefix={`${section.type}-story`}
+                  onBusyChange={setStoryImageBusy}
+                  disabled={pending || storyImageBusy}
+                  label="Upload Story image"
+                  preview="cover"
+                />
+
+                <FormField label="Image alt text" htmlFor="story-image-alt">
+                  <Input
+                    id="story-image-alt"
+                    value={storyImageAlt}
+                    onChange={(event) => setStoryImageAlt(event.target.value)}
+                    placeholder="Describe the image"
+                    className={adminInputClass}
+                  />
+                </FormField>
+
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <FormField label="Overlay label" htmlFor="story-image-label">
+                    <Input
+                      id="story-image-label"
+                      value={storyImageLabel}
+                      onChange={(event) =>
+                        setStoryImageLabel(event.target.value)
+                      }
+                      placeholder="e.g. Authentic"
+                      className={adminInputClass}
+                    />
+                  </FormField>
+                  <FormField label="Overlay value" htmlFor="story-image-value">
+                    <Input
+                      id="story-image-value"
+                      value={storyImageValue}
+                      onChange={(event) =>
+                        setStoryImageValue(event.target.value)
+                      }
+                      placeholder="e.g. Sourced from Japan"
+                      className={adminInputClass}
+                    />
+                  </FormField>
+                  <FormField label="Overlay tag" htmlFor="story-image-tag">
+                    <Input
+                      id="story-image-tag"
+                      value={storyImageTag}
+                      onChange={(event) => setStoryImageTag(event.target.value)}
+                      placeholder="e.g. // STORY 01"
+                      className={adminInputClass}
+                    />
+                  </FormField>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField label="Copy label" htmlFor="story-copy-label">
+                    <Input
+                      id="story-copy-label"
+                      value={storyCopyLabel}
+                      onChange={(event) =>
+                        setStoryCopyLabel(event.target.value)
+                      }
+                      placeholder="e.g. Our approach"
+                      className={adminInputClass}
+                    />
+                  </FormField>
+                  <FormField label="Cards heading" htmlFor="story-cards-label">
+                    <Input
+                      id="story-cards-label"
+                      value={storyCardsLabel}
+                      onChange={(event) =>
+                        setStoryCardsLabel(event.target.value)
+                      }
+                      placeholder="e.g. Why shop with us"
+                      className={adminInputClass}
+                    />
+                  </FormField>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        Highlight cards
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Add, edit, remove, and drag up to six cards.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full"
+                      onClick={addStoryCard}
+                      disabled={storyCards.length >= 6}
+                    >
+                      <Plus className="size-4" /> Add card
+                    </Button>
+                  </div>
+                  {storyCards.length ? (
+                    <SortableList
+                      items={storyCards}
+                      onReorder={setStoryCards}
+                      getLabel={(card) => card.label || "Story card"}
+                      renderItem={(card) => (
+                        <div className="grid gap-3 rounded-xl border border-border bg-card p-3 sm:grid-cols-[10rem_1fr_1fr_auto] sm:items-end">
+                          <FormField label="Icon">
+                            <Select
+                              value={card.icon}
+                              onValueChange={(value) =>
+                                updateStoryCard(card.id, "icon", value)
+                              }
+                            >
+                              <SelectTrigger className={adminSelectClass}>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {STORY_CARD_ICONS.map((icon) => (
+                                  <SelectItem key={icon} value={icon}>
+                                    {icon.charAt(0).toUpperCase() +
+                                      icon.slice(1)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormField>
+                          <FormField label="Label">
+                            <Input
+                              value={card.label}
+                              onChange={(event) =>
+                                updateStoryCard(
+                                  card.id,
+                                  "label",
+                                  event.target.value,
+                                )
+                              }
+                              placeholder="e.g. Authentic"
+                              className={adminInputClass}
+                            />
+                          </FormField>
+                          <FormField label="Detail">
+                            <Input
+                              value={card.detail}
+                              onChange={(event) =>
+                                updateStoryCard(
+                                  card.id,
+                                  "detail",
+                                  event.target.value,
+                                )
+                              }
+                              placeholder="e.g. Directly sourced"
+                              className={adminInputClass}
+                            />
+                          </FormField>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="size-10 rounded-full"
+                            onClick={() => removeStoryCard(card.id)}
+                            aria-label={`Remove ${card.label || "Story card"}`}
+                          >
+                            <Trash2 className="size-4 text-destructive" />
+                          </Button>
+                        </div>
+                      )}
+                    />
+                  ) : (
+                    <div className="rounded-xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
+                      No highlight cards configured.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : null}
 
           {section.type === "categories" ? (
             <div className="space-y-4 rounded-xl border border-border bg-background/50 p-4">
