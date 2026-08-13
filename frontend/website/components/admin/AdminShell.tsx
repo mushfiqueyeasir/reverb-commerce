@@ -37,9 +37,6 @@ const ROLE_LABEL: Record<string, string> = {
 
 const NAV_GROUPS_STORAGE_KEY = "ve-admin-nav-groups";
 
-/** White mark → black on light palettes (Daylight) via html[data-theme]. */
-const logoToneClass = "transition-[filter] [[data-theme=light]_&]:brightness-0";
-
 function defaultOpenGroups(): Record<NavItem["group"], boolean> {
   return {
     Overview: true,
@@ -123,7 +120,7 @@ function AdminNavList({
                           "flex min-h-11 items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm font-medium transition-colors",
                           active
                             ? "bg-primary/15 text-primary"
-                            : "text-sidebar-foreground/70 hover:bg-foreground/5 hover:text-foreground",
+                            : "text-sidebar-foreground hover:bg-foreground/5 hover:text-foreground",
                           compact && "justify-center px-2",
                         )}
                       >
@@ -177,7 +174,7 @@ function AdminSidebar({
             alt={storeName}
             width={64}
             height={64}
-            className={cn("size-7", logoToneClass)}
+            className="size-7"
           />
         ) : !compact && logoUrl ? (
           <div>
@@ -186,7 +183,7 @@ function AdminSidebar({
               alt={storeName}
               width={400}
               height={160}
-              className={cn("h-6 w-auto", logoToneClass)}
+              className="h-6 w-auto"
             />
             <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
               Admin

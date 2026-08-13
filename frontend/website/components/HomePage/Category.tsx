@@ -90,10 +90,10 @@ export default function Category({
               ) : (
                 <div className="absolute inset-0 bg-surface" />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent transition-opacity group-hover:from-black/95" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_14%,rgb(var(--v2-primary-rgb)/0.3),transparent_34%),linear-gradient(to_top,var(--background),color-mix(in_srgb,var(--background)_28%,transparent)_54%,transparent)]" />
               <div className="absolute inset-0 flex flex-col justify-between p-5 sm:p-8">
                 <div className="flex justify-end">
-                  <span className="grid size-11 place-items-center rounded-full border border-white/20 bg-white/5 backdrop-blur-md transition group-hover:border-primary group-hover:bg-primary">
+                  <span className="grid size-11 place-items-center rounded-full border border-border bg-background/75 text-foreground backdrop-blur-md transition group-hover:border-primary group-hover:bg-primary">
                     <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                   </span>
                 </div>
