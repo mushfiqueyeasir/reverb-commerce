@@ -1,9 +1,9 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Sparkles } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import ProductCard from "@/components/Common/ProductCard";
 import { V2Grid, V2Reveal } from "@/components/HomePage/V2Motion";
@@ -48,6 +48,61 @@ function productDiscount(product: TransformedProduct) {
   }
 
   return 0;
+}
+
+function SpotlightMedia({ product }: { product: TransformedProduct }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const [hoverImageFailed, setHoverImageFailed] = useState(false);
+  const image = product.image.trim();
+  const hoverImage = product.hoverImage?.trim();
+
+  if (!image || imageFailed) {
+    return (
+      <div className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_50%_38%,rgb(var(--v2-primary-rgb)/0.2),transparent_36%),linear-gradient(145deg,var(--card),var(--surface))]">
+        <div className="flex flex-col items-center gap-4 text-center text-muted-foreground">
+          <span className="grid size-20 place-items-center rounded-full border border-primary/30 bg-background/70 text-primary backdrop-blur-sm">
+            <Sparkles className="size-8" aria-hidden="true" />
+          </span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.24em]">
+            Product image coming soon
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      className="absolute -inset-y-7 inset-x-0"
+      variants={{ hover: { scale: 1.035, y: -8 } }}
+      transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <Image
+        src={image}
+        alt={product.title}
+        fill
+        sizes="(max-width: 1024px) 100vw, 68vw"
+        className="object-cover"
+        onError={() => setImageFailed(true)}
+      />
+      {hoverImage && !hoverImageFailed ? (
+        <motion.div
+          className="absolute inset-0 opacity-0"
+          variants={{ hover: { opacity: 1 } }}
+          transition={{ duration: 0.55 }}
+        >
+          <Image
+            src={hoverImage}
+            alt=""
+            fill
+            sizes="(max-width: 1024px) 100vw, 68vw"
+            className="object-cover"
+            onError={() => setHoverImageFailed(true)}
+          />
+        </motion.div>
+      ) : null}
+    </motion.div>
+  );
 }
 
 function SupportingProduct({
@@ -156,48 +211,13 @@ export default function FeaturedProductsV2({
         <div className="grid gap-8 lg:grid-cols-12 lg:gap-10 xl:gap-14">
           <motion.div
             className="group relative min-h-[560px] overflow-hidden rounded-[2rem] border border-border bg-surface sm:min-h-[720px] lg:col-span-8 lg:min-h-[780px]"
-            initial={
-              reduceMotion
-                ? false
-                : { opacity: 0, clipPath: "inset(0 0 100% 0)" }
-            }
-            whileInView={
-              reduceMotion
-                ? undefined
-                : { opacity: 1, clipPath: "inset(0 0 0% 0)" }
-            }
+            initial={false}
             whileHover={reduceMotion ? undefined : "hover"}
-            viewport={{ once: true, amount: 0.14 }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
           >
-            <motion.div
-              className="absolute -inset-y-7 inset-x-0"
-              variants={{ hover: { scale: 1.035, y: -8 } }}
-              transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <Image
-                src={spotlight.image}
-                alt={spotlight.title}
-                fill
-                sizes="(max-width: 1024px) 100vw, 68vw"
-                className="object-cover"
-              />
-              {spotlight.hoverImage ? (
-                <motion.div
-                  className="absolute inset-0 opacity-0"
-                  variants={{ hover: { opacity: 1 } }}
-                  transition={{ duration: 0.55 }}
-                >
-                  <Image
-                    src={spotlight.hoverImage}
-                    alt=""
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 68vw"
-                    className="object-cover"
-                  />
-                </motion.div>
-              ) : null}
-            </motion.div>
+            <SpotlightMedia
+              key={`${spotlight.id}:${spotlight.image}:${spotlight.hoverImage ?? ""}`}
+              product={spotlight}
+            />
             <div
               className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-background/25"
               aria-hidden="true"
