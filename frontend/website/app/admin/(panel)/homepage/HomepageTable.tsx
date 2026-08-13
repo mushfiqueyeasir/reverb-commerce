@@ -152,6 +152,9 @@ const previewCategories: Category[] = [
   categoryName,
   categoryDescription: "Curated collection",
   imageUrl: previewImages[index % previewImages.length],
+  parentId: null,
+  sort: (index + 1) * 10,
+  depth: 0,
   isDefault: false,
   categoryUrl: { current: "preview" },
 }));

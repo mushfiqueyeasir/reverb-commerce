@@ -20,7 +20,10 @@ export default function Category({
   subtitle,
   eyebrow,
 }: CategoryProps) {
-  if (categories.length === 0) return null;
+  const visibleCategories = categories.filter(
+    (category) => category.isDefault || !category.parentId,
+  );
+  if (visibleCategories.length === 0) return null;
 
   return (
     <section id="drops" className="relative py-16 sm:py-24 md:py-40">
@@ -42,13 +45,13 @@ export default function Category({
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 lg:h-[900px] lg:grid-cols-4 lg:grid-rows-2">
-          {categories.map((category, i) => (
+          {visibleCategories.map((category, i) => (
             <Link
               key={category._id}
               href={
                 category.isDefault
                   ? "/product"
-                  : `/product?category=${category.categoryUrl.current}`
+                  : `/product?category=${encodeURIComponent(category.categoryUrl.current)}`
               }
               className={`group relative min-h-[240px] overflow-hidden rounded-3xl border border-border sm:min-h-[280px] ${spans[i % spans.length]}`}
             >

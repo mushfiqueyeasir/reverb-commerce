@@ -8,13 +8,16 @@ import { AdminList } from "@/components/admin/AdminList";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { deleteCategory, reorderCategories } from "./actions";
+import { deleteCategory } from "./actions";
 
 export interface CategoryTableRow {
   id: string;
   name: string;
   slug: string;
   sort: number;
+  depth: number;
+  parentId: string | null;
+  hasChildren: boolean;
   isDefault: boolean;
   imageUrl: string | null;
   productCount: number;
@@ -32,11 +35,7 @@ export function CategoriesTable({
   return (
     <AdminList
       items={data}
-      sortable
-      canReorder={canWrite}
-      canReorderItem={(item) => !item.isDefault}
-      onReorder={reorderCategories}
-      hint="Drag categories to reorder them. The default category always remains first."
+      hint="Subcategories are shown beneath their parent category."
       searchPlaceholder="Search categories…"
       searchFilter={(item, q) =>
         item.name.toLowerCase().includes(q) ||
@@ -60,11 +59,17 @@ export function CategoriesTable({
           )}
         </div>
       )}
-      renderTitle={(item) => item.name}
+      renderTitle={(item) => (
+        <span style={{ paddingLeft: `${item.depth * 18}px` }}>
+          {item.depth ? "↳ " : ""}
+          {item.name}
+        </span>
+      )}
       renderSubtitle={(item) => item.slug}
       renderMeta={(item) => (
         <>
           {item.isDefault ? <Badge>Default</Badge> : null}
+          {item.parentId ? <Badge variant="secondary">Subcategory</Badge> : null}
           <Badge variant="outline">
             {item.productCount} product{item.productCount === 1 ? "" : "s"}
           </Badge>
@@ -77,7 +82,7 @@ export function CategoriesTable({
               <Pencil className="size-4" />
             </Link>
           </Button>
-          {canWrite && !item.isDefault ? (
+          {canWrite && !item.isDefault && !item.hasChildren ? (
             <ConfirmDialog
               trigger={
                 <Button

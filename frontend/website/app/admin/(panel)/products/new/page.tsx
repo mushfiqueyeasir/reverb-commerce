@@ -1,24 +1,20 @@
 import { requireRole } from "@/lib/admin/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader, BackLink } from "@/components/admin/PageHeader";
-import type { CategoryRow } from "@/type/db";
+import { getCategories } from "@/utility/getCategory";
+import { getCategoryBreadcrumb } from "@/lib/categories/hierarchy";
 import { ProductForm, type CategoryOption } from "../ProductForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewProductPage() {
   await requireRole(["admin", "editor"]);
-  const supabase = await createSupabaseServerClient();
-  const { data } = await supabase
-    .from("categories")
-    .select("*")
-    .order("sort", { ascending: true });
-
-  const categories: CategoryOption[] = (
-    (data ?? []) as Pick<CategoryRow, "id" | "name" | "is_default">[]
-  )
-    .filter((c) => !c.is_default)
-    .map((c) => ({ id: c.id, name: c.name }));
+  const categoryRows = await getCategories();
+  const categories: CategoryOption[] = categoryRows
+    .filter((category) => !category.isDefault)
+    .map((category) => ({
+      id: category._id,
+      name: getCategoryBreadcrumb(categoryRows, category._id).join(" / "),
+    }));
 
   return (
     <div>

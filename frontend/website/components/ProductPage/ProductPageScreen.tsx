@@ -28,14 +28,14 @@ export default function ProductPageScreen({
 
   // Seed filters from server URL props (no useSearchParams / Suspense).
   useEffect(() => {
-    if (initialCategory) setCategories([initialCategory]);
+    setCategories(initialCategory ? [initialCategory] : []);
     if (initialSearch != null) setSearchQuery(initialSearch);
   }, [initialCategory, initialSearch, setCategories, setSearchQuery]);
 
   const filteredProducts = useMemo(() => {
-    return getFilteredProducts(products);
+    return getFilteredProducts(products, categories);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [products, getFilteredProducts, filters]);
+  }, [products, categories, getFilteredProducts, filters]);
 
   return (
     <section className="mx-auto max-w-[1600px] px-5 pb-24 pt-24 sm:px-6 md:px-10 md:pt-36">

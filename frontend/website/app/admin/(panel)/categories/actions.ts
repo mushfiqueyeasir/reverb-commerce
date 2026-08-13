@@ -10,6 +10,7 @@ export interface CategoryInput {
   name: string;
   slug: string;
   description?: string | null;
+  parent_id?: string | null;
   sort?: number;
   image_path?: string | null;
 }
@@ -25,25 +26,51 @@ export async function saveCategory(
   if (!input.slug?.trim()) return { error: "Slug is required." };
 
   const supabase = await createSupabaseServerClient();
+  const parentId = input.parent_id?.trim() || null;
+  const { data: existing } = input.id
+    ? await supabase
+        .from("categories")
+        .select("sort, parent_id, is_default")
+        .eq("id", input.id)
+        .maybeSingle()
+    : { data: null };
+
+  if (existing?.is_default && parentId) {
+    return { error: "The default category must remain at the root." };
+  }
+  if (parentId === input.id) {
+    return { error: "A category cannot be its own parent." };
+  }
+  if (parentId) {
+    const { data: parent, error: parentError } = await supabase
+      .from("categories")
+      .select("id, is_default")
+      .eq("id", parentId)
+      .maybeSingle();
+    if (parentError) return { error: parentError.message };
+    if (!parent) return { error: "Parent category was not found." };
+    if (parent.is_default) {
+      return { error: "The default category cannot contain subcategories." };
+    }
+  }
 
   let sort = Number.isFinite(input.sort) ? Number(input.sort) : undefined;
+  const parentChanged =
+    input.id && (existing?.parent_id ?? null) !== parentId;
+  if (sort == null && input.id && !parentChanged) {
+    sort = (existing?.sort as number | undefined) ?? 10;
+  }
   if (sort == null) {
-    if (input.id) {
-      const { data: existing } = await supabase
-        .from("categories")
-        .select("sort")
-        .eq("id", input.id)
-        .maybeSingle();
-      sort = (existing?.sort as number | undefined) ?? 0;
-    } else {
-      const { data: maxRow } = await supabase
-        .from("categories")
-        .select("sort")
-        .order("sort", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      sort = ((maxRow?.sort as number | undefined) ?? 0) + 10;
-    }
+    let query = supabase
+      .from("categories")
+      .select("sort")
+      .order("sort", { ascending: false })
+      .limit(1);
+    query = parentId
+      ? query.eq("parent_id", parentId)
+      : query.is("parent_id", null);
+    const { data: maxRow } = await query.maybeSingle();
+    sort = ((maxRow?.sort as number | undefined) ?? 0) + 10;
   }
 
   const payload = {
@@ -51,6 +78,7 @@ export async function saveCategory(
     name: input.name.trim(),
     slug: input.slug.trim(),
     description: input.description?.trim() || null,
+    parent_id: existing?.is_default ? null : parentId,
     sort,
     image_path: input.image_path || null,
     updated_at: new Date().toISOString(),
@@ -80,6 +108,8 @@ export async function saveCategory(
   });
 
   revalidatePath("/admin/categories");
+  revalidatePath("/", "layout");
+  revalidatePath("/product");
   return { id: categoryId };
 }
 
@@ -99,6 +129,14 @@ export async function deleteCategory(
 
   if (categoryRow?.is_default) {
     return { error: "The default category cannot be deleted." };
+  }
+  const { count: childCount, error: childError } = await supabase
+    .from("categories")
+    .select("id", { count: "exact", head: true })
+    .eq("parent_id", id);
+  if (childError) return { error: childError.message };
+  if (childCount) {
+    return { error: "Move or delete this category's subcategories first." };
   }
 
   const { error } = await supabase.from("categories").delete().eq("id", id);

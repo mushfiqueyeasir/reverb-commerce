@@ -21,6 +21,7 @@ export function getMenuData(
             href: category.isDefault
               ? "/product"
               : `/product?category=${encodeURIComponent(category.categoryUrl.current)}`,
+            depth: category.depth,
           }))
         : undefined,
   }));

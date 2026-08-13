@@ -13,6 +13,7 @@ import {
   FormActions,
   FormField,
   adminInputClass,
+  adminSelectClass,
   adminTextareaClass,
 } from "@/components/admin/FormField";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,21 @@ import { slugify } from "@/lib/admin/format";
 import type { CategoryRow } from "@/type/db";
 import { saveCategory } from "./actions";
 
-export function CategoryForm({ category }: { category?: CategoryRow }) {
+export interface CategoryParentOption {
+  id: string;
+  name: string;
+  parentId: string | null;
+  depth: number;
+  isDefault: boolean;
+}
+
+export function CategoryForm({
+  category,
+  categories,
+}: {
+  category?: CategoryRow;
+  categories: CategoryParentOption[];
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -31,8 +46,27 @@ export function CategoryForm({ category }: { category?: CategoryRow }) {
   const [slug, setSlug] = useState(category?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(Boolean(category));
   const [description, setDescription] = useState(category?.description ?? "");
+  const [parentId, setParentId] = useState(category?.parent_id ?? "");
   const [image, setImage] = useState<UploadedImage[]>(
     category?.image_path ? [{ path: category.image_path }] : [],
+  );
+  const unavailableParents = new Set(category ? [category.id] : []);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const option of categories) {
+      if (
+        option.parentId &&
+        unavailableParents.has(option.parentId) &&
+        !unavailableParents.has(option.id)
+      ) {
+        unavailableParents.add(option.id);
+        changed = true;
+      }
+    }
+  }
+  const parentOptions = categories.filter(
+    (option) => !option.isDefault && !unavailableParents.has(option.id),
   );
 
   const onNameChange = (v: string) => {
@@ -51,6 +85,7 @@ export function CategoryForm({ category }: { category?: CategoryRow }) {
         name,
         slug: slug.trim() || slugify(name),
         description,
+        parent_id: category?.is_default ? null : parentId || null,
         image_path: image[0]?.path ?? null,
       });
       if (res.error) {
@@ -91,6 +126,27 @@ export function CategoryForm({ category }: { category?: CategoryRow }) {
               placeholder="helmets"
               className={adminInputClass}
             />
+          </FormField>
+
+          <FormField
+            label="Parent category"
+            htmlFor="parent_id"
+            hint="Leave empty to create a top-level category."
+          >
+            <select
+              id="parent_id"
+              value={category?.is_default ? "" : parentId}
+              disabled={category?.is_default}
+              onChange={(event) => setParentId(event.target.value)}
+              className={`${adminSelectClass} w-full border px-3 text-sm`}
+            >
+              <option value="">Top level</option>
+              {parentOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {`${"— ".repeat(option.depth)}${option.name}`}
+                </option>
+              ))}
+            </select>
           </FormField>
 
           <FormField

@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/admin/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader, BackLink } from "@/components/admin/PageHeader";
 import type { CategoryRow } from "@/type/db";
+import { getCategories } from "@/utility/getCategory";
 import { CategoryForm } from "../CategoryForm";
 
 export const dynamic = "force-dynamic";
@@ -16,11 +17,10 @@ export default async function EditCategoryPage({
   const { id } = await params;
 
   const supabase = await createSupabaseServerClient();
-  const { data } = await supabase
-    .from("categories")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
+  const [{ data }, categories] = await Promise.all([
+    supabase.from("categories").select("*").eq("id", id).maybeSingle(),
+    getCategories(),
+  ]);
 
   if (!data) notFound();
   const category = data as CategoryRow;
@@ -29,7 +29,16 @@ export default async function EditCategoryPage({
     <div>
       <BackLink href="/admin/categories" label="Back to categories" />
       <PageHeader title="Edit category" description={category.name} />
-      <CategoryForm category={category} />
+      <CategoryForm
+        category={category}
+        categories={categories.map((item) => ({
+          id: item._id,
+          name: item.categoryName,
+          parentId: item.parentId,
+          depth: item.depth,
+          isDefault: item.isDefault,
+        }))}
+      />
     </div>
   );
 }

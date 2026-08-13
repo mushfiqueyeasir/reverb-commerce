@@ -11,6 +11,7 @@
     "client:provision": "node scripts/provision-client.mjs",
     "store:provision": "node scripts/provision-store.mjs",
     "content:migrate:kawaii": "node scripts/migrate-kawaii-content.mjs",
+    "categories:import:kawaii": "node scripts/import-kawaii-categories.mjs",
     "client:env:pull": "node scripts/pull-client-env.mjs",
     "client:env:backup": "node scripts/build-client-env-backup.mjs",
     "client:cleanup:list": "node scripts/list-cleanup-clients.mjs",

@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import type { TransformedProduct } from "@/type/productType";
+import type { Category } from "@/type/categoryType";
+import { getDescendantSlugs } from "@/lib/categories/hierarchy";
 
 interface ProductFilters {
   availability: string[];
@@ -20,7 +22,10 @@ interface ProductStore {
   setSearchQuery: (searchQuery: string) => void;
   setSortBy: (sortBy: ProductFilters["sortBy"]) => void;
   resetFilters: () => void;
-  getFilteredProducts: (products: TransformedProduct[]) => TransformedProduct[];
+  getFilteredProducts: (
+    products: TransformedProduct[],
+    categories?: Category[],
+  ) => TransformedProduct[];
 }
 
 const initialFilters: ProductFilters = {
@@ -70,7 +75,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       filters: initialFilters,
     }),
 
-  getFilteredProducts: (products) => {
+  getFilteredProducts: (products, categories = []) => {
     const { filters } = get();
     let filtered = [...products];
 
@@ -99,11 +104,15 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     }
 
     if (filters.categories.length > 0) {
-      filtered = filtered.filter((p) => {
-        return p.categories.some((cat) =>
-          filters.categories.includes(cat.categoryUrl.current),
-        );
-      });
+      const allowedSlugs = getDescendantSlugs(
+        categories,
+        filters.categories,
+      );
+      filtered = filtered.filter((p) =>
+        p.categories.some((cat) =>
+          allowedSlugs.has(cat.categoryUrl.current),
+        ),
+      );
     }
 
     if (filters.priceRange.from !== null) {

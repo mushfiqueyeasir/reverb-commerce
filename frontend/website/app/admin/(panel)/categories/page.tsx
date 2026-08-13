@@ -4,8 +4,8 @@ import { requireAdminSession, canWrite } from "@/lib/admin/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Button } from "@/components/ui/button";
-import { categoryImageUrl } from "@/utility/imageUrl";
-import type { CategoryRow } from "@/type/db";
+import { getCategories } from "@/utility/getCategory";
+import { getDescendantIds } from "@/lib/categories/hierarchy";
 import { CategoriesTable, type CategoryTableRow } from "./CategoriesTable";
 
 export const dynamic = "force-dynamic";
@@ -15,38 +15,49 @@ export default async function CategoriesPage() {
   const writable = canWrite(session.role);
   const supabase = await createSupabaseServerClient();
 
-  const [categoriesResult, linksResult, productsResult] = await Promise.all([
-    supabase.from("categories").select("*").order("sort", { ascending: true }),
-    supabase.from("product_categories").select("category_id"),
+  const [categories, linksResult, productsResult] = await Promise.all([
+    getCategories(),
+    supabase.from("product_categories").select("category_id, product_id"),
     supabase.from("products").select("id", { count: "exact", head: true }),
   ]);
 
-  if (categoriesResult.error) throw categoriesResult.error;
   if (linksResult.error) throw linksResult.error;
   if (productsResult.error) throw productsResult.error;
 
-  const categories = categoriesResult.data;
-  const links = linksResult.data;
-  const productCount = productsResult.count;
-
-  const counts = new Map<string, number>();
-  for (const link of (links ?? []) as { category_id: string }[]) {
-    counts.set(link.category_id, (counts.get(link.category_id) ?? 0) + 1);
+  const productsByCategory = new Map<string, Set<string>>();
+  for (const link of (linksResult.data ?? []) as {
+    category_id: string;
+    product_id: string;
+  }[]) {
+    const productIds = productsByCategory.get(link.category_id) ?? new Set();
+    productIds.add(link.product_id);
+    productsByCategory.set(link.category_id, productIds);
   }
 
-  const rows: CategoryTableRow[] = ((categories ?? []) as CategoryRow[]).map(
-    (c) => ({
-      id: c.id,
-      name: c.name,
-      slug: c.slug,
-      sort: c.sort,
-      isDefault: c.is_default ?? false,
-      imageUrl: categoryImageUrl(c.image_path),
-      productCount: c.is_default
-        ? (productCount ?? 0)
-        : (counts.get(c.id) ?? 0),
-    }),
-  );
+  const rows: CategoryTableRow[] = categories.map((category) => {
+    const productIds = new Set<string>();
+    for (const id of getDescendantIds(categories, category._id)) {
+      for (const productId of productsByCategory.get(id) ?? []) {
+        productIds.add(productId);
+      }
+    }
+    return {
+      id: category._id,
+      name: category.categoryName,
+      slug: category.categoryUrl.current,
+      sort: category.sort,
+      depth: category.depth,
+      parentId: category.parentId,
+      hasChildren: categories.some(
+        (candidate) => candidate.parentId === category._id,
+      ),
+      isDefault: category.isDefault,
+      imageUrl: category.imageUrl,
+      productCount: category.isDefault
+        ? (productsResult.count ?? 0)
+        : productIds.size,
+    };
+  });
 
   return (
     <div>

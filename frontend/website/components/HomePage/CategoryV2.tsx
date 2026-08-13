@@ -53,11 +53,14 @@ export default function CategoryV2({
 }: CategoryV2Props) {
   const reduceMotion = Boolean(useReducedMotion()) || preview;
   const headingId = useId();
-  const visibleCategories = categories.slice(
+  const rootCategories = categories.filter(
+    (category) => category.isDefault || !category.parentId,
+  );
+  const visibleCategories = rootCategories.slice(
     0,
     typeof limit === "number"
       ? Math.max(0, Math.floor(limit))
-      : categories.length,
+      : rootCategories.length,
   );
 
   if (visibleCategories.length === 0) return null;

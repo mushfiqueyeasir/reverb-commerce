@@ -159,8 +159,11 @@ export default function Navbar({
                           <DropdownMenuItem
                             key={item.href}
                             asChild
+                            style={{
+                              paddingLeft: `${12 + (item.depth ?? 0) * 18}px`,
+                            }}
                             className={cn(
-                              "cursor-pointer rounded-sm px-3 py-2.5 text-[13px] font-medium uppercase tracking-[0.16em] focus:bg-foreground/5 focus:text-foreground",
+                              "cursor-pointer rounded-sm py-2.5 pr-3 text-[13px] font-medium uppercase tracking-[0.16em] focus:bg-foreground/5 focus:text-foreground",
                               itemActive
                                 ? "bg-foreground/5 text-primary"
                                 : "text-foreground/80",

@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { categoryImageUrl } from "@/utility/imageUrl";
 import type { Category } from "@/type/categoryType";
 import type { CategoryRow } from "@/type/db";
+import { flattenCategoryHierarchy } from "@/lib/categories/hierarchy";
 
 function mapCategory(row: CategoryRow): Category {
   return {
@@ -9,6 +10,9 @@ function mapCategory(row: CategoryRow): Category {
     categoryName: row.name,
     categoryDescription: row.description,
     imageUrl: categoryImageUrl(row.image_path),
+    parentId: row.parent_id ?? null,
+    sort: row.sort,
+    depth: 0,
     isDefault: row.is_default ?? false,
     categoryUrl: { current: row.slug },
   };
@@ -23,7 +27,7 @@ export async function getCategories(): Promise<Category[]> {
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return ((data as CategoryRow[]) ?? []).map(mapCategory);
+  return flattenCategoryHierarchy(((data as CategoryRow[]) ?? []).map(mapCategory));
 }
 
 export async function getCategoryById(id: string): Promise<Category | null> {

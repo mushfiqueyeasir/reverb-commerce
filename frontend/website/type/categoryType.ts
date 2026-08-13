@@ -5,6 +5,9 @@ export interface Category {
   categoryName: string;
   categoryDescription?: string | null;
   imageUrl: string | null;
+  parentId: string | null;
+  sort: number;
+  depth: number;
   isDefault: boolean;
   categoryUrl: {
     current: string;

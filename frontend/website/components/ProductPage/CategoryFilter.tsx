@@ -11,6 +11,7 @@ import {
 import { ChevronDown } from "lucide-react";
 import type { TransformedProduct } from "@/type/productType";
 import type { Category } from "@/type/categoryType";
+import { getDescendantSlugs } from "@/lib/categories/hierarchy";
 import DropdownHeader from "./DropdownHeader";
 import { filterTriggerClass } from "./filterTrigger";
 
@@ -25,28 +26,27 @@ export default function CategoryFilter({
 }: CategoryFilterProps) {
   const { filters, setCategories } = useProductStore();
 
-  const availableCategories = useMemo(() => {
-    const productCategoryCounts = new Map<string, number>();
-
-    products.forEach((product) => {
-      product.categories.forEach((category) => {
-        const categoryId = category.categoryUrl.current;
-        productCategoryCounts.set(
-          categoryId,
-          (productCategoryCounts.get(categoryId) || 0) + 1,
-        );
-      });
-    });
-
-    return categories
-      .filter((category) => !category.isDefault)
-      .map((category) => ({
-        id: category.categoryUrl.current,
-        name: category.categoryName,
-        count: productCategoryCounts.get(category.categoryUrl.current) || 0,
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [products, categories]);
+  const availableCategories = useMemo(
+    () =>
+      categories
+        .filter((category) => !category.isDefault)
+        .map((category) => {
+          const id = category.categoryUrl.current;
+          const descendantSlugs = getDescendantSlugs(categories, [id]);
+          const count = products.filter((product) =>
+            product.categories.some((productCategory) =>
+              descendantSlugs.has(productCategory.categoryUrl.current),
+            ),
+          ).length;
+          return {
+            id,
+            name: category.categoryName,
+            depth: category.depth,
+            count,
+          };
+        }),
+    [products, categories],
+  );
 
   const selectedCount = filters.categories.length;
 
@@ -81,7 +81,8 @@ export default function CategoryFilter({
             return (
               <label
                 key={category.id}
-                className="flex cursor-pointer items-center gap-2 rounded px-2 py-3 hover:bg-foreground/5"
+                style={{ paddingLeft: `${8 + category.depth * 18}px` }}
+                className="flex cursor-pointer items-center gap-2 rounded py-3 pr-2 hover:bg-foreground/5"
               >
                 <input
                   type="checkbox"
