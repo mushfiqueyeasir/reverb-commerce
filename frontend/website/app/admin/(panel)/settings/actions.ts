@@ -35,6 +35,7 @@ import {
 import { courierAdapter } from "@/lib/couriers/registry";
 import type { SaveCourierSettingsInput } from "@/lib/couriers/types";
 import {
+  getAiSearchApiKey,
   getAiSearchSettings,
   saveAiSearchSettingsRow,
   validateAiSearchApiKey,
@@ -397,6 +398,50 @@ export async function connectAiSearchProvider(input: {
     entity: "settings",
     summary: `Connected ${input.provider === "openrouter" ? "OpenRouter" : input.provider === "groq" ? "Groq" : input.provider === "aihubmix" ? "AIHubMix" : "Gemini"} for AI Search`,
     metadata: { enabled: true, provider: input.provider },
+  });
+
+  revalidatePath("/admin/settings");
+  return {};
+}
+
+export async function activateAiSearchProvider(
+  provider: AiSearchProvider,
+): Promise<{ error?: string }> {
+  const s = await requireAdminSession();
+  if (!isAdmin(s.role)) {
+    return { error: "You do not have permission to change AI Search settings." };
+  }
+
+  const current = await getAiSearchSettings();
+  const apiKey = getAiSearchApiKey({ ...current, provider });
+  if (!apiKey) {
+    return { error: "Connect this provider before activating it." };
+  }
+
+  const result = await saveAiSearchSettingsRow({
+    enabled: true,
+    provider,
+    geminiApiKey: null,
+    openrouterApiKey: null,
+    groqApiKey: null,
+    aihubmixApiKey: null,
+  });
+  if (result.error) return result;
+
+  const providerName =
+    provider === "openrouter"
+      ? "OpenRouter"
+      : provider === "groq"
+        ? "Groq"
+        : provider === "aihubmix"
+          ? "AIHubMix"
+          : "Gemini";
+  await writeAuditLog({
+    actor: s,
+    action: "update",
+    entity: "settings",
+    summary: `Activated ${providerName} for AI Search`,
+    metadata: { enabled: true, provider },
   });
 
   revalidatePath("/admin/settings");

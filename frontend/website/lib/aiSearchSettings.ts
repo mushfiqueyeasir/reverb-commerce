@@ -155,29 +155,39 @@ export async function validateAiSearchApiKey(
         body: JSON.stringify({
           model: config.aiSearch.models.aihubmix,
           messages: [{ role: "user", content: "Reply with OK." }],
-          max_tokens: 16,
+          max_completion_tokens: 128,
         }),
         cache: "no-store",
         signal: AbortSignal.timeout(30_000),
       });
-      if (response.status === 401) {
-        return { error: "The AIHubMix API key is invalid or expired." };
-      }
-      if (response.status === 403) {
-        return {
-          error:
-            "AIHubMix rejected the API key because of permissions or account balance.",
-        };
-      }
-      if (response.status === 429) {
-        return {
-          error:
-            "AIHubMix could not validate the key because its rate limit was reached.",
-        };
-      }
       if (!response.ok) {
+        const providerError = (await response.json().catch(() => null)) as {
+          error?: { message?: string } | string;
+          message?: string;
+        } | null;
+        const providerMessage =
+          typeof providerError?.error === "string"
+            ? providerError.error
+            : providerError?.error?.message ?? providerError?.message;
+        if (response.status === 401) {
+          return { error: "The AIHubMix API key is invalid or expired." };
+        }
+        if (response.status === 403) {
+          return {
+            error:
+              "AIHubMix rejected the API key because of permissions or account balance.",
+          };
+        }
+        if (response.status === 429) {
+          return {
+            error:
+              "AIHubMix could not validate the key because its rate limit was reached.",
+          };
+        }
         return {
-          error: `AIHubMix could not validate this API key or model access (${response.status}).`,
+          error: providerMessage
+            ? `AIHubMix rejected validation: ${providerMessage.replace(/\s+/g, " ").slice(0, 300)}`
+            : `AIHubMix could not validate this API key or model access (${response.status}).`,
         };
       }
       return {};

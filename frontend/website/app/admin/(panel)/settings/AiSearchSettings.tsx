@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Power } from "lucide-react";
 import { toast } from "sonner";
@@ -12,7 +12,11 @@ import type {
   AiSearchProvider,
   AiSearchSettingsPublic,
 } from "@/lib/aiSearchSettings";
-import { connectAiSearchProvider, disableAiSearch } from "./actions";
+import {
+  activateAiSearchProvider,
+  connectAiSearchProvider,
+  disableAiSearch,
+} from "./actions";
 
 export interface AiSearchDraft extends AiSearchSettingsPublic {
   geminiApiKey: string;
@@ -150,29 +154,44 @@ export function AiSearchSettings({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [selectedProviderId, setSelectedProviderId] =
+    useState<AiSearchProvider>(value.provider);
   const selectedProvider =
+    PROVIDERS.find((provider) => provider.id === selectedProviderId) ??
+    PROVIDERS[0];
+  const activeProvider =
     PROVIDERS.find((provider) => provider.id === value.provider) ?? PROVIDERS[0];
   const providerName = selectedProvider.label;
-  const ConnectedProviderIcon = selectedProvider.icon;
+  const ActiveProviderIcon = activeProvider.icon;
   const apiKey =
-    value.provider === "openrouter"
+    selectedProviderId === "openrouter"
       ? value.openrouterApiKey
-      : value.provider === "groq"
+      : selectedProviderId === "groq"
         ? value.groqApiKey
-        : value.provider === "aihubmix"
+        : selectedProviderId === "aihubmix"
           ? value.aihubmixApiKey
           : value.geminiApiKey;
+  const hasSavedApiKey =
+    selectedProviderId === "openrouter"
+      ? value.hasOpenrouterApiKey
+      : selectedProviderId === "groq"
+        ? value.hasGroqApiKey
+        : selectedProviderId === "aihubmix"
+          ? value.hasAihubmixApiKey
+          : value.hasGeminiApiKey;
+  const isSelectedProviderActive =
+    value.enabled && value.provider === selectedProviderId;
 
   const setApiKey = (nextApiKey: string) => {
-    if (value.provider === "openrouter") {
+    if (selectedProviderId === "openrouter") {
       onChange({ ...value, openrouterApiKey: nextApiKey });
       return;
     }
-    if (value.provider === "groq") {
+    if (selectedProviderId === "groq") {
       onChange({ ...value, groqApiKey: nextApiKey });
       return;
     }
-    if (value.provider === "aihubmix") {
+    if (selectedProviderId === "aihubmix") {
       onChange({ ...value, aihubmixApiKey: nextApiKey });
       return;
     }
@@ -188,9 +207,10 @@ export function AiSearchSettings({
 
     startTransition(async () => {
       const result = await connectAiSearchProvider({
-        provider: value.provider,
+        provider: selectedProviderId,
         apiKey: nextApiKey,
       });
+
       if (result.error) {
         toast.error(result.error);
         return;
@@ -199,21 +219,55 @@ export function AiSearchSettings({
       onChange({
         ...value,
         enabled: true,
+        provider: selectedProviderId,
         geminiApiKey: "",
         openrouterApiKey: "",
         groqApiKey: "",
         aihubmixApiKey: "",
         hasGeminiApiKey:
-          value.hasGeminiApiKey || value.provider === "gemini",
+          value.hasGeminiApiKey || selectedProviderId === "gemini",
         hasOpenrouterApiKey:
-          value.hasOpenrouterApiKey || value.provider === "openrouter",
-        hasGroqApiKey: value.hasGroqApiKey || value.provider === "groq",
+          value.hasOpenrouterApiKey || selectedProviderId === "openrouter",
+        hasGroqApiKey:
+          value.hasGroqApiKey || selectedProviderId === "groq",
         hasAihubmixApiKey:
-          value.hasAihubmixApiKey || value.provider === "aihubmix",
+          value.hasAihubmixApiKey || selectedProviderId === "aihubmix",
       });
       toast.success(`${providerName} connected. AI Search is now enabled.`);
       router.refresh();
     });
+  };
+
+  const activate = () => {
+    if (!hasSavedApiKey || isSelectedProviderActive) return;
+
+    startTransition(async () => {
+      const result = await activateAiSearchProvider(selectedProviderId);
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      onChange({
+        ...value,
+        enabled: true,
+        provider: selectedProviderId,
+        geminiApiKey: "",
+        openrouterApiKey: "",
+        groqApiKey: "",
+        aihubmixApiKey: "",
+      });
+      toast.success(`${providerName} is now active for AI Search.`);
+      router.refresh();
+    });
+  };
+
+  const submitProvider = () => {
+    if (apiKey.trim()) {
+      connect();
+      return;
+    }
+    activate();
   };
 
   const disconnect = () => {
@@ -248,12 +302,12 @@ export function AiSearchSettings({
         <div className="flex flex-col gap-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <span className="flex size-9 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600">
-              <ConnectedProviderIcon className="size-5" />
+              <ActiveProviderIcon className="size-5" />
             </span>
             <div>
               <p className="text-sm font-medium">AI Search is enabled</p>
               <p className="text-xs text-muted-foreground">
-                Connected with {providerName}
+                Connected with {activeProvider.label}
               </p>
             </div>
           </div>
@@ -275,10 +329,9 @@ export function AiSearchSettings({
         </div>
       ) : (
         <div className="rounded-xl border border-border bg-card/50 px-4 py-3">
-          <p className="text-sm font-medium">AI Search is not connected</p>
+          <p className="text-sm font-medium">AI Search is disabled</p>
           <p className="text-xs text-muted-foreground">
-            Shoppers will only see regular product search until you connect a
-            provider.
+            Saved provider connections are retained and can be activated below.
           </p>
         </div>
       )}
@@ -287,14 +340,23 @@ export function AiSearchSettings({
         <div className="grid gap-3 sm:grid-cols-2">
           {PROVIDERS.map((provider) => {
             const Icon = provider.icon;
+            const connected =
+              provider.id === "openrouter"
+                ? value.hasOpenrouterApiKey
+                : provider.id === "groq"
+                  ? value.hasGroqApiKey
+                  : provider.id === "aihubmix"
+                    ? value.hasAihubmixApiKey
+                    : value.hasGeminiApiKey;
+            const active = value.enabled && value.provider === provider.id;
             return (
               <button
                 key={provider.id}
                 type="button"
-                onClick={() => onChange({ ...value, provider: provider.id })}
+                onClick={() => setSelectedProviderId(provider.id)}
                 className={cn(
                   "flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition",
-                  value.provider === provider.id
+                  selectedProviderId === provider.id
                     ? "border-primary bg-primary/10"
                     : "border-border bg-card/60 hover:border-primary/40",
                 )}
@@ -302,16 +364,21 @@ export function AiSearchSettings({
                 <span
                   className={cn(
                     "flex size-10 shrink-0 items-center justify-center rounded-full",
-                    value.provider === provider.id
+                    selectedProviderId === provider.id
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-foreground",
                   )}
                 >
                   <Icon className="size-5" />
                 </span>
-                <span className="min-w-0">
-                  <span className="block text-sm font-medium">
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center justify-between gap-2 text-sm font-medium">
                     {provider.label}
+                    {connected ? (
+                      <span className="text-xs font-medium text-emerald-600">
+                        {active ? "Active" : "Connected"}
+                      </span>
+                    ) : null}
                   </span>
                   <span className="block text-xs text-muted-foreground">
                     {provider.description}
@@ -325,19 +392,27 @@ export function AiSearchSettings({
 
       <FormField
         label={`${providerName} API key`}
-        hint="The key will be verified with the provider before it is saved."
+        hint={
+          hasSavedApiKey
+            ? "A key is saved. Enter a new key only to replace it."
+            : "The key will be verified with the provider before it is saved."
+        }
       >
         <Input
           type="password"
           value={apiKey}
           onChange={(event) => setApiKey(event.target.value)}
-          placeholder={`${providerName} API key`}
+          placeholder={
+            hasSavedApiKey
+              ? `Enter a new ${providerName} key to replace the saved key`
+              : `${providerName} API key`
+          }
           className={adminInputClass}
           autoComplete="new-password"
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.preventDefault();
-              connect();
+              submitProvider();
             }
           }}
         />
@@ -345,12 +420,21 @@ export function AiSearchSettings({
 
       <Button
         type="button"
-        onClick={connect}
-        disabled={pending || !apiKey.trim()}
+        onClick={submitProvider}
+        disabled={
+          pending ||
+          (!apiKey.trim() && (!hasSavedApiKey || isSelectedProviderActive))
+        }
         className="rounded-full px-6"
       >
         {pending ? <Loader2 className="size-4 animate-spin" /> : null}
-        {value.enabled ? `Validate and use ${providerName}` : `Connect ${providerName}`}
+        {apiKey.trim()
+          ? `Validate and use ${providerName}`
+          : isSelectedProviderActive
+            ? `${providerName} is active`
+            : hasSavedApiKey
+              ? `Use ${providerName}`
+              : `Connect ${providerName}`}
       </Button>
     </div>
   );
