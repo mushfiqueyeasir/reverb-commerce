@@ -18,24 +18,22 @@ import type {
   AiAdvisorMessage,
   AiAdvisorRecommendation,
   AiAdvisorResponse,
-  AiAdvisorSource,
 } from "@/type/aiAdvisorType";
 
 const GREETING: AiAdvisorMessage = {
   role: "assistant",
   content:
-    "Ask me anything about the store—from products and availability to delivery, returns, company details, and how to use the website.",
+    "Tell me what you need, your preferences, concern, or budget, and I will recommend matching products from the active inventory.",
 };
 
 const STARTERS = [
   "Help me choose the right product",
-  "What are your delivery and return policies?",
-  "Tell me about this store",
+  "Recommend something for my skin concern",
+  "Show products within my budget",
 ];
 
 interface ConversationItem extends AiAdvisorMessage {
   recommendations?: AiAdvisorRecommendation[];
-  sources?: AiAdvisorSource[];
 }
 
 export default function AiShoppingAssistant({
@@ -78,7 +76,7 @@ export default function AiShoppingAssistant({
     abortRef.current = controller;
 
     try {
-      const history = nextMessages.slice(-6).map(({ role, content }) => ({
+      const history = nextMessages.map(({ role, content }) => ({
         role,
         content,
       }));
@@ -104,7 +102,6 @@ export default function AiShoppingAssistant({
           role: "assistant",
           content: payload.message,
           recommendations: payload.recommendations,
-          sources: payload.sources,
         },
       ]);
       setSuggestedReplies(payload.suggestedReplies);
@@ -120,7 +117,7 @@ export default function AiShoppingAssistant({
         {
           role: "assistant",
           content:
-            "I hit a snag while checking the store information. Your last note is still in the box—send it once more and I will pick up where we left off.",
+            "I hit a snag while checking the active inventory. Your last note is still in the box—send it once more and I will pick up where we left off.",
         },
       ]);
       setInput(cleanContent);
@@ -155,7 +152,7 @@ export default function AiShoppingAssistant({
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-60" />
             <span className="relative inline-flex size-2 rounded-full bg-primary" />
           </span>
-          Store expert online / Website + live inventory
+          Shopping advisor online / Active inventory
         </div>
         {hasStarted && (
           <button
@@ -184,9 +181,9 @@ export default function AiShoppingAssistant({
                 <span className="block text-primary">like to know?</span>
               </h2>
               <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
-                Ask about products, stock, delivery, returns, the company, or
-                any page on the website. Get an answer grounded in current store
-                information.
+                Describe what you need, your preferences, concern, or budget.
+                Get recommendations from products that are currently active and
+                in stock.
               </p>
             </div>
 
@@ -255,21 +252,6 @@ export default function AiShoppingAssistant({
                       ))}
                     </div>
                   )}
-                {message.sources && message.sources.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {message.sources.map((source) => (
-                      <Link
-                        key={`${source.sourceType}-${source.href}`}
-                        href={source.href}
-                        onClick={onProductSelect}
-                        className="inline-flex items-center gap-1.5 border border-border bg-card/40 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground transition hover:border-primary hover:text-primary"
-                      >
-                        {source.title}
-                        <ArrowUpRight className="size-3" />
-                      </Link>
-                    ))}
-                  </div>
-                )}
               </article>
             ))}
           </div>
@@ -278,7 +260,7 @@ export default function AiShoppingAssistant({
         {pending && (
           <div className="mb-8 flex items-center gap-3 border-l-2 border-primary py-3 pl-5 font-mono text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
             <LoaderCircle className="size-4 animate-spin text-primary" />
-            Checking the website and live collection
+            Checking the active inventory
           </div>
         )}
         <div ref={endRef} />
@@ -309,14 +291,14 @@ export default function AiShoppingAssistant({
           <textarea
             id="ai-advisor-message"
             value={input}
-            onChange={(event) => setInput(event.target.value.slice(0, 600))}
+            onChange={(event) => setInput(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey) {
                 event.preventDefault();
                 event.currentTarget.form?.requestSubmit();
               }
             }}
-            placeholder="Ask anything about the store..."
+            placeholder="Tell me what product you need..."
             rows={1}
             disabled={pending}
             className="max-h-28 min-h-11 min-w-0 flex-1 resize-none bg-transparent px-2 py-3 text-sm leading-5 outline-none placeholder:text-muted-foreground/70 disabled:opacity-60 sm:text-base"

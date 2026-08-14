@@ -17,16 +17,9 @@ export interface AiAdvisorRecommendation {
   reason: string;
 }
 
-export interface AiAdvisorSource {
-  title: string;
-  href: string;
-  sourceType: string;
-}
-
 export interface AiAdvisorResponse {
   message: string;
   status: "answer" | "clarifying" | "recommendations" | "no_match";
   suggestedReplies: string[];
   recommendations: AiAdvisorRecommendation[];
-  sources: AiAdvisorSource[];
 }

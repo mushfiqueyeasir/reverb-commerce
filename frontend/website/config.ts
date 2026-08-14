@@ -5,7 +5,7 @@ export const config = {
   openRouter: {
     apiKey:
       "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",
-    model: "google/gemini-2.5-flash-lite",
+    model: "google/gemini-2.5-flash",
   },
 } as const;
 
