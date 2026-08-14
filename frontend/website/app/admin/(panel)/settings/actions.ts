@@ -386,6 +386,7 @@ export async function connectAiSearchProvider(input: {
     provider: input.provider,
     geminiApiKey: input.provider === "gemini" ? apiKey : null,
     openrouterApiKey: input.provider === "openrouter" ? apiKey : null,
+    groqApiKey: input.provider === "groq" ? apiKey : null,
   });
   if (result.error) return result;
 
@@ -393,7 +394,7 @@ export async function connectAiSearchProvider(input: {
     actor: s,
     action: "update",
     entity: "settings",
-    summary: `Connected ${input.provider === "openrouter" ? "OpenRouter" : "Gemini"} for AI Search`,
+    summary: `Connected ${input.provider === "openrouter" ? "OpenRouter" : input.provider === "groq" ? "Groq" : "Gemini"} for AI Search`,
     metadata: { enabled: true, provider: input.provider },
   });
 
@@ -413,6 +414,7 @@ export async function disableAiSearch(): Promise<{ error?: string }> {
     provider: current.provider,
     geminiApiKey: null,
     openrouterApiKey: null,
+    groqApiKey: null,
   });
   if (result.error) return result;
 

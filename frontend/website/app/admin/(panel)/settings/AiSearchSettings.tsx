@@ -17,6 +17,7 @@ import { connectAiSearchProvider, disableAiSearch } from "./actions";
 export interface AiSearchDraft extends AiSearchSettingsPublic {
   geminiApiKey: string;
   openrouterApiKey: string;
+  groqApiKey: string;
 }
 
 export function aiSearchDraftFromPublic(
@@ -26,6 +27,7 @@ export function aiSearchDraftFromPublic(
     ...settings,
     geminiApiKey: "",
     openrouterApiKey: "",
+    groqApiKey: "",
   };
 }
 
@@ -64,6 +66,25 @@ function OpenRouterIcon({ className }: { className?: string }) {
   );
 }
 
+function GroqIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+    >
+      <path
+        d="M18.6 8.2A7.5 7.5 0 1 0 19.5 12v-1.2H12v3h4.1A4.5 4.5 0 1 1 16 9.4"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 const PROVIDERS: {
   id: AiSearchProvider;
   label: string;
@@ -82,6 +103,12 @@ const PROVIDERS: {
     description: "Connect with an OpenRouter key",
     icon: OpenRouterIcon,
   },
+  {
+    id: "groq",
+    label: "Groq",
+    description: "Connect with a GroqCloud key",
+    icon: GroqIcon,
+  },
 ];
 
 export function AiSearchSettings({
@@ -93,18 +120,27 @@ export function AiSearchSettings({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const providerName = value.provider === "openrouter" ? "OpenRouter" : "Gemini";
+  const selectedProvider =
+    PROVIDERS.find((provider) => provider.id === value.provider) ?? PROVIDERS[0];
+  const providerName = selectedProvider.label;
+  const ConnectedProviderIcon = selectedProvider.icon;
   const apiKey =
     value.provider === "openrouter"
       ? value.openrouterApiKey
-      : value.geminiApiKey;
+      : value.provider === "groq"
+        ? value.groqApiKey
+        : value.geminiApiKey;
 
   const setApiKey = (nextApiKey: string) => {
-    onChange(
-      value.provider === "openrouter"
-        ? { ...value, openrouterApiKey: nextApiKey }
-        : { ...value, geminiApiKey: nextApiKey },
-    );
+    if (value.provider === "openrouter") {
+      onChange({ ...value, openrouterApiKey: nextApiKey });
+      return;
+    }
+    if (value.provider === "groq") {
+      onChange({ ...value, groqApiKey: nextApiKey });
+      return;
+    }
+    onChange({ ...value, geminiApiKey: nextApiKey });
   };
 
   const connect = () => {
@@ -129,10 +165,12 @@ export function AiSearchSettings({
         enabled: true,
         geminiApiKey: "",
         openrouterApiKey: "",
+        groqApiKey: "",
         hasGeminiApiKey:
           value.hasGeminiApiKey || value.provider === "gemini",
         hasOpenrouterApiKey:
           value.hasOpenrouterApiKey || value.provider === "openrouter",
+        hasGroqApiKey: value.hasGroqApiKey || value.provider === "groq",
       });
       toast.success(`${providerName} connected. AI Search is now enabled.`);
       router.refresh();
@@ -152,6 +190,7 @@ export function AiSearchSettings({
         enabled: false,
         geminiApiKey: "",
         openrouterApiKey: "",
+        groqApiKey: "",
       });
       toast.success("AI Search disabled");
       router.refresh();
@@ -161,19 +200,15 @@ export function AiSearchSettings({
   return (
     <div className="space-y-5">
       <p className="text-sm text-muted-foreground">
-        Connect Gemini or OpenRouter with your own API key. The key is validated
-        before AI Search is enabled and remains server-side.
+        Connect Gemini, OpenRouter, or Groq with your own API key. The key is
+        validated before AI Search is enabled and remains server-side.
       </p>
 
       {value.enabled ? (
         <div className="flex flex-col gap-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <span className="flex size-9 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600">
-              {value.provider === "openrouter" ? (
-                <OpenRouterIcon className="size-5" />
-              ) : (
-                <GeminiIcon className="size-5" />
-              )}
+              <ConnectedProviderIcon className="size-5" />
             </span>
             <div>
               <p className="text-sm font-medium">AI Search is enabled</p>
@@ -209,7 +244,7 @@ export function AiSearchSettings({
       )}
 
       <FormField label={value.enabled ? "Change provider or key" : "Provider"}>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-3">
           {PROVIDERS.map((provider) => {
             const Icon = provider.icon;
             return (

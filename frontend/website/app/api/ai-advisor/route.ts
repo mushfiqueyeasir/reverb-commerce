@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import Groq from "groq-sdk";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   buildAdvisorSystemPrompt,
@@ -269,15 +270,66 @@ async function callOpenrouter(
   };
 }
 
+async function callGroq(
+  apiKey: string,
+  systemPrompt: string,
+  messages: { role: "user" | "assistant"; content: string }[],
+): Promise<ProviderResult> {
+  const groq = new Groq({ apiKey, timeout: 45_000, maxRetries: 0 });
+  try {
+    const completion = await groq.chat.completions.create({
+      model: config.aiSearch.models.groq,
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...messages.map((message) => ({
+          role: message.role,
+          content: message.content,
+        })),
+      ],
+      max_completion_tokens: 4096,
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "shopping_advisor_response",
+          strict: true,
+          schema: OPENROUTER_RESPONSE_SCHEMA,
+        },
+      },
+    });
+    const choice = completion.choices[0];
+    return {
+      content:
+        typeof choice?.message?.content === "string"
+          ? choice.message.content
+          : null,
+      finishReason: choice?.finish_reason ?? null,
+    };
+  } catch (error) {
+    process.stderr.write(
+      `${JSON.stringify({
+        event: "AI Search provider request failed",
+        provider: "groq",
+        status: error instanceof Groq.APIError ? error.status : null,
+        message: error instanceof Error ? error.message : "Unknown error",
+      })}\n`,
+    );
+    throw new Error("AI provider request failed");
+  }
+}
+
 async function callProvider(
   provider: AiSearchProvider,
   apiKey: string,
   systemPrompt: string,
   messages: { role: "user" | "assistant"; content: string }[],
 ): Promise<ProviderResult> {
-  return provider === "openrouter"
-    ? callOpenrouter(apiKey, systemPrompt, messages)
-    : callGemini(apiKey, systemPrompt, messages);
+  if (provider === "openrouter") {
+    return callOpenrouter(apiKey, systemPrompt, messages);
+  }
+  if (provider === "groq") {
+    return callGroq(apiKey, systemPrompt, messages);
+  }
+  return callGemini(apiKey, systemPrompt, messages);
 }
 
 export async function POST(request: NextRequest) {
