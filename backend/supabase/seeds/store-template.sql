@@ -123,7 +123,9 @@ with seed as (
         jsonb_build_object('id', '60000000-0000-4000-8000-000000000009', 'type', 'featured_v2', 'title', 'Featured products', 'subtitle', 'Sample products ready to customize', 'body', null, 'sort', 90, 'active', false, 'config', jsonb_build_object('limit', 5, 'cta_label', 'View all products', 'cta_url', '/product')),
         jsonb_build_object('id', '60000000-0000-4000-8000-000000000010', 'type', 'reviews_v2', 'title', 'Sample review', 'subtitle', 'Replace with verified customer feedback', 'body', null, 'sort', 100, 'active', false, 'config', '{}'::jsonb),
         jsonb_build_object('id', '60000000-0000-4000-8000-000000000011', 'type', 'promo_v2', 'title', 'New-store offer', 'subtitle', 'Replace this placeholder promotion before launch', 'body', null, 'sort', 110, 'active', false, 'config', '{}'::jsonb),
-        jsonb_build_object('id', '60000000-0000-4000-8000-000000000012', 'type', 'richtext_v2', 'title', 'Built for everyday use', 'subtitle', null, 'body', '<p>This is placeholder homepage content. Tell customers what makes the store distinctive.</p>', 'sort', 120, 'active', false, 'config', jsonb_build_object('layout', 'feature', 'image_bucket', 'branding', 'cards', '[]'::jsonb))
+        jsonb_build_object('id', '60000000-0000-4000-8000-000000000012', 'type', 'richtext_v2', 'title', 'Built for everyday use', 'subtitle', null, 'body', '<p>This is placeholder homepage content. Tell customers what makes the store distinctive.</p>', 'sort', 120, 'active', false, 'config', jsonb_build_object('layout', 'feature', 'image_bucket', 'branding', 'cards', '[]'::jsonb)),
+        jsonb_build_object('id', '60000000-0000-4000-8000-000000000013', 'type', 'deals', 'title', 'Today''s Best Deals', 'subtitle', 'Save on selected products', 'body', null, 'sort', 130, 'active', false, 'config', jsonb_build_object('limit', 4, 'cta_label', 'View all products', 'cta_url', '/product')),
+        jsonb_build_object('id', '60000000-0000-4000-8000-000000000014', 'type', 'new_arrivals', 'title', 'New Arrival Products', 'subtitle', 'Discover the latest additions', 'body', null, 'sort', 140, 'active', false, 'config', jsonb_build_object('limit', 4, 'cta_label', 'View all products', 'cta_url', '/product'))
       ),
       'about_sections', jsonb_build_array(
         jsonb_build_object('id', 'about-hero', 'type', 'hero', 'title', 'Hero', 'sort', 0, 'active', true, 'config', jsonb_build_object('image_path', 'store-template/v1/home/hero-desktop.png', 'image_bucket', 'banner')),
@@ -339,7 +341,7 @@ on conflict do nothing;
 delete from public.homepage_sections section
 using store_template_context context
 where context.should_seed
-  and (select count(*) from public.homepage_sections) = 12
+  and (select count(*) from public.homepage_sections) = 14
   and (select count(*) from public.homepage_sections where type = 'banner') = 1
   and (select count(*) from public.homepage_sections where type = 'categories') = 1
   and (select count(*) from public.homepage_sections where type = 'featured') = 1
@@ -352,11 +354,13 @@ where context.should_seed
   and (select count(*) from public.homepage_sections where type = 'reviews_v2') = 1
   and (select count(*) from public.homepage_sections where type = 'promo_v2') = 1
   and (select count(*) from public.homepage_sections where type = 'richtext_v2') = 1
+  and (select count(*) from public.homepage_sections where type = 'deals') = 1
+  and (select count(*) from public.homepage_sections where type = 'new_arrivals') = 1
   and not exists (
     select 1
     from public.homepage_sections existing
     where existing.body is not null
-       or existing.config <> '{}'::jsonb
+       or (existing.type not in ('deals', 'new_arrivals') and existing.config <> '{}'::jsonb)
        or not (
          (existing.type = 'banner' and existing.title is null and existing.subtitle is null and existing.sort = 10 and existing.active)
          or (existing.type = 'categories' and existing.title = 'Shop by Category' and existing.subtitle = 'Find your fit across every collection' and existing.sort = 20 and existing.active)
@@ -370,6 +374,8 @@ where context.should_seed
          or (existing.type = 'reviews_v2' and existing.title = 'From the Community' and existing.subtitle is null and existing.sort = 46 and not existing.active)
          or (existing.type = 'promo_v2' and existing.title is null and existing.subtitle is null and existing.sort = 47 and not existing.active)
          or (existing.type = 'richtext_v2' and existing.title = 'Our Story' and existing.subtitle is null and existing.sort = 48 and not existing.active)
+         or (existing.type = 'deals' and existing.title = 'Today''s Best Deals' and existing.subtitle = 'Save on selected products' and existing.sort = 49 and not existing.active and existing.config = '{"limit":4,"cta_label":"View all products","cta_url":"/product"}'::jsonb)
+         or (existing.type = 'new_arrivals' and existing.title = 'New Arrival Products' and existing.subtitle = 'Discover the latest additions' and existing.sort = 50 and not existing.active and existing.config = '{"limit":4,"cta_label":"View all products","cta_url":"/product"}'::jsonb)
        )
   );
 
@@ -390,7 +396,9 @@ from (values
   ('60000000-0000-4000-8000-000000000009'::uuid, 'featured_v2', 'Featured products', 'Sample products ready to customize', null, 90, false, '{"limit":5,"cta_label":"View all products","cta_url":"/product"}'::jsonb),
   ('60000000-0000-4000-8000-000000000010'::uuid, 'reviews_v2', 'Sample review', 'Replace with verified customer feedback', null, 100, false, '{}'::jsonb),
   ('60000000-0000-4000-8000-000000000011'::uuid, 'promo_v2', 'New-store offer', 'Replace this placeholder promotion before launch', null, 110, false, '{}'::jsonb),
-  ('60000000-0000-4000-8000-000000000012'::uuid, 'richtext_v2', 'Built for everyday use', null, '<p>This is placeholder homepage content. Tell customers what makes the store distinctive.</p>', 120, false, '{"layout":"feature","image_bucket":"branding","cards":[]}'::jsonb)
+  ('60000000-0000-4000-8000-000000000012'::uuid, 'richtext_v2', 'Built for everyday use', null, '<p>This is placeholder homepage content. Tell customers what makes the store distinctive.</p>', 120, false, '{"layout":"feature","image_bucket":"branding","cards":[]}'::jsonb),
+  ('60000000-0000-4000-8000-000000000013'::uuid, 'deals', 'Today''s Best Deals', 'Save on selected products', null, 130, false, '{"limit":4,"cta_label":"View all products","cta_url":"/product"}'::jsonb),
+  ('60000000-0000-4000-8000-000000000014'::uuid, 'new_arrivals', 'New Arrival Products', 'Discover the latest additions', null, 140, false, '{"limit":4,"cta_label":"View all products","cta_url":"/product"}'::jsonb)
 ) as section(id, type, title, subtitle, body, sort, active, config)
 cross join store_template_context context
 where context.should_seed

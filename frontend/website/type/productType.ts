@@ -38,6 +38,7 @@ export interface Product {
   sizingMode: "none" | "required";
   sizeChart: ProductSizeChartRow[];
   stock: ProductStock[];
+  createdAt: string;
 }
 
 export interface CategoryWithProducts {
@@ -63,4 +64,5 @@ export interface TransformedProduct {
   stock: ProductStock[];
   sizeChart: ProductSizeChartRow[];
   categories: ProductCategory[];
+  createdAt: string;
 }

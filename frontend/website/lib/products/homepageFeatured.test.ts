@@ -2,19 +2,28 @@ import { describe, expect, it } from "vitest";
 import type { TransformedProduct } from "@/type/productType";
 import { selectHomepageProducts } from "./homepageFeatured";
 
-function product(id: string, quantity: number): TransformedProduct {
+function product(
+  id: string,
+  quantity: number,
+  options: {
+    originalPrice?: number;
+    currentPrice?: number;
+    createdAt?: string;
+  } = {},
+): TransformedProduct {
   return {
     id,
     title: id,
     image: "",
-    originalPrice: 100,
-    currentPrice: 100,
+    originalPrice: options.originalPrice ?? 100,
+    currentPrice: options.currentPrice ?? 100,
     href: `/product/${id}`,
     slug: id,
     sizingMode: "none",
     stock: [{ id: `${id}-stock`, size: null, color: null, quantity }],
     sizeChart: [],
     categories: [],
+    createdAt: options.createdAt ?? "2026-01-01T00:00:00.000Z",
   };
 }
 
@@ -55,5 +64,70 @@ describe("selectHomepageProducts", () => {
       "available-4",
       "available-5",
     ]);
+  });
+
+  it("selects only discounted products and ranks the largest savings first", () => {
+    const products = [
+      product("ten", 1, { currentPrice: 90 }),
+      product("full-price", 1),
+      product("forty", 1, { currentPrice: 60 }),
+      product("twenty-five", 1, { currentPrice: 75 }),
+      product("invalid-original", 1, {
+        originalPrice: 0,
+        currentPrice: -10,
+      }),
+      product("negative-price", 1, {
+        currentPrice: -10,
+      }),
+    ];
+
+    expect(
+      selectHomepageProducts(products, 10, 10, "deals").map(
+        (item) => item.id,
+      ),
+    ).toEqual(["forty", "twenty-five", "ten"]);
+  });
+
+  it("ranks new arrivals by creation date and puts invalid dates last", () => {
+    const products = [
+      product("old", 1, { createdAt: "2025-01-01T00:00:00.000Z" }),
+      product("invalid", 1, { createdAt: "not-a-date" }),
+      product("new", 1, { createdAt: "2026-07-01T00:00:00.000Z" }),
+      product("middle", 1, { createdAt: "2026-02-01T00:00:00.000Z" }),
+    ];
+
+    expect(
+      selectHomepageProducts(products, 10, 10, "new-arrivals").map(
+        (item) => item.id,
+      ),
+    ).toEqual(["new", "middle", "old", "invalid"]);
+  });
+
+  it("keeps stock availability ahead of the selected ranking", () => {
+    const products = [
+      product("new-sold-out", 0, {
+        createdAt: "2026-08-01T00:00:00.000Z",
+      }),
+      product("old-available", 1, {
+        createdAt: "2025-01-01T00:00:00.000Z",
+      }),
+    ];
+
+    expect(
+      selectHomepageProducts(products, 2, 4, "new-arrivals").map(
+        (item) => item.id,
+      ),
+    ).toEqual(["old-available", "new-sold-out"]);
+  });
+
+  it("does not mutate the catalog order", () => {
+    const products = [
+      product("old", 1, { createdAt: "2025-01-01T00:00:00.000Z" }),
+      product("new", 1, { createdAt: "2026-01-01T00:00:00.000Z" }),
+    ];
+
+    selectHomepageProducts(products, 2, 4, "new-arrivals");
+
+    expect(products.map((item) => item.id)).toEqual(["old", "new"]);
   });
 });

@@ -35,6 +35,8 @@ export const CATEGORY_IDS = [
 export const HOMEPAGE_TYPES = [
   "banner",
   "categories",
+  "deals",
+  "new_arrivals",
   "featured",
   "reviews",
   "promo",
@@ -82,7 +84,16 @@ export function stableStringify(value) {
   return JSON.stringify(stableValue(value));
 }
 
-function homepageRow(id, type, title, subtitle, body, sort, config) {
+function homepageRow(
+  id,
+  type,
+  title,
+  subtitle,
+  body,
+  sort,
+  config,
+  active = !type.endsWith("_v2"),
+) {
   return {
     id,
     type,
@@ -90,7 +101,7 @@ function homepageRow(id, type, title, subtitle, body, sort, config) {
     subtitle,
     body,
     sort,
-    active: true,
+    active,
     config,
     created_at: EPOCH,
     updated_at: EPOCH,
@@ -103,7 +114,7 @@ function aboutRow(id, type, title, sort, config) {
     type,
     title,
     sort,
-    active: true,
+    active: !type.endsWith("_v2"),
     config,
     created_at: EPOCH,
     updated_at: EPOCH,
@@ -152,14 +163,42 @@ export function buildHomepageSections() {
       },
     ),
     homepageRow(
-      "60000000-0000-4000-8000-000000000003",
-      "featured",
-      "Featured Kawaii Picks",
-      "Japanese cosmetics selected for everyday routines",
+      "60000000-0000-4000-8000-000000000013",
+      "deals",
+      "Today's Best Deals",
+      "Save on Japanese beauty favorites from Kawaii",
       null,
       2,
       {
-        eyebrow: "Kawaii collection",
+        eyebrow: "Special savings",
+        limit: 4,
+        cta_label: "View all products",
+        cta_url: "/product",
+      },
+    ),
+    homepageRow(
+      "60000000-0000-4000-8000-000000000014",
+      "new_arrivals",
+      "New Arrival Products",
+      "Fresh additions to Kawaii's Japanese beauty collection",
+      null,
+      3,
+      {
+        eyebrow: "Just arrived",
+        limit: 4,
+        cta_label: "View all products",
+        cta_url: "/product",
+      },
+    ),
+    homepageRow(
+      "60000000-0000-4000-8000-000000000003",
+      "featured",
+      "Featured Products",
+      "Kawaii favorites selected for everyday routines",
+      null,
+      4,
+      {
+        eyebrow: "Selected by Kawaii",
         limit: 4,
         cta_label: "View all products",
         cta_url: "/product",
@@ -171,7 +210,7 @@ export function buildHomepageSections() {
       "From a Kawaii Customer",
       "Published feedback from the Kawaii community",
       null,
-      3,
+      5,
       {
         eyebrow: "Customer review",
         limit: 12,
@@ -185,7 +224,7 @@ export function buildHomepageSections() {
       "Discover the Featured Collection",
       "Everyday Japanese skincare and cosmetics from Kawaii",
       null,
-      4,
+      6,
       {
         promotion_id: TEMPLATE_PROMOTION_ID,
         cta_label: "Explore the collection",
@@ -198,7 +237,7 @@ export function buildHomepageSections() {
       "Your Everyday Japanese Skincare Destination",
       "Kawaii in Dhaka",
       "<p>Kawaii is a Dhaka Facebook page and an authentic Japanese cosmetics seller serving beauty shoppers in Bangladesh. Follow the page for product updates and explore skincare for everyday routines.</p>",
-      5,
+      7,
       {
         image_path: STORY_CLASSIC_PATH,
         image_bucket: "branding",
@@ -234,7 +273,7 @@ export function buildHomepageSections() {
       null,
       null,
       null,
-      6,
+      8,
       {
         description:
           "Meet Kawaii's authentic Japanese cosmetics and everyday skincare collection in Bangladesh.",
@@ -246,7 +285,7 @@ export function buildHomepageSections() {
       "Explore the Kawaii Collection",
       "Four ways to begin an everyday beauty routine",
       null,
-      7,
+      9,
       {
         eyebrow: "Japanese beauty",
         category_ids: [...CATEGORY_IDS],
@@ -261,13 +300,14 @@ export function buildHomepageSections() {
       "Everyday Beauty, Featured",
       "Five Kawaii picks for skincare and cosmetics routines",
       null,
-      8,
+      10,
       {
         eyebrow: "Selected by Kawaii",
         limit: 5,
         cta_label: "Shop the collection",
         cta_url: "/product",
       },
+      false,
     ),
     homepageRow(
       "60000000-0000-4000-8000-000000000010",
@@ -275,7 +315,7 @@ export function buildHomepageSections() {
       "Kawaii Customer Voice",
       "A published review from the community",
       null,
-      9,
+      11,
       {
         eyebrow: "Community snapshot",
         limit: 12,
@@ -289,7 +329,7 @@ export function buildHomepageSections() {
       "Kawaii's Featured Collection",
       "Authentic Japanese beauty for everyday care",
       null,
-      10,
+      12,
       {
         promotion_id: TEMPLATE_PROMOTION_ID,
         cta_label: "Discover featured products",
@@ -302,7 +342,7 @@ export function buildHomepageSections() {
       "Kawaii, Dhaka",
       "Japanese beauty for Bangladesh",
       "<p>Discover authentic Japanese cosmetics through Kawaii, a Dhaka-based Facebook page focused on everyday skincare. Its public page snapshot records 88,594 likes and 143 people talking about the page.</p>",
-      11,
+      13,
       {
         image_path: STORY_EDITORIAL_PATH,
         image_bucket: "branding",
@@ -1007,6 +1047,149 @@ async function uploadStoryAsset(supabase, path, sourcePath) {
   await uploadBrandingAsset(supabase, path, content, "image/webp");
 }
 
+const KAWAII_PRODUCT_SECTION_TYPES = [
+  "deals",
+  "new_arrivals",
+  "featured",
+  "featured_v2",
+];
+
+function kawaiiProductSections(anchor = 2) {
+  return buildHomepageSections()
+    .filter((row) => KAWAII_PRODUCT_SECTION_TYPES.includes(row.type))
+    .map((row, index) => ({ ...row, sort: anchor + index }));
+}
+
+export function buildProductSectionStateSql() {
+  const types = KAWAII_PRODUCT_SECTION_TYPES.map(sqlLiteral).join(", ");
+  return `
+select
+  (select client_id from provisioning.store_identity where singleton = true) as client_id,
+  coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'id', id::text, 'type', type, 'title', title, 'subtitle', subtitle,
+      'body', body, 'sort', sort, 'active', active, 'config', config
+    ) order by sort, id)
+    from public.homepage_sections
+    where type in (${types})
+  ), '[]'::jsonb) as product_rows,
+  coalesce((
+    select count(*)::int
+    from public.homepage_sections section
+    cross join public.homepage_sections anchor
+    where anchor.type = 'featured'
+      and section.type not in (${types})
+      and section.sort <= anchor.sort
+  ), 2) as product_anchor,
+  (select count(*)::int from public.products where status = 'active') as active_product_count,
+  (select count(*)::int from public.products where status = 'active' and original_price > 0 and current_price < original_price) as deal_count,
+  (select count(*)::int
+   from public.products product
+   where product.status = 'active'
+     and product.original_price > 0
+     and product.current_price < product.original_price
+     and exists (
+       select 1
+       from public.product_variants variant
+       where variant.product_id = product.id and variant.stock_quantity > 0
+     )) as in_stock_deal_count;
+`;
+}
+
+export function buildProductSectionsApplySql() {
+  const rows = kawaiiProductSections();
+  const types = KAWAII_PRODUCT_SECTION_TYPES.map(sqlLiteral).join(", ");
+  const expected = sqlLiteral(
+    JSON.stringify(
+      withoutTimestamps(rows).map(({ sort: _sort, ...row }) => row),
+    ),
+  );
+  return `
+begin;
+select pg_advisory_xact_lock(hashtext('kawaii-home-product-sections-v1'));
+lock table provisioning.store_identity in share mode;
+lock table public.homepage_sections in share row exclusive mode;
+lock table public.site_settings in share row exclusive mode;
+do $$
+begin
+  if (select client_id from provisioning.store_identity where singleton = true) is distinct from ${sqlLiteral(KAWAII_CLIENT_ID)} then
+    raise exception 'Supabase store identity does not match Kawaii';
+  end if;
+end;
+$$;
+insert into public.homepage_sections (id, type, title, subtitle, body, sort, active, config)
+values
+${homepageValues(rows)}
+on conflict (id) do update set
+  type = excluded.type,
+  title = excluded.title,
+  subtitle = excluded.subtitle,
+  body = excluded.body,
+  active = excluded.active,
+  config = excluded.config;
+with anchor as (
+  select sort
+  from public.homepage_sections
+  where type = 'featured'
+), ranked as (
+  select
+    section.id,
+    row_number() over (
+      order by
+        case when section.type in (${types}) then anchor.sort else section.sort end,
+        case section.type
+          when 'deals' then 0
+          when 'new_arrivals' then 1
+          when 'featured' then 2
+          when 'featured_v2' then 3
+          else -1
+        end,
+        section.id
+    )::int - 1 as sort
+  from public.homepage_sections section
+  cross join anchor
+)
+update public.homepage_sections section
+set sort = ranked.sort
+from ranked
+where section.id = ranked.id;
+update public.site_settings
+set socials = jsonb_set(
+  coalesce(socials, '{}'::jsonb),
+  '{_cms}',
+  (case
+    when jsonb_typeof(socials -> '_cms') = 'object' then socials -> '_cms'
+    else '{}'::jsonb
+  end) || jsonb_build_object(
+    'homepage_sections', coalesce((
+      select jsonb_agg(to_jsonb(section) order by section.sort, section.id)
+      from public.homepage_sections section
+    ), '[]'::jsonb)
+  ),
+  true
+)
+where id = 1;
+do $$
+begin
+  if coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'id', id::text, 'type', type, 'title', title, 'subtitle', subtitle,
+      'body', body, 'active', active, 'config', config
+    ) order by sort, id)
+    from public.homepage_sections
+    where type in (${types})
+  ), '[]'::jsonb) <> ${expected}::jsonb then
+    raise exception 'Kawaii product section assertion failed';
+  end if;
+  if (select array_agg(type order by sort, id) from public.homepage_sections where type in (${types})) <> array['deals', 'new_arrivals', 'featured', 'featured_v2'] then
+    raise exception 'Kawaii product section order assertion failed';
+  end if;
+end;
+$$;
+commit;
+`;
+}
+
 function assertVerified(row, desired, checksum) {
   if (row?.client_id !== KAWAII_CLIENT_ID) {
     throw new Error("Supabase store identity does not match Kawaii");
@@ -1046,6 +1229,41 @@ export async function main(argv = process.argv.slice(2)) {
       body: { query, read_only: readOnly },
       expected: [201],
     });
+  if (args["product-sections-only"] === true) {
+    let state = responseRows(
+      await runSql(buildProductSectionStateSql(), true),
+    )[0];
+    if (state?.client_id !== KAWAII_CLIENT_ID) {
+      throw new Error("Supabase store identity does not match Kawaii");
+    }
+    const anchor = Number(state?.product_anchor ?? 2);
+    const desiredRows = withoutTimestamps(kawaiiProductSections(anchor));
+    const currentRows = parseJson(state?.product_rows, []);
+    const changed = !equal(currentRows, desiredRows);
+    if (apply && changed) {
+      await runSql(buildProductSectionsApplySql());
+      state = responseRows(
+        await runSql(buildProductSectionStateSql(), true),
+      )[0];
+      if (!equal(parseJson(state?.product_rows, []), desiredRows)) {
+        throw new Error("Kawaii product section verification failed");
+      }
+    }
+    const result = {
+      apply,
+      changed,
+      current: currentRows,
+      desired: desiredRows,
+      catalog: {
+        activeProducts: Number(state?.active_product_count ?? 0),
+        deals: Number(state?.deal_count ?? 0),
+        inStockDeals: Number(state?.in_stock_deal_count ?? 0),
+      },
+      verified: apply ? equal(parseJson(state?.product_rows, []), desiredRows) : null,
+    };
+    console.log(JSON.stringify(result, null, 2));
+    return result;
+  }
   const desired = buildDesiredState();
   const checksum = desiredChecksum(desired);
   let current = responseRows(await runSql(buildStateSql(), true))[0];

@@ -6,10 +6,16 @@ import {
   type HomepageSectionV1Type,
 } from "../../type/db";
 
+export type HomepageProductSelection =
+  | "featured"
+  | "deals"
+  | "new-arrivals";
+
 export interface HomepageSectionMetadata {
   family: HomepageSectionV1Type;
   version: 1 | 2;
   displayName: string;
+  productSelection?: HomepageProductSelection;
 }
 
 export const HOMEPAGE_SECTION_METADATA: Record<
@@ -22,10 +28,23 @@ export const HOMEPAGE_SECTION_METADATA: Record<
     version: 1,
     displayName: "Categories - Mosaic",
   },
+  deals: {
+    family: "featured",
+    version: 1,
+    displayName: "Products - Deals",
+    productSelection: "deals",
+  },
+  new_arrivals: {
+    family: "featured",
+    version: 1,
+    displayName: "Products - New Arrivals",
+    productSelection: "new-arrivals",
+  },
   featured: {
     family: "featured",
     version: 1,
     displayName: "Products - Grid",
+    productSelection: "featured",
   },
   reviews: {
     family: "reviews",
@@ -48,6 +67,7 @@ export const HOMEPAGE_SECTION_METADATA: Record<
     family: "featured",
     version: 2,
     displayName: "Products - Runway",
+    productSelection: "featured",
   },
   reviews_v2: {
     family: "reviews",

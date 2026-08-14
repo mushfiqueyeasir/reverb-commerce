@@ -320,13 +320,13 @@ test("renders the complete store seed without psql directives", () => {
   assert.ok(tableHomepage);
   assert.equal(
     [...jsonHomepage.matchAll(/jsonb_build_object\('id', '60000000/g)].length,
-    12,
+    14,
   );
   assert.equal(
     [...tableHomepage.matchAll(/^  \('60000000-0000-4000-8000-/gm)].length,
-    12,
+    14,
   );
-  for (const type of v2Types) {
+  for (const type of [...v2Types, "deals", "new_arrivals"]) {
     assert.match(
       jsonHomepage,
       new RegExp(`'type', '${type}'[^\\n]*'active', false`),
@@ -384,6 +384,33 @@ test("defines an idempotent disabled homepage V2 migration", () => {
   assert.equal(
     [...migration.matchAll(/'60000000-0000-4000-8000-/g)].length,
     12,
+  );
+});
+
+test("defines filtered homepage product section types", () => {
+  const migration = readFileSync(
+    join(
+      import.meta.dirname,
+      "..",
+      "supabase",
+      "migrations",
+      "0032_filtered_homepage_product_sections.sql",
+    ),
+    "utf8",
+  );
+
+  for (const type of ["deals", "new_arrivals"]) {
+    assert.equal(
+      [...migration.matchAll(new RegExp(`'${type}'`, "g"))].length,
+      2,
+    );
+  }
+  assert.match(migration, /where existing\.type = section_defaults\.type/);
+  assert.match(migration, /sort_base\.max_sort \+ ordered_defaults\.missing_position/);
+  assert.match(migration, /\n  false,\n  ordered_defaults\.config/);
+  assert.equal(
+    [...migration.matchAll(/'60000000-0000-4000-8000-/g)].length,
+    2,
   );
 });
 

@@ -314,11 +314,18 @@ export type HomepageSectionV2Type =
   | "promo_v2"
   | "richtext_v2";
 
-export type HomepageSectionType = HomepageSectionV1Type | HomepageSectionV2Type;
+export type HomepageProductSectionType = "deals" | "new_arrivals";
+
+export type HomepageSectionType =
+  | HomepageSectionV1Type
+  | HomepageSectionV2Type
+  | HomepageProductSectionType;
 
 export const HOMEPAGE_SECTION_TYPES: HomepageSectionType[] = [
   "banner",
   "categories",
+  "deals",
+  "new_arrivals",
   "featured",
   "reviews",
   "promo",
@@ -524,6 +531,38 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     sort: 11,
     active: false,
     config: { layout: "feature", image_bucket: "branding", cards: [] },
+    created_at: new Date(0).toISOString(),
+    updated_at: new Date(0).toISOString(),
+  },
+  {
+    id: "60000000-0000-4000-8000-000000000013",
+    type: "deals",
+    title: "Today's Best Deals",
+    subtitle: "Save on selected products",
+    body: null,
+    sort: 12,
+    active: false,
+    config: {
+      limit: 4,
+      cta_label: "View all products",
+      cta_url: "/product",
+    },
+    created_at: new Date(0).toISOString(),
+    updated_at: new Date(0).toISOString(),
+  },
+  {
+    id: "60000000-0000-4000-8000-000000000014",
+    type: "new_arrivals",
+    title: "New Arrival Products",
+    subtitle: "Discover the latest additions",
+    body: null,
+    sort: 13,
+    active: false,
+    config: {
+      limit: 4,
+      cta_label: "View all products",
+      cta_url: "/product",
+    },
     created_at: new Date(0).toISOString(),
     updated_at: new Date(0).toISOString(),
   },

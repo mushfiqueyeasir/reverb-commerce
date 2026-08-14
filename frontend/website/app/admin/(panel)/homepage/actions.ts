@@ -6,6 +6,7 @@ import { requireAdminSession, canWrite } from "@/lib/admin/auth";
 import { writeAuditLog } from "@/lib/admin/auditLog";
 import type { HomepageSectionRow, HomepageSectionType } from "@/type/db";
 import {
+  getHomepageSectionMetadata,
   normalizeHomepageSections,
   normalizeHomepageSectionType,
 } from "@/lib/cms/homepageSections";
@@ -116,8 +117,9 @@ export async function saveSection(
     ...(current.config ?? {}),
     ...(input.config ?? {}),
   };
-  if (current.type === "featured" || current.type === "featured_v2") {
-    const maximum = current.type === "featured_v2" ? 5 : 4;
+  const metadata = getHomepageSectionMetadata(current.type);
+  if (metadata?.family === "featured") {
+    const maximum = metadata.version === 2 ? 5 : 4;
     const requestedLimit = Number(config.limit);
     config.limit = Number.isFinite(requestedLimit)
       ? Math.min(maximum, Math.max(1, Math.floor(requestedLimit)))

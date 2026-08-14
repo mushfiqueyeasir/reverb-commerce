@@ -17,6 +17,7 @@ interface RawProduct {
   slug: string;
   original_price: number;
   current_price: number;
+  created_at: string;
   description: { html?: string } | null;
   sizing_mode?: "none" | "required";
   size_chart?: unknown;
@@ -43,14 +44,14 @@ interface RawProduct {
 }
 
 const PRODUCT_SELECT = `
-  id, title, slug, original_price, current_price, description, sizing_mode, size_chart,
+  id, title, slug, original_price, current_price, created_at, description, sizing_mode, size_chart,
   product_images ( path, alt, is_main, sort ),
   product_variants ( id, size, color, stock_quantity ),
   product_categories ( categories ( id, name, slug, description ) )
 `;
 
 const PRODUCT_SELECT_LEGACY = `
-  id, title, slug, original_price, current_price, description,
+  id, title, slug, original_price, current_price, created_at, description,
   product_images ( path, alt, is_main, sort ),
   product_variants ( id, size, color, stock_quantity ),
   product_categories ( categories ( id, name, slug, description ) )
@@ -105,6 +106,7 @@ function mapProduct(raw: RawProduct): Product {
         ? resolveSizeChart(raw.size_chart, raw.description)
         : [],
     stock: mapStock(raw.product_variants),
+    createdAt: raw.created_at,
   };
 }
 
@@ -312,5 +314,6 @@ export function transformProduct(product: Product): TransformedProduct {
     stock: product.stock,
     sizeChart: product.sizeChart ?? [],
     categories: product.categories,
+    createdAt: product.createdAt,
   };
 }

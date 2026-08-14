@@ -212,6 +212,7 @@ export default async function HomePage() {
           allTransformed,
           configLimit(cfg, featuredMaximum, featuredMaximum),
           featuredMaximum,
+          metadata.productSelection,
         );
         if (featured.length === 0) return null;
         const props = {

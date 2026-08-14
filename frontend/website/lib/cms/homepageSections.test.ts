@@ -21,7 +21,7 @@ function legacySections(): HomepageSectionRow[] {
 }
 
 describe("homepage section normalization", () => {
-  it("preserves six-row stores and appends one disabled row for every V2 type", () => {
+  it("preserves six-row stores and appends every missing disabled section", () => {
     const existing = legacySections();
     existing[1] = {
       ...existing[1],
@@ -33,7 +33,7 @@ describe("homepage section normalization", () => {
 
     const normalized = normalizeHomepageSections(existing);
 
-    expect(normalized).toHaveLength(12);
+    expect(normalized).toHaveLength(14);
     expect(normalized.find((row) => row.type === "categories")).toEqual(
       existing[1],
     );
@@ -44,9 +44,11 @@ describe("homepage section normalization", () => {
       "reviews_v2",
       "promo_v2",
       "richtext_v2",
+      "deals",
+      "new_arrivals",
     ]);
     expect(normalized.slice(6).every((row) => !row.active)).toBe(true);
-    expect(new Set(normalized.map((row) => row.type)).size).toBe(12);
+    expect(new Set(normalized.map((row) => row.type)).size).toBe(14);
     expect(normalized[6].sort).toBe(21);
   });
 
@@ -97,7 +99,7 @@ describe("homepage section normalization", () => {
   });
 
   it("exposes family, version, and display metadata for every fixed type", () => {
-    expect(HOMEPAGE_SECTION_TYPES).toHaveLength(12);
+    expect(HOMEPAGE_SECTION_TYPES).toHaveLength(14);
     expect(
       HOMEPAGE_SECTION_TYPES.every(
         (type) => getHomepageSectionMetadata(type) !== null,
@@ -108,6 +110,13 @@ describe("homepage section normalization", () => {
     expect(getHomepageSectionDisplayName("featured_v2")).toBe(
       "Products - Runway",
     );
+    expect(getHomepageSectionMetadata("deals")?.productSelection).toBe(
+      "deals",
+    );
+    expect(getHomepageSectionMetadata("new_arrivals")?.productSelection).toBe(
+      "new-arrivals",
+    );
+    expect(getHomepageSectionFamily("deals")).toBe("featured");
     expect(getHomepageSectionMetadata("unknown")).toBeNull();
   });
 });

@@ -15,12 +15,15 @@ import {
   buildBanners,
   buildDesiredState,
   buildHomepageSections,
+  buildProductSectionsApplySql,
   desiredChecksum,
 } from "./populate-kawaii-home-about.mjs";
 
 const CANONICAL_HOMEPAGE_IDS = new Map([
   ["banner", "60000000-0000-4000-8000-000000000001"],
   ["categories", "60000000-0000-4000-8000-000000000002"],
+  ["deals", "60000000-0000-4000-8000-000000000013"],
+  ["new_arrivals", "60000000-0000-4000-8000-000000000014"],
   ["featured", "60000000-0000-4000-8000-000000000003"],
   ["reviews", "60000000-0000-4000-8000-000000000005"],
   ["promo", "60000000-0000-4000-8000-000000000004"],
@@ -33,18 +36,29 @@ const CANONICAL_HOMEPAGE_IDS = new Map([
   ["richtext_v2", "60000000-0000-4000-8000-000000000012"],
 ]);
 
-test("buildHomepageSections returns all canonical active Kawaii sections", () => {
+test("buildHomepageSections returns the canonical Kawaii sections", () => {
   const rows = buildHomepageSections();
-  assert.equal(rows.length, 12);
+  assert.equal(rows.length, 14);
   assert.deepEqual(new Set(rows.map((row) => row.type)), new Set(HOMEPAGE_TYPES));
-  assert.equal(new Set(rows.map((row) => row.id)).size, 12);
-  assert.ok(rows.every((row) => row.active));
+  assert.equal(new Set(rows.map((row) => row.id)).size, 14);
+  assert.equal(rows.filter((row) => row.active).length, 8);
+  assert.ok(
+    rows.filter((row) => row.type.endsWith("_v2")).every((row) => !row.active),
+  );
   for (const row of rows) assert.equal(row.id, CANONICAL_HOMEPAGE_IDS.get(row.type));
   assert.deepEqual(
     rows.find((row) => row.type === "categories").config.category_ids,
     CATEGORY_IDS,
   );
-  assert.equal(rows.find((row) => row.type === "featured").config.limit, 4);
+  const productSections = rows.filter((row) =>
+    ["deals", "new_arrivals", "featured", "featured_v2"].includes(row.type),
+  );
+  assert.equal(productSections.filter((row) => row.active).length, 3);
+  assert.deepEqual(
+    productSections.filter((row) => row.active).map((row) => row.title),
+    ["Today's Best Deals", "New Arrival Products", "Featured Products"],
+  );
+  assert.ok(productSections.filter((row) => row.active).every((row) => row.config.limit === 4));
   assert.equal(rows.find((row) => row.type === "featured_v2").config.limit, 5);
   assert.equal(rows.find((row) => row.type === "reviews").config.limit, 12);
   assert.equal(rows.find((row) => row.type === "reviews_v2").config.limit, 12);
@@ -56,12 +70,15 @@ test("buildHomepageSections returns all canonical active Kawaii sections", () =>
   }
 });
 
-test("buildAboutSections returns 12 active Kawaii-specific rows without prohibited claims", () => {
+test("buildAboutSections keeps the Kawaii V1 sections active", () => {
   const rows = buildAboutSections();
   assert.equal(rows.length, 12);
   assert.equal(new Set(rows.map((row) => row.id)).size, 12);
   assert.deepEqual(new Set(rows.map((row) => row.type)), new Set(ABOUT_TYPES));
-  assert.ok(rows.every((row) => row.active));
+  assert.equal(rows.filter((row) => row.active).length, 6);
+  assert.ok(
+    rows.filter((row) => row.type.endsWith("_v2")).every((row) => !row.active),
+  );
   const copy = JSON.stringify(rows);
   assert.match(copy, /Kawaii/);
   assert.match(copy, /Dhaka/);
@@ -148,6 +165,23 @@ test("apply SQL is identity-guarded, locked, scoped, and targeted", () => {
   assert.doesNotMatch(sql, /content_pages|legal|terms|privacy|refund|VE[- ]?Gear/i);
   assert.doesNotMatch(sql, /set\s+store_name|set\s+socials\s*=\s*'\{/i);
   assert.doesNotMatch(sql, /delete from public\.promotions/i);
+});
+
+test("product section SQL is identity-guarded and preserves unrelated content", () => {
+  const sql = buildProductSectionsApplySql();
+  assert.match(sql, /pg_advisory_xact_lock/);
+  assert.match(sql, /provisioning\.store_identity/);
+  assert.match(sql, /client_id[\s\S]*'kawaii'/);
+  assert.match(sql, /where type in \('deals', 'new_arrivals', 'featured', 'featured_v2'\)/);
+  assert.match(sql, /Today''s Best Deals/);
+  assert.match(sql, /New Arrival Products/);
+  assert.match(sql, /Featured Products/);
+  assert.match(sql, /row_number\(\) over/);
+  assert.doesNotMatch(sql, /set sort = positions\.sort/);
+  assert.match(sql, /jsonb_agg\(to_jsonb\(section\)/);
+  assert.doesNotMatch(sql, /delete from public\.banners/);
+  assert.doesNotMatch(sql, /delete from public\.promotions/);
+  assert.doesNotMatch(sql, /about_sections/);
 });
 
 test("replace SQL requires an existing changed checksum", () => {

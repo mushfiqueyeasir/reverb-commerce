@@ -65,8 +65,10 @@ import { buildStoragePublicUrl } from "@/utility/storageUrl";
 import {
   getHomepageSectionDisplayName,
   getHomepageSectionFamily,
+  getHomepageSectionMetadata,
   getHomepageSectionVersion,
 } from "@/lib/cms/homepageSections";
+import { selectHomepageProducts } from "@/lib/products/homepageFeatured";
 import { cn } from "@/lib/utils";
 import { toggleSection, reorderSections } from "./actions";
 
@@ -189,6 +191,7 @@ const previewProducts: TransformedProduct[] = [
   ],
   sizeChart: [],
   categories: [],
+  createdAt: new Date(Date.UTC(2026, 0, index + 1)).toISOString(),
 }));
 
 const previewReviews: TransformedReview[] = [
@@ -331,9 +334,15 @@ function CategoriesV2Preview({ section }: { section: HomepageSectionRow }) {
 
 function FeaturedPreview({ section }: { section: HomepageSectionRow }) {
   const limit = Math.min(4, configLimit(section.config) ?? 4);
+  const products = selectHomepageProducts(
+    previewProducts,
+    limit,
+    4,
+    getHomepageSectionMetadata(section.type)?.productSelection,
+  );
   return (
     <FeaturedProducts
-      products={previewProducts.slice(0, limit)}
+      products={products}
       title={section.title}
       subtitle={section.subtitle}
       eyebrow={configString(section.config, "eyebrow")}
@@ -347,9 +356,15 @@ function FeaturedPreview({ section }: { section: HomepageSectionRow }) {
 
 function FeaturedV2Preview({ section }: { section: HomepageSectionRow }) {
   const limit = Math.min(5, configLimit(section.config) ?? 5);
+  const products = selectHomepageProducts(
+    previewProducts,
+    limit,
+    5,
+    getHomepageSectionMetadata(section.type)?.productSelection,
+  );
   return (
     <FeaturedProductsV2
-      products={previewProducts.slice(0, limit)}
+      products={products}
       title={section.title}
       subtitle={section.subtitle}
       eyebrow={configString(section.config, "eyebrow")}
