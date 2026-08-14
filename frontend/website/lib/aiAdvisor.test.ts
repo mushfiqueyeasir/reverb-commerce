@@ -31,6 +31,7 @@ describe("AI advisor sales prompt", () => {
     expect(prompt).toContain("knowledgeable store expert for Signal Store");
     expect(prompt).toContain("at most 2 more clarification questions");
     expect(prompt).toContain("entire website");
+    expect(prompt).toContain("Interpret Romanized Bangla and Banglish");
     expect(prompt).toContain("Never create fake urgency");
     expect(prompt).toContain('"Everyday Tee"');
     expect(prompt).toContain('"/refund-policy"');
