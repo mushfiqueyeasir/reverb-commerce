@@ -15,6 +15,6 @@
   "supabase": {
     "projectRef": "dpgzrukkmoyvrzubaenx",
     "url": "https://dpgzrukkmoyvrzubaenx.supabase.co",
-    "schemaVersion": "0030"
+    "schemaVersion": "0032"
   }
 }
