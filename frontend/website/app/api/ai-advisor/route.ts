@@ -560,7 +560,7 @@ export async function POST(request: NextRequest) {
           messages: [{ role: "system", content: systemPrompt }, ...messages],
           temperature: 0.55,
           top_p: 0.9,
-          max_tokens: 350,
+          max_tokens: 280,
           provider: {
             require_parameters: true,
             data_collection: "deny",
@@ -586,7 +586,10 @@ export async function POST(request: NextRequest) {
           model: config.openRouter.model,
         })}\n`,
       );
-      openRouterResponse = await requestCompletion("openrouter/free", 45_000);
+      openRouterResponse = await requestCompletion(
+        "liquid/lfm-2.5-2.6b:free",
+        30_000,
+      );
     }
 
     if (!openRouterResponse.ok) {
@@ -603,13 +606,7 @@ export async function POST(request: NextRequest) {
           message: providerError?.error?.message ?? null,
         })}\n`,
       );
-      return NextResponse.json(
-        {
-          error:
-            "I am having trouble reaching the collection right now. Give me a moment, then send that once more.",
-        },
-        { status: 503 },
-      );
+      return NextResponse.json(RESPONSE_RECOVERY);
     }
 
     const completion = (await openRouterResponse.json()) as {
