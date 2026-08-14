@@ -58,7 +58,11 @@ test("buildHomepageSections returns the canonical Kawaii sections", () => {
     productSections.filter((row) => row.active).map((row) => row.title),
     ["Today's Best Deals", "New Arrival Products", "Featured Products"],
   );
-  assert.ok(productSections.filter((row) => row.active).every((row) => row.config.limit === 4));
+  assert.ok(
+    productSections
+      .filter((row) => row.active)
+      .every((row) => row.config.limit === 5),
+  );
   assert.equal(rows.find((row) => row.type === "featured_v2").config.limit, 5);
   assert.equal(rows.find((row) => row.type === "reviews").config.limit, 12);
   assert.equal(rows.find((row) => row.type === "reviews_v2").config.limit, 12);

@@ -43,7 +43,7 @@ describe("selectHomepageProducts", () => {
     ]);
   });
 
-  it("caps Grid at four and Runway at five", () => {
+  it("caps product grids at five", () => {
     const products = [
       product("available-1", 1),
       product("available-2", 1),
@@ -53,7 +53,13 @@ describe("selectHomepageProducts", () => {
       product("available-6", 1),
     ];
     expect(selectHomepageProducts(products, 20).map((item) => item.id)).toEqual(
-      ["available-1", "available-2", "available-3", "available-4"],
+      [
+        "available-1",
+        "available-2",
+        "available-3",
+        "available-4",
+        "available-5",
+      ],
     );
     expect(
       selectHomepageProducts(products, 20, 5).map((item) => item.id),

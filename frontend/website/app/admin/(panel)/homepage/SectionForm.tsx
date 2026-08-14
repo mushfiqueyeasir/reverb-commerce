@@ -69,7 +69,7 @@ const FAMILY_INFO: Record<HomepageSectionV1Type, string> = {
 
 const MIN_LIMIT = 1;
 const MAX_LIMIT = 24;
-const MAX_FEATURED_LIMIT = 4;
+const MAX_FEATURED_LIMIT = 5;
 const MAX_MOSAIC_CATEGORIES = 4;
 
 function clampLimit(value: number, maximum = MAX_LIMIT): number {
@@ -208,7 +208,7 @@ export function SectionForm({
       : section.type === "featured_v2"
         ? 5
         : family === "featured"
-          ? 4
+          ? 5
           : 8;
   const [tab, setTab] = useState<"content" | "slides">(
     initialTab === "slides" ? "slides" : "content",

@@ -170,6 +170,7 @@ const previewProducts: TransformedProduct[] = [
   "Everyday staple",
   "Premium essential",
   "Limited edition",
+  "Collection favorite",
 ].map((title, index) => ({
   id: `preview-product-${index}`,
   title,
@@ -333,11 +334,11 @@ function CategoriesV2Preview({ section }: { section: HomepageSectionRow }) {
 }
 
 function FeaturedPreview({ section }: { section: HomepageSectionRow }) {
-  const limit = Math.min(4, configLimit(section.config) ?? 4);
+  const limit = Math.min(5, configLimit(section.config) ?? 5);
   const products = selectHomepageProducts(
     previewProducts,
     limit,
-    4,
+    5,
     getHomepageSectionMetadata(section.type)?.productSelection,
   );
   return (

@@ -415,7 +415,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     sort: 2,
     active: true,
     config: {
-      limit: 4,
+      limit: 5,
       cta_label: "View all products",
       cta_url: "/product",
     },
@@ -543,7 +543,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     sort: 12,
     active: false,
     config: {
-      limit: 4,
+      limit: 5,
       cta_label: "View all products",
       cta_url: "/product",
     },
@@ -559,7 +559,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     sort: 13,
     active: false,
     config: {
-      limit: 4,
+      limit: 5,
       cta_label: "View all products",
       cta_url: "/product",
     },

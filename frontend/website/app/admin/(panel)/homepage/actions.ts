@@ -119,7 +119,7 @@ export async function saveSection(
   };
   const metadata = getHomepageSectionMetadata(current.type);
   if (metadata?.family === "featured") {
-    const maximum = metadata.version === 2 ? 5 : 4;
+    const maximum = 5;
     const requestedLimit = Number(config.limit);
     config.limit = Number.isFinite(requestedLimit)
       ? Math.min(maximum, Math.max(1, Math.floor(requestedLimit)))

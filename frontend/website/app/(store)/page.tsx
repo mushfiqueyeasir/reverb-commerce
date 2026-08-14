@@ -207,7 +207,7 @@ export default async function HomePage() {
         );
 
       case "featured": {
-        const featuredMaximum = isV2 ? 5 : 4;
+        const featuredMaximum = 5;
         const featured = selectHomepageProducts(
           allTransformed,
           configLimit(cfg, featuredMaximum, featuredMaximum),

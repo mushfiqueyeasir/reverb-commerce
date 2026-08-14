@@ -114,7 +114,7 @@ with seed as (
       'homepage_sections', jsonb_build_array(
         jsonb_build_object('id', '60000000-0000-4000-8000-000000000001', 'type', 'banner', 'title', null, 'subtitle', null, 'body', null, 'sort', 10, 'active', true, 'config', '{}'::jsonb),
         jsonb_build_object('id', '60000000-0000-4000-8000-000000000002', 'type', 'categories', 'title', 'Shop by category', 'subtitle', 'Start with these sample collections', 'body', null, 'sort', 20, 'active', true, 'config', jsonb_build_object('cta_label', 'View all products', 'cta_url', '/product')),
-        jsonb_build_object('id', '60000000-0000-4000-8000-000000000003', 'type', 'featured', 'title', 'Featured products', 'subtitle', 'Sample products ready to customize', 'body', null, 'sort', 30, 'active', true, 'config', jsonb_build_object('limit', 4, 'cta_label', 'View all products', 'cta_url', '/product')),
+        jsonb_build_object('id', '60000000-0000-4000-8000-000000000003', 'type', 'featured', 'title', 'Featured products', 'subtitle', 'Sample products ready to customize', 'body', null, 'sort', 30, 'active', true, 'config', jsonb_build_object('limit', 5, 'cta_label', 'View all products', 'cta_url', '/product')),
         jsonb_build_object('id', '60000000-0000-4000-8000-000000000004', 'type', 'promo', 'title', 'New-store offer', 'subtitle', 'Replace this placeholder promotion before launch', 'body', null, 'sort', 40, 'active', true, 'config', jsonb_build_object('promotion_id', '70000000-0000-4000-8000-000000000001')),
         jsonb_build_object('id', '60000000-0000-4000-8000-000000000005', 'type', 'reviews', 'title', 'Sample review', 'subtitle', 'Replace with verified customer feedback', 'body', null, 'sort', 50, 'active', true, 'config', jsonb_build_object('limit', 12)),
         jsonb_build_object('id', '60000000-0000-4000-8000-000000000006', 'type', 'richtext', 'title', 'Built for everyday use', 'subtitle', null, 'body', '<p>This is placeholder homepage content. Tell customers what makes the store distinctive.</p>', 'sort', 60, 'active', true, 'config', jsonb_build_object('layout', 'simple', 'image_bucket', 'branding', 'cards', '[]'::jsonb)),
@@ -124,8 +124,8 @@ with seed as (
         jsonb_build_object('id', '60000000-0000-4000-8000-000000000010', 'type', 'reviews_v2', 'title', 'Sample review', 'subtitle', 'Replace with verified customer feedback', 'body', null, 'sort', 100, 'active', false, 'config', '{}'::jsonb),
         jsonb_build_object('id', '60000000-0000-4000-8000-000000000011', 'type', 'promo_v2', 'title', 'New-store offer', 'subtitle', 'Replace this placeholder promotion before launch', 'body', null, 'sort', 110, 'active', false, 'config', '{}'::jsonb),
         jsonb_build_object('id', '60000000-0000-4000-8000-000000000012', 'type', 'richtext_v2', 'title', 'Built for everyday use', 'subtitle', null, 'body', '<p>This is placeholder homepage content. Tell customers what makes the store distinctive.</p>', 'sort', 120, 'active', false, 'config', jsonb_build_object('layout', 'feature', 'image_bucket', 'branding', 'cards', '[]'::jsonb)),
-        jsonb_build_object('id', '60000000-0000-4000-8000-000000000013', 'type', 'deals', 'title', 'Today''s Best Deals', 'subtitle', 'Save on selected products', 'body', null, 'sort', 130, 'active', false, 'config', jsonb_build_object('limit', 4, 'cta_label', 'View all products', 'cta_url', '/product')),
-        jsonb_build_object('id', '60000000-0000-4000-8000-000000000014', 'type', 'new_arrivals', 'title', 'New Arrival Products', 'subtitle', 'Discover the latest additions', 'body', null, 'sort', 140, 'active', false, 'config', jsonb_build_object('limit', 4, 'cta_label', 'View all products', 'cta_url', '/product'))
+        jsonb_build_object('id', '60000000-0000-4000-8000-000000000013', 'type', 'deals', 'title', 'Today''s Best Deals', 'subtitle', 'Save on selected products', 'body', null, 'sort', 130, 'active', false, 'config', jsonb_build_object('limit', 5, 'cta_label', 'View all products', 'cta_url', '/product')),
+        jsonb_build_object('id', '60000000-0000-4000-8000-000000000014', 'type', 'new_arrivals', 'title', 'New Arrival Products', 'subtitle', 'Discover the latest additions', 'body', null, 'sort', 140, 'active', false, 'config', jsonb_build_object('limit', 5, 'cta_label', 'View all products', 'cta_url', '/product'))
       ),
       'about_sections', jsonb_build_array(
         jsonb_build_object('id', 'about-hero', 'type', 'hero', 'title', 'Hero', 'sort', 0, 'active', true, 'config', jsonb_build_object('image_path', 'store-template/v1/home/hero-desktop.png', 'image_bucket', 'banner')),
@@ -387,7 +387,7 @@ select section.id, section.type, section.title, section.subtitle,
 from (values
   ('60000000-0000-4000-8000-000000000001'::uuid, 'banner', null, null, null, 10, true, '{}'::jsonb),
   ('60000000-0000-4000-8000-000000000002'::uuid, 'categories', 'Shop by category', 'Start with these sample collections', null, 20, true, '{"cta_label":"View all products","cta_url":"/product"}'::jsonb),
-  ('60000000-0000-4000-8000-000000000003'::uuid, 'featured', 'Featured products', 'Sample products ready to customize', null, 30, true, '{"limit":4,"cta_label":"View all products","cta_url":"/product"}'::jsonb),
+  ('60000000-0000-4000-8000-000000000003'::uuid, 'featured', 'Featured products', 'Sample products ready to customize', null, 30, true, '{"limit":5,"cta_label":"View all products","cta_url":"/product"}'::jsonb),
   ('60000000-0000-4000-8000-000000000004'::uuid, 'promo', 'New-store offer', 'Replace this placeholder promotion before launch', null, 40, true, '{"promotion_id":"70000000-0000-4000-8000-000000000001"}'::jsonb),
   ('60000000-0000-4000-8000-000000000005'::uuid, 'reviews', 'Sample review', 'Replace with verified customer feedback', null, 50, true, '{"limit":12}'::jsonb),
   ('60000000-0000-4000-8000-000000000006'::uuid, 'richtext', 'Built for everyday use', null, '<p>This is placeholder homepage content. Tell customers what makes the store distinctive.</p>', 60, true, '{"layout":"simple","image_bucket":"branding","cards":[]}'::jsonb),
@@ -397,8 +397,8 @@ from (values
   ('60000000-0000-4000-8000-000000000010'::uuid, 'reviews_v2', 'Sample review', 'Replace with verified customer feedback', null, 100, false, '{}'::jsonb),
   ('60000000-0000-4000-8000-000000000011'::uuid, 'promo_v2', 'New-store offer', 'Replace this placeholder promotion before launch', null, 110, false, '{}'::jsonb),
   ('60000000-0000-4000-8000-000000000012'::uuid, 'richtext_v2', 'Built for everyday use', null, '<p>This is placeholder homepage content. Tell customers what makes the store distinctive.</p>', 120, false, '{"layout":"feature","image_bucket":"branding","cards":[]}'::jsonb),
-  ('60000000-0000-4000-8000-000000000013'::uuid, 'deals', 'Today''s Best Deals', 'Save on selected products', null, 130, false, '{"limit":4,"cta_label":"View all products","cta_url":"/product"}'::jsonb),
-  ('60000000-0000-4000-8000-000000000014'::uuid, 'new_arrivals', 'New Arrival Products', 'Discover the latest additions', null, 140, false, '{"limit":4,"cta_label":"View all products","cta_url":"/product"}'::jsonb)
+  ('60000000-0000-4000-8000-000000000013'::uuid, 'deals', 'Today''s Best Deals', 'Save on selected products', null, 130, false, '{"limit":5,"cta_label":"View all products","cta_url":"/product"}'::jsonb),
+  ('60000000-0000-4000-8000-000000000014'::uuid, 'new_arrivals', 'New Arrival Products', 'Discover the latest additions', null, 140, false, '{"limit":5,"cta_label":"View all products","cta_url":"/product"}'::jsonb)
 ) as section(id, type, title, subtitle, body, sort, active, config)
 cross join store_template_context context
 where context.should_seed

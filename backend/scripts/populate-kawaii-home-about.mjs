@@ -171,7 +171,7 @@ export function buildHomepageSections() {
       2,
       {
         eyebrow: "Special savings",
-        limit: 4,
+        limit: 5,
         cta_label: "View all products",
         cta_url: "/product",
       },
@@ -185,7 +185,7 @@ export function buildHomepageSections() {
       3,
       {
         eyebrow: "Just arrived",
-        limit: 4,
+        limit: 5,
         cta_label: "View all products",
         cta_url: "/product",
       },
@@ -199,7 +199,7 @@ export function buildHomepageSections() {
       4,
       {
         eyebrow: "Selected by Kawaii",
-        limit: 4,
+        limit: 5,
         cta_label: "View all products",
         cta_url: "/product",
       },

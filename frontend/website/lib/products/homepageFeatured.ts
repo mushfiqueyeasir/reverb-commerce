@@ -25,7 +25,7 @@ function createdTime(product: TransformedProduct): number {
 export function selectHomepageProducts(
   products: readonly TransformedProduct[],
   requestedLimit: number,
-  maximum = 4,
+  maximum = 5,
   selection: HomepageProductSelection = "featured",
 ): TransformedProduct[] {
   const limit = Math.min(maximum, Math.max(1, Math.floor(requestedLimit)));
