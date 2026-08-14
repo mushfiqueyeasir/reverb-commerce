@@ -38,19 +38,6 @@ export const fetchCache = "force-no-store";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const CATALOG_PAGE_SIZE = 500;
 
-const RESPONSE_RECOVERY: AiAdvisorResponse = {
-  message:
-    "Let me take another pass—I do not want to bluff and point you at the wrong item. Which should I protect first: your budget, the occasion, or the overall look?",
-  status: "clarifying",
-  suggestedReplies: [
-    "Keep it within my budget",
-    "Focus on the occasion",
-    "Get the overall look right",
-  ],
-  recommendations: [],
-  sources: [],
-};
-
 interface CatalogRow {
   id: string;
   title: string;
@@ -544,6 +531,50 @@ export async function POST(request: NextRequest) {
       websiteKnowledge: promptKnowledge,
       priorAssistantTurns,
     });
+    const fallbackRecommendations = promptCatalog
+      .slice(0, 3)
+      .flatMap((item) => {
+        const product = productsById.get(item.id);
+        if (!product) return [];
+        const details = [item.type, ...item.categories.slice(0, 2)].filter(
+          (value): value is string => Boolean(value),
+        );
+        return [
+          {
+            product,
+            reason:
+              details.length > 0
+                ? `Closest available match from ${details.join(", ")}.`
+                : "Closest available match from the live catalog.",
+          },
+        ];
+      });
+    const providerFallback: AiAdvisorResponse =
+      fallbackRecommendations.length > 0
+        ? {
+            message:
+              "The conversational response is temporarily unavailable, but these are the closest available catalog matches for your request.",
+            status: "recommendations",
+            suggestedReplies: [
+              "Show lower-priced options",
+              "Compare these products",
+              "Try another preference",
+            ],
+            recommendations: fallbackRecommendations,
+            sources: [],
+          }
+        : {
+            message:
+              "I could not find an available product matching that request. Try another preference or budget.",
+            status: "no_match",
+            suggestedReplies: [
+              "Show available products",
+              "Try another budget",
+              "Browse the collection",
+            ],
+            recommendations: [],
+            sources: [],
+          };
 
     const requestCompletion = (model: string, timeoutMs = 20_000) =>
       fetch(OPENROUTER_URL, {
@@ -578,18 +609,29 @@ export async function POST(request: NextRequest) {
         signal: AbortSignal.timeout(timeoutMs),
         cache: "no-store",
       });
-    let openRouterResponse = await requestCompletion(config.openRouter.model);
-    if (openRouterResponse.status === 402) {
+    let openRouterResponse: Response;
+    try {
+      openRouterResponse = await requestCompletion(config.openRouter.model);
+      if (openRouterResponse.status === 402) {
+        process.stderr.write(
+          `${JSON.stringify({
+            event: "OpenRouter advisor free-model fallback",
+            model: config.openRouter.model,
+          })}\n`,
+        );
+        openRouterResponse = await requestCompletion(
+          "liquid/lfm-2.5-2.6b:free",
+          30_000,
+        );
+      }
+    } catch (error) {
       process.stderr.write(
         `${JSON.stringify({
-          event: "OpenRouter advisor free-model fallback",
-          model: config.openRouter.model,
+          event: "OpenRouter advisor request failed",
+          message: error instanceof Error ? error.message : "Unknown error",
         })}\n`,
       );
-      openRouterResponse = await requestCompletion(
-        "liquid/lfm-2.5-2.6b:free",
-        30_000,
-      );
+      return NextResponse.json(providerFallback);
     }
 
     if (!openRouterResponse.ok) {
@@ -606,7 +648,7 @@ export async function POST(request: NextRequest) {
           message: providerError?.error?.message ?? null,
         })}\n`,
       );
-      return NextResponse.json(RESPONSE_RECOVERY);
+      return NextResponse.json(providerFallback);
     }
 
     const completion = (await openRouterResponse.json()) as {
@@ -616,9 +658,10 @@ export async function POST(request: NextRequest) {
       completion.choices?.[0]?.message?.content,
     );
     if (!modelResult) {
-      // eslint-disable-next-line no-console
-      console.warn("AI advisor response could not be parsed");
-      return NextResponse.json(RESPONSE_RECOVERY);
+      process.stderr.write(
+        `${JSON.stringify({ event: "AI advisor response could not be parsed" })}\n`,
+      );
+      return NextResponse.json(providerFallback);
     }
 
     const recommendations = modelResult.recommendations.flatMap((item) => {
