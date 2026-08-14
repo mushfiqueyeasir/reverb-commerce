@@ -110,9 +110,7 @@ describe("homepage section normalization", () => {
     expect(getHomepageSectionDisplayName("featured_v2")).toBe(
       "Products - Runway",
     );
-    expect(getHomepageSectionMetadata("deals")?.productSelection).toBe(
-      "deals",
-    );
+    expect(getHomepageSectionMetadata("deals")?.productSelection).toBe("deals");
     expect(getHomepageSectionMetadata("new_arrivals")?.productSelection).toBe(
       "new-arrivals",
     );

@@ -317,9 +317,7 @@ export type HomepageSectionV2Type =
 export type HomepageProductSectionType = "deals" | "new_arrivals";
 
 export type HomepageSectionType =
-  | HomepageSectionV1Type
-  | HomepageSectionV2Type
-  | HomepageProductSectionType;
+  HomepageSectionV1Type | HomepageSectionV2Type | HomepageProductSectionType;
 
 export const HOMEPAGE_SECTION_TYPES: HomepageSectionType[] = [
   "banner",

@@ -6,10 +6,7 @@ import {
   type HomepageSectionV1Type,
 } from "../../type/db";
 
-export type HomepageProductSelection =
-  | "featured"
-  | "deals"
-  | "new-arrivals";
+export type HomepageProductSelection = "featured" | "deals" | "new-arrivals";
 
 export interface HomepageSectionMetadata {
   family: HomepageSectionV1Type;

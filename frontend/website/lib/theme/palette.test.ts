@@ -33,7 +33,9 @@ describe("getPalettePresets", () => {
 
   it("keeps the global presets unchanged for other clients", () => {
     expect(getPalettePresets("https://vegear.com.bd")).toEqual(PALETTE_PRESETS);
-    expect(PALETTE_PRESETS.some((preset) => preset.id === "daylight")).toBe(true);
+    expect(PALETTE_PRESETS.some((preset) => preset.id === "daylight")).toBe(
+      true,
+    );
   });
 
   it("preserves the Kawaii palette through normalization and CSS variables", () => {

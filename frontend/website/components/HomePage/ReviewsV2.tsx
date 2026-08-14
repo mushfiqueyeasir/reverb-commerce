@@ -4,11 +4,7 @@ import { useEffect, type KeyboardEvent } from "react";
 import { useId, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  AnimatePresence,
-  motion,
-  useReducedMotion,
-} from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowUpRight, ImageIcon, Quote, Star } from "lucide-react";
 import type { TransformedReview } from "@/type/reviewType";
 import { V2Aurora, V2Grid, V2Reveal } from "./V2Motion";
@@ -256,14 +252,21 @@ export default function ReviewsV2({
                 aria-label="Select a community review"
                 className="relative overflow-hidden"
               >
-                <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-surface to-transparent sm:w-12" aria-hidden />
-                <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-surface to-transparent sm:w-12" aria-hidden />
+                <div
+                  className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-surface to-transparent sm:w-12"
+                  aria-hidden
+                />
+                <div
+                  className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-surface to-transparent sm:w-12"
+                  aria-hidden
+                />
                 <div className="flex w-max animate-marquee-reviews gap-3 pe-3 hover:[animation-play-state:paused]">
                   {[...reviews, ...reviews, ...reviews].map((review, index) => {
-                    const isSelected = (index % reviews.length) === activeIndex;
+                    const isSelected = index % reviews.length === activeIndex;
                     const image = review.image?.trim();
                     const name =
-                      review.customerName?.trim() || `Community ${(index % reviews.length) + 1}`;
+                      review.customerName?.trim() ||
+                      `Community ${(index % reviews.length) + 1}`;
                     const reviewRating = Math.min(
                       5,
                       Math.max(0, review.rating ?? 5),

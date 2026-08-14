@@ -98,9 +98,7 @@ describe("selectHomepageProducts", () => {
     ];
 
     expect(
-      selectHomepageProducts(products, 10, 10, "deals").map(
-        (item) => item.id,
-      ),
+      selectHomepageProducts(products, 10, 10, "deals").map((item) => item.id),
     ).toEqual(["forty", "twenty-five", "ten"]);
   });
 
