@@ -61,7 +61,13 @@ describe("AI advisor prompt budget", () => {
     const result = buildBudgetedAdvisorContext({
       storeName: "Signal Store",
       catalog,
-      websiteKnowledge: [],
+      websiteKnowledge: Array.from({ length: 6 }, (_, index) => ({
+        id: `document-${index}`,
+        title: `Document ${index}`,
+        href: "/",
+        sourceType: "page",
+        content: "Store information ".repeat(80),
+      })),
       priorAssistantTurns: 0,
       messages,
       tokenBudget: 3_000,

@@ -539,9 +539,10 @@ export async function POST(request: NextRequest) {
           messages: [{ role: "system", content: systemPrompt }, ...messages],
           temperature: 0.55,
           top_p: 0.9,
-          max_tokens: 700,
+          max_tokens: 280,
           provider: {
             require_parameters: true,
+            data_collection: "deny",
           },
           plugins: [{ id: "response-healing" }],
           response_format: {

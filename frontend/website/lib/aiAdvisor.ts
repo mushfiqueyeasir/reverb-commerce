@@ -227,7 +227,7 @@ LIVE CATALOG JSON:
 ${JSON.stringify(catalog)}`;
 }
 
-export const AI_ADVISOR_PROMPT_TOKEN_BUDGET = 12_000;
+export const AI_ADVISOR_PROMPT_TOKEN_BUDGET = 2_400;
 
 export function estimateAdvisorTokens(value: string): number {
   return Math.ceil(value.length / 4);
@@ -266,7 +266,7 @@ export function buildBudgetedAdvisorContext<T>({
   const fits = () =>
     estimateAdvisorTokens(buildPrompt()) + conversationTokens <= tokenBudget;
 
-  for (const document of websiteKnowledge.slice(0, 6)) {
+  for (const document of websiteKnowledge.slice(0, 2)) {
     selectedKnowledge.push(document);
     if (!fits()) selectedKnowledge.pop();
   }
@@ -276,6 +276,10 @@ export function buildBudgetedAdvisorContext<T>({
       selectedCatalog.pop();
       break;
     }
+  }
+  for (const document of websiteKnowledge.slice(2, 6)) {
+    selectedKnowledge.push(document);
+    if (!fits()) selectedKnowledge.pop();
   }
 
   const systemPrompt = buildPrompt();
