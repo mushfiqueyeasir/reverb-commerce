@@ -230,7 +230,7 @@ LIVE CATALOG JSON:
 ${JSON.stringify(catalog)}`;
 }
 
-export const AI_ADVISOR_PROMPT_TOKEN_BUDGET = 2_400;
+export const AI_ADVISOR_PROMPT_TOKEN_BUDGET = 1_800;
 
 export function estimateAdvisorTokens(value: string): number {
   return Math.ceil(value.length / 4);
