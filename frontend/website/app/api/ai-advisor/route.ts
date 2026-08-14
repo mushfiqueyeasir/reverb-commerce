@@ -20,6 +20,32 @@ export const fetchCache = "force-no-store";
 const AI_STUDIO_URL = `https://generativelanguage.googleapis.com/v1beta/models/${config.aiStudio.model}:generateContent`;
 const CATALOG_PAGE_SIZE = 500;
 const RELEVANT_PRODUCT_LIMIT = 64;
+const ADVISOR_RESPONSE_SCHEMA = {
+  type: "OBJECT",
+  properties: {
+    message: { type: "STRING" },
+    status: {
+      type: "STRING",
+      enum: ["answer", "clarifying", "recommendations", "no_match"],
+    },
+    suggestedReplies: {
+      type: "ARRAY",
+      items: { type: "STRING" },
+    },
+    recommendations: {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          productId: { type: "STRING" },
+          reason: { type: "STRING" },
+        },
+        required: ["productId", "reason"],
+      },
+    },
+  },
+  required: ["message", "status", "suggestedReplies", "recommendations"],
+} as const;
 
 interface CatalogRow {
   id: string;
@@ -162,6 +188,7 @@ export async function POST(request: NextRequest) {
         generationConfig: {
           maxOutputTokens: 1024,
           responseMimeType: "application/json",
+          responseSchema: ADVISOR_RESPONSE_SCHEMA,
         },
       }),
       cache: "no-store",
