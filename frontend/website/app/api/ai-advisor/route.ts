@@ -186,7 +186,7 @@ export async function POST(request: NextRequest) {
           parts: [{ text: message.content }],
         })),
         generationConfig: {
-          maxOutputTokens: 1024,
+          maxOutputTokens: 4096,
           responseMimeType: "application/json",
           responseSchema: ADVISOR_RESPONSE_SCHEMA,
         },
@@ -216,14 +216,25 @@ export async function POST(request: NextRequest) {
     }
 
     const completion = (await aiStudioResponse.json()) as {
-      candidates?: { content?: { parts?: { text?: unknown }[] } }[];
+      candidates?: {
+        finishReason?: string;
+        content?: { parts?: { text?: unknown }[] };
+      }[];
     };
-    const modelContent = completion.candidates?.[0]?.content?.parts
+    const candidate = completion.candidates?.[0];
+    const modelContent = candidate?.content?.parts
       ?.map((part) => part.text)
       .filter((text): text is string => typeof text === "string")
       .join("");
     const modelResult = parseModelAdvisorResponse(modelContent);
     if (!modelResult) {
+      process.stderr.write(
+        `${JSON.stringify({
+          event: "AI Studio advisor response could not be parsed",
+          finishReason: candidate?.finishReason ?? null,
+          hasContent: Boolean(modelContent),
+        })}\n`,
+      );
       return NextResponse.json(
         { error: "The shopping advisor returned an invalid response." },
         { status: 502 },
