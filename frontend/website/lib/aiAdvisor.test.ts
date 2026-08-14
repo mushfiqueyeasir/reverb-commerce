@@ -32,6 +32,7 @@ describe("AI advisor sales prompt", () => {
     expect(prompt).toContain("at most 2 more clarification questions");
     expect(prompt).toContain("entire website");
     expect(prompt).toContain("Interpret Romanized Bangla and Banglish");
+    expect(prompt).toContain("For beauty and skincare concerns");
     expect(prompt).toContain("Never create fake urgency");
     expect(prompt).toContain('"Everyday Tee"');
     expect(prompt).toContain('"/refund-policy"');
