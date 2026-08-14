@@ -28,7 +28,7 @@ const GREETING: AiAdvisorMessage = {
 
 const STARTERS = [
   "Help me choose the right product",
-  "Recommend something for my skin concern",
+  "Find products that match my needs",
   "Show products within my budget",
 ];
 

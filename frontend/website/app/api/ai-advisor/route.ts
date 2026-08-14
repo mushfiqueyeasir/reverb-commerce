@@ -155,6 +155,7 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         model: config.openRouter.model,
         messages: [{ role: "system", content: systemPrompt }, ...messages],
+        max_tokens: 280,
       }),
       cache: "no-store",
     });
