@@ -33,6 +33,58 @@ interface AdvisorCatalogSearchItem {
   availableSizes: string[];
 }
 
+export interface InventoryOverview {
+  totalProducts: number;
+  prices: {
+    minimum: number;
+    maximum: number;
+    average: number;
+  };
+  categories: { name: string; products: number }[];
+  productTypes: { name: string; products: number }[];
+  colors: { name: string; products: number }[];
+  sizes: { name: string; products: number }[];
+}
+
+function countCatalogValues<T extends AdvisorCatalogSearchItem>(
+  catalog: readonly T[],
+  values: (item: T) => readonly (string | null)[],
+): { name: string; products: number }[] {
+  const counts = new Map<string, number>();
+  for (const item of catalog) {
+    for (const value of new Set(values(item).filter(Boolean))) {
+      if (!value) continue;
+      counts.set(value, (counts.get(value) ?? 0) + 1);
+    }
+  }
+  return [...counts]
+    .map(([name, products]) => ({ name, products }))
+    .sort((a, b) => b.products - a.products || a.name.localeCompare(b.name));
+}
+
+export function buildInventoryOverview<T extends AdvisorCatalogSearchItem>(
+  catalog: readonly T[],
+): InventoryOverview {
+  const prices = catalog
+    .map((item) => item.price)
+    .filter((price) => Number.isFinite(price));
+  const total = prices.reduce((sum, price) => sum + price, 0);
+
+  return {
+    totalProducts: catalog.length,
+    prices: {
+      minimum: prices.length > 0 ? Math.min(...prices) : 0,
+      maximum: prices.length > 0 ? Math.max(...prices) : 0,
+      average:
+        prices.length > 0 ? Math.round((total / prices.length) * 100) / 100 : 0,
+    },
+    categories: countCatalogValues(catalog, (item) => item.categories),
+    productTypes: countCatalogValues(catalog, (item) => [item.type]),
+    colors: countCatalogValues(catalog, (item) => item.availableColors),
+    sizes: countCatalogValues(catalog, (item) => item.availableSizes),
+  };
+}
+
 const SEARCH_STOP_WORDS = new Set([
   "a",
   "an",
@@ -141,17 +193,22 @@ export function selectRelevantCatalog<T extends AdvisorCatalogSearchItem>(
 
 export function buildAdvisorSystemPrompt({
   storeName,
+  inventoryOverview,
   catalog,
 }: {
   storeName: string;
+  inventoryOverview: InventoryOverview;
   catalog: unknown[];
 }): string {
-  return `You are the shopping advisor for ${storeName}. Talk naturally in the visitor's language, including Bangla and Banglish. Understand what they need and recommend matching products from the active, in-stock inventory below. For beauty and skincare questions, use the customer's concern, skin or hair type, routine, sensitivities, and budget to identify suitable products. Use only products and facts present in the inventory.
+  return `You are the shopping advisor for ${storeName}. Talk naturally in the visitor's language, including Bangla and Banglish. Understand what they need and recommend matching products from the active, in-stock inventory below. For beauty and skincare questions, use the customer's concern, skin or hair type, routine, sensitivities, and budget to identify suitable products. Use the overview to understand the whole active inventory, but recommend only exact products present in the relevant products list.
 
 Return a JSON object with this shape:
-{"message":"your response","status":"answer | clarifying | recommendations | no_match","suggestedReplies":["reply"],"recommendations":[{"productId":"exact inventory product ID","reason":"why it fits"}]}
+{"message":"your response","status":"answer | clarifying | recommendations | no_match","suggestedReplies":["reply"],"recommendations":[{"productId":"exact relevant product ID","reason":"why it fits"}]}
 
-ACTIVE IN-STOCK INVENTORY:
+WHOLE ACTIVE IN-STOCK INVENTORY OVERVIEW:
+${JSON.stringify(inventoryOverview)}
+
+RELEVANT ACTIVE IN-STOCK PRODUCTS:
 ${JSON.stringify(catalog)}`;
 }
 

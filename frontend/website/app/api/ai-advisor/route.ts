@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   buildAdvisorSystemPrompt,
+  buildInventoryOverview,
   loadAllPages,
   parseAdvisorMessages,
   parseModelAdvisorResponse,
@@ -18,6 +19,7 @@ export const fetchCache = "force-no-store";
 
 const AI_STUDIO_URL = `https://generativelanguage.googleapis.com/v1beta/models/${config.aiStudio.model}:generateContent`;
 const CATALOG_PAGE_SIZE = 500;
+const RELEVANT_PRODUCT_LIMIT = 64;
 
 interface CatalogRow {
   id: string;
@@ -112,10 +114,7 @@ export async function POST(request: NextRequest) {
         title: product.title,
         type: product.product_type,
         price: Number(product.current_price),
-        description: productDescriptionText(
-          product.description,
-          Number.MAX_SAFE_INTEGER,
-        ),
+        description: productDescriptionText(product.description, 400),
         categories: uniqueValues(
           product.product_categories.map((row) => row.categories?.name ?? null),
         ),
@@ -135,13 +134,15 @@ export async function POST(request: NextRequest) {
       .filter((message) => message.role === "user")
       .map((message) => message.content)
       .join(" ");
+    const inventoryOverview = buildInventoryOverview(catalog);
     const rankedCatalog = selectRelevantCatalog(
       catalog,
       shopperContext,
-      catalog.length,
+      RELEVANT_PRODUCT_LIMIT,
     );
     const systemPrompt = buildAdvisorSystemPrompt({
       storeName: request.nextUrl.hostname,
+      inventoryOverview,
       catalog: rankedCatalog,
     });
     const aiStudioResponse = await fetch(AI_STUDIO_URL, {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildAdvisorSystemPrompt,
+  buildInventoryOverview,
   loadAllPages,
   parseAdvisorMessages,
   parseModelAdvisorResponse,
@@ -12,6 +13,14 @@ describe("AI advisor inventory prompt", () => {
   it("contains only active inventory guidance and catalog data", () => {
     const prompt = buildAdvisorSystemPrompt({
       storeName: "Signal Store",
+      inventoryOverview: {
+        totalProducts: 1,
+        prices: { minimum: 1200, maximum: 1200, average: 1200 },
+        categories: [{ name: "Clothing", products: 1 }],
+        productTypes: [{ name: "T-shirt", products: 1 }],
+        colors: [{ name: "Black", products: 1 }],
+        sizes: [{ name: "M", products: 1 }],
+      },
       catalog: [{ id: "one", title: "Everyday Tee" }],
     });
 
@@ -19,6 +28,8 @@ describe("AI advisor inventory prompt", () => {
     expect(prompt).toContain("active, in-stock inventory");
     expect(prompt).toContain("Bangla and Banglish");
     expect(prompt).toContain("beauty and skincare questions");
+    expect(prompt).toContain("WHOLE ACTIVE IN-STOCK INVENTORY OVERVIEW");
+    expect(prompt).toContain('"totalProducts":1');
     expect(prompt).toContain('"Everyday Tee"');
     expect(prompt).not.toContain("WEBSITE KNOWLEDGE");
     expect(prompt).not.toContain("delivery");
@@ -86,6 +97,29 @@ describe("AI advisor catalog retrieval", () => {
     );
 
     expect(selected).toHaveLength(catalog.length);
+    expect(selected[0].id).toBe("9");
+  });
+
+  it("summarizes every active product before selecting relevant context", () => {
+    const overview = buildInventoryOverview(catalog);
+
+    expect(overview.totalProducts).toBe(10);
+    expect(overview.prices.minimum).toBe(1800);
+    expect(overview.prices.maximum).toBe(2508);
+    expect(overview.categories).toEqual([
+      { name: "Accessories", products: 9 },
+      { name: "Clothing", products: 1 },
+    ]);
+    expect(overview.colors).toEqual([
+      { name: "Black", products: 9 },
+      { name: "Red", products: 1 },
+    ]);
+  });
+
+  it("limits model context after ranking the complete active catalog", () => {
+    const selected = selectRelevantCatalog(catalog, "red kimono", 3);
+
+    expect(selected).toHaveLength(3);
     expect(selected[0].id).toBe("9");
   });
 
