@@ -17,17 +17,20 @@ import type { ProductSearchResult } from "@/type/productSearchType";
 interface SearchSidebarProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  aiSearchEnabled: boolean;
 }
 
 export default function SearchSidebar({
   open,
   onOpenChange,
+  aiSearchEnabled,
 }: SearchSidebarProps) {
   const [searchQuery, setLocalSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("search");
   const [searchResults, setSearchResults] = useState<ProductSearchResult[]>([]);
   const [searchPending, setSearchPending] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const visibleTab = aiSearchEnabled ? activeTab : "search";
 
   useEffect(() => {
     if (!open) {
@@ -39,7 +42,7 @@ export default function SearchSidebar({
 
   useEffect(() => {
     const query = searchQuery.trim();
-    if (!open || activeTab !== "search" || !query) {
+    if (!open || visibleTab !== "search" || !query) {
       setSearchResults([]);
       setSearchPending(false);
       setSearchError(null);
@@ -85,7 +88,7 @@ export default function SearchSidebar({
       clearTimeout(timer);
       controller.abort();
     };
-  }, [activeTab, open, searchQuery]);
+  }, [open, searchQuery, visibleTab]);
 
   const handleClear = () => {
     setLocalSearchQuery("");
@@ -102,7 +105,9 @@ export default function SearchSidebar({
         <SheetHeader className="sr-only">
           <SheetTitle>Discover products</SheetTitle>
           <SheetDescription>
-            Search or get an AI recommendation.
+            {aiSearchEnabled
+              ? "Search or get an AI recommendation."
+              : "Search active products."}
           </SheetDescription>
         </SheetHeader>
 
@@ -116,7 +121,7 @@ export default function SearchSidebar({
         />
 
         <Tabs
-          value={activeTab}
+          value={visibleTab}
           onValueChange={setActiveTab}
           className="relative z-10 mx-auto grid h-full w-full max-w-[1600px] min-h-0 grid-rows-[auto_1fr] px-4 pt-4 sm:px-6 sm:pt-6 lg:grid-cols-[19rem_1fr] lg:grid-rows-1 lg:px-10 lg:pt-10"
         >
@@ -130,12 +135,15 @@ export default function SearchSidebar({
                 <span className="block text-primary">signal.</span>
               </h1>
               <p className="mt-3 hidden max-w-[15rem] text-sm leading-6 text-muted-foreground lg:block">
-                Search products directly or ask the shopping advisor to find the
-                right active product for your needs.
+                {aiSearchEnabled
+                  ? "Search products directly or ask the shopping advisor to find the right active product for your needs."
+                  : "Search the active inventory by product name."}
               </p>
             </div>
 
-            <TabsList className="mt-4 grid h-auto w-full grid-cols-2 gap-2 bg-transparent p-0 text-left lg:mt-10 lg:grid-cols-1">
+            <TabsList
+              className={`mt-4 grid h-auto w-full gap-2 bg-transparent p-0 text-left lg:mt-10 lg:grid-cols-1 ${aiSearchEnabled ? "grid-cols-2" : "grid-cols-1"}`}
+            >
               <TabsTrigger
                 value="search"
                 className="group h-auto min-w-0 justify-start gap-3 rounded-xl border border-border bg-background/40 px-3 py-3 text-left shadow-none backdrop-blur-md data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none lg:rounded-none lg:border-x-0 lg:border-b lg:border-t-0 lg:bg-transparent lg:px-0 lg:py-5 lg:backdrop-blur-none lg:data-[state=active]:bg-transparent lg:data-[state=active]:text-foreground"
@@ -151,21 +159,23 @@ export default function SearchSidebar({
                 </span>
                 <Search className="ml-auto size-4 shrink-0" />
               </TabsTrigger>
-              <TabsTrigger
-                value="advisor"
-                className="group h-auto min-w-0 justify-start gap-3 rounded-xl border border-border bg-background/40 px-3 py-3 text-left shadow-none backdrop-blur-md data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none lg:rounded-none lg:border-x-0 lg:border-b lg:border-t-0 lg:bg-transparent lg:px-0 lg:py-5 lg:backdrop-blur-none lg:data-[state=active]:bg-transparent lg:data-[state=active]:text-foreground"
-              >
-                <span className="font-mono text-[10px] opacity-60">02</span>
-                <span className="min-w-0">
-                  <span className="block truncate font-display text-sm font-semibold tracking-tight sm:text-base">
-                    Ask AI
+              {aiSearchEnabled ? (
+                <TabsTrigger
+                  value="advisor"
+                  className="group h-auto min-w-0 justify-start gap-3 rounded-xl border border-border bg-background/40 px-3 py-3 text-left shadow-none backdrop-blur-md data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none lg:rounded-none lg:border-x-0 lg:border-b lg:border-t-0 lg:bg-transparent lg:px-0 lg:py-5 lg:backdrop-blur-none lg:data-[state=active]:bg-transparent lg:data-[state=active]:text-foreground"
+                >
+                  <span className="font-mono text-[10px] opacity-60">02</span>
+                  <span className="min-w-0">
+                    <span className="block truncate font-display text-sm font-semibold tracking-tight sm:text-base">
+                      Ask AI
+                    </span>
+                    <span className="mt-0.5 hidden text-[11px] font-normal text-muted-foreground group-data-[state=active]:text-current/70 lg:block">
+                      Product recommendations
+                    </span>
                   </span>
-                  <span className="mt-0.5 hidden text-[11px] font-normal text-muted-foreground group-data-[state=active]:text-current/70 lg:block">
-                    Product recommendations
-                  </span>
-                </span>
-                <Sparkles className="ml-auto size-4 shrink-0" />
-              </TabsTrigger>
+                  <Sparkles className="ml-auto size-4 shrink-0" />
+                </TabsTrigger>
+              ) : null}
             </TabsList>
 
             <div className="mt-auto hidden items-center gap-2 pt-8 font-mono text-[9px] uppercase tracking-[0.24em] text-muted-foreground lg:flex">
@@ -201,7 +211,7 @@ export default function SearchSidebar({
                   value={searchQuery}
                   onChange={(e) => setLocalSearchQuery(e.target.value)}
                   className="w-full bg-transparent py-5 pl-9 pr-14 font-display text-2xl font-semibold tracking-tight outline-none placeholder:text-foreground/20 sm:py-7 sm:pl-12 sm:text-4xl"
-                  autoFocus={activeTab === "search"}
+                  autoFocus={visibleTab === "search"}
                 />
                 {searchQuery && (
                   <button
@@ -223,7 +233,7 @@ export default function SearchSidebar({
                 onSelect={() => onOpenChange(false)}
               />
 
-              {!searchQuery && (
+              {!searchQuery && aiSearchEnabled && (
                 <button
                   type="button"
                   onClick={() => setActiveTab("advisor")}
@@ -252,12 +262,14 @@ export default function SearchSidebar({
               )}
             </div>
           </TabsContent>
-          <TabsContent
-            value="advisor"
-            className="m-0 min-h-0 overflow-hidden focus-visible:ring-0 lg:px-10 xl:px-16"
-          >
-            <AiShoppingAssistant onProductSelect={() => onOpenChange(false)} />
-          </TabsContent>
+          {aiSearchEnabled ? (
+            <TabsContent
+              value="advisor"
+              className="m-0 min-h-0 overflow-hidden focus-visible:ring-0 lg:px-10 xl:px-16"
+            >
+              <AiShoppingAssistant onProductSelect={() => onOpenChange(false)} />
+            </TabsContent>
+          ) : null}
         </Tabs>
       </SheetContent>
     </Sheet>

@@ -7,9 +7,14 @@ import { getMenuData } from "@/constant/menuData";
 interface HeaderProps {
   categories: Category[];
   settings: SiteSettings;
+  aiSearchEnabled: boolean;
 }
 
-export default function Header({ categories, settings }: HeaderProps) {
+export default function Header({
+  categories,
+  settings,
+  aiSearchEnabled,
+}: HeaderProps) {
   const menuData = getMenuData(categories, settings.navbar);
   const storeName = settings.store_name || "Store";
 
@@ -24,6 +29,7 @@ export default function Header({ categories, settings }: HeaderProps) {
         logoUrl={settings.logoUrl}
         storeName={storeName}
         config={settings.navbar}
+        aiSearchEnabled={aiSearchEnabled}
       />
     </Suspense>
   );

@@ -5,10 +5,10 @@ e-commerce platform by Reverb Solution.
 
 ## Getting Started
 
-The storefront requires Supabase server configuration. The AI shopping
-assistant additionally requires `GEMINI_API_KEY` as a server-only runtime
-secret. Production stores receive it through Vercel's encrypted environment;
-never prefix it with `NEXT_PUBLIC_` or commit it to this repository.
+The storefront requires Supabase server configuration. Store administrators
+configure the AI shopping assistant with their own Gemini or OpenRouter API key
+under **Settings → AI Search**. Provider keys are stored in private per-store
+settings and are never exposed to the storefront client.
 
 First, run the development server:
 

@@ -10,6 +10,7 @@ import { Analytics } from "@/utility/analytics/analyticsScript";
 import { getPromotions } from "@/utility/getPromotion";
 import { getCategories } from "@/utility/getCategory";
 import { getSiteSettings } from "@/utility/getSettings";
+import { getAiSearchSettings } from "@/lib/aiSearchSettings";
 import { appConfig } from "@/lib/config";
 
 // Catalog + CMS change constantly — never statically cache storefront pages.
@@ -20,10 +21,11 @@ export const fetchCache = "force-no-store";
 export default async function StoreLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [promotions, categories, settings] = await Promise.all([
+  const [promotions, categories, settings, aiSearch] = await Promise.all([
     getPromotions(),
     getCategories(),
     getSiteSettings(),
+    getAiSearchSettings(),
   ]);
 
   return (
@@ -41,7 +43,11 @@ export default async function StoreLayout({
         <CursorGlow />
         <StoreScrollShell>
           <div className="relative">
-            <Header categories={categories} settings={settings} />
+            <Header
+              categories={categories}
+              settings={settings}
+              aiSearchEnabled={aiSearch.enabled}
+            />
             <div className="min-h-[60vh]">{children}</div>
             <Footer settings={settings} />
             {/* Clearance for the mobile shopping tab bar */}

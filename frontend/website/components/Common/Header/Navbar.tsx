@@ -33,6 +33,7 @@ interface NavbarProps {
   logoUrl: string | null;
   storeName: string;
   config: NavbarConfig;
+  aiSearchEnabled?: boolean;
   preview?: boolean;
 }
 
@@ -41,6 +42,7 @@ export default function Navbar({
   logoUrl,
   storeName,
   config,
+  aiSearchEnabled = false,
   preview = false,
 }: NavbarProps) {
   const pathname = usePathname();
@@ -247,7 +249,11 @@ export default function Navbar({
       {!preview ? (
         <>
           <MobileBottomNav onSearchOpen={() => setIsSearchOpen(true)} />
-          <SearchSidebar open={isSearchOpen} onOpenChange={setIsSearchOpen} />
+          <SearchSidebar
+            open={isSearchOpen}
+            onOpenChange={setIsSearchOpen}
+            aiSearchEnabled={aiSearchEnabled}
+          />
         </>
       ) : null}
     </>

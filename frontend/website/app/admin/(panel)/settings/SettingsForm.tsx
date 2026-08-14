@@ -60,6 +60,7 @@ import type {
 import type { BkashSettingsPublic } from "@/lib/payments/bkashSettings";
 import type { CourierSettingsPublic } from "@/lib/couriers/types";
 import { COURIER_PROVIDERS } from "@/lib/couriers/metadata";
+import type { AiSearchSettingsPublic } from "@/lib/aiSearchSettings";
 import type { StorageUsage } from "@/lib/admin/storageUsage";
 import {
   estimateProductCapacity,
@@ -75,6 +76,7 @@ import {
 } from "./actions";
 import { CourierSettings, courierDraftFromPublic } from "./CourierSettings";
 import { PaymentSettings, paymentDraftFromPublic } from "./PaymentSettings";
+import { AiSearchSettings, aiSearchDraftFromPublic } from "./AiSearchSettings";
 
 function orNull(v: string): string | null {
   const t = v.trim();
@@ -108,6 +110,7 @@ export function SettingsForm({
   smtp: initialSmtp,
   bkash: initialBkash,
   courier: initialCourier,
+  aiSearch: initialAiSearch,
   siteUrl,
   storageUsage,
 }: {
@@ -122,6 +125,7 @@ export function SettingsForm({
   smtp: SmtpSettingsPublic;
   bkash: BkashSettingsPublic;
   courier: CourierSettingsPublic;
+  aiSearch: AiSearchSettingsPublic;
   siteUrl: string;
   storageUsage: StorageUsage;
 }) {
@@ -240,6 +244,9 @@ export function SettingsForm({
   const [courier, setCourier] = useState(() =>
     courierDraftFromPublic(initialCourier),
   );
+  const [aiSearch, setAiSearch] = useState(() =>
+    aiSearchDraftFromPublic(initialAiSearch),
+  );
 
   const setPaletteColor = (key: keyof ThemePalette, value: string) => {
     setPalette((prev) => ({ ...prev, [key]: value }));
@@ -279,7 +286,6 @@ export function SettingsForm({
       toast.error("Enable at least one currency.");
       return;
     }
-
     const nextSocials: Record<string, string> = {};
     if (facebook.trim()) nextSocials.facebook = facebook.trim();
     if (instagram.trim()) nextSocials.instagram = instagram.trim();
@@ -502,6 +508,9 @@ export function SettingsForm({
             className="rounded-lg px-3 sm:px-4"
           >
             Notifications
+          </TabsTrigger>
+          <TabsTrigger value="ai-search" className="rounded-lg px-3 sm:px-4">
+            AI Search
           </TabsTrigger>
           <TabsTrigger value="analytics" className="rounded-lg px-3 sm:px-4">
             Analytics
@@ -1238,6 +1247,10 @@ export function SettingsForm({
           </Tabs>
         </TabsContent>
 
+        <TabsContent value="ai-search" className="mt-0">
+          <AiSearchSettings value={aiSearch} onChange={setAiSearch} />
+        </TabsContent>
+
         <TabsContent value="analytics" className="space-y-5">
           <div className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
             <div>
@@ -1486,7 +1499,7 @@ export function SettingsForm({
         </TabsContent>
       </Tabs>
 
-      {mainTab !== "storage" ? (
+      {mainTab !== "storage" && mainTab !== "ai-search" ? (
         <FormActions>
           <Button
             onClick={onSave}

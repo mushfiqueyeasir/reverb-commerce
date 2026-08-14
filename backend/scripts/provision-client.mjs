@@ -26,8 +26,6 @@ const secrets = parseEnvFile(secretPath);
 for (const key of ["SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"]) {
   if (!secrets[key]) throw new Error(`${key} is required in ${secretPath}`);
 }
-const geminiApiKey = process.env.GEMINI_API_KEY?.trim() || secrets.GEMINI_API_KEY?.trim();
-if (!geminiApiKey) throw new Error(`GEMINI_API_KEY is required in the environment or ${secretPath}`);
 
 runVercel(["whoami"], { capture: true });
 
@@ -67,7 +65,6 @@ const environment = {
   SUPABASE_URL: manifest.supabase.url,
   SUPABASE_ANON_KEY: secrets.SUPABASE_ANON_KEY,
   SUPABASE_SERVICE_ROLE_KEY: secrets.SUPABASE_SERVICE_ROLE_KEY,
-  GEMINI_API_KEY: geminiApiKey,
   SITE_URL: manifest.domains.production,
   SECURITY_ENABLED: "true",
 };

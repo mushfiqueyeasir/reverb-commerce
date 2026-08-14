@@ -34,6 +34,12 @@ import {
 } from "@/lib/couriers/settings";
 import { courierAdapter } from "@/lib/couriers/registry";
 import type { SaveCourierSettingsInput } from "@/lib/couriers/types";
+import {
+  getAiSearchSettings,
+  saveAiSearchSettingsRow,
+  validateAiSearchApiKey,
+  type AiSearchProvider,
+} from "@/lib/aiSearchSettings";
 
 export interface SettingsInput {
   store_name: string;
@@ -357,6 +363,68 @@ export async function saveBkashSettings(
 
   revalidatePath("/admin/settings");
   revalidatePath("/checkout");
+  return {};
+}
+
+export async function connectAiSearchProvider(input: {
+  provider: AiSearchProvider;
+  apiKey: string;
+}): Promise<{ error?: string }> {
+  const s = await requireAdminSession();
+  if (!isAdmin(s.role)) {
+    return { error: "You do not have permission to change AI Search settings." };
+  }
+
+  const apiKey = input.apiKey.trim();
+  if (!apiKey) return { error: "Enter an API key to connect this provider." };
+
+  const validation = await validateAiSearchApiKey(input.provider, apiKey);
+  if (validation.error) return validation;
+
+  const result = await saveAiSearchSettingsRow({
+    enabled: true,
+    provider: input.provider,
+    geminiApiKey: input.provider === "gemini" ? apiKey : null,
+    openrouterApiKey: input.provider === "openrouter" ? apiKey : null,
+  });
+  if (result.error) return result;
+
+  await writeAuditLog({
+    actor: s,
+    action: "update",
+    entity: "settings",
+    summary: `Connected ${input.provider === "openrouter" ? "OpenRouter" : "Gemini"} for AI Search`,
+    metadata: { enabled: true, provider: input.provider },
+  });
+
+  revalidatePath("/admin/settings");
+  return {};
+}
+
+export async function disableAiSearch(): Promise<{ error?: string }> {
+  const s = await requireAdminSession();
+  if (!isAdmin(s.role)) {
+    return { error: "You do not have permission to change AI Search settings." };
+  }
+
+  const current = await getAiSearchSettings();
+  const result = await saveAiSearchSettingsRow({
+    enabled: false,
+    provider: current.provider,
+    geminiApiKey: null,
+    openrouterApiKey: null,
+  });
+  if (result.error) return result;
+
+  await writeAuditLog({
+    actor: s,
+    action: "update",
+    entity: "settings",
+    summary: "Disabled AI Search",
+    metadata: { enabled: false, provider: current.provider },
+  });
+
+  revalidatePath("/admin/settings");
   return {};
 }
 

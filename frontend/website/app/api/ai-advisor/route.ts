@@ -9,6 +9,11 @@ import {
   productDescriptionText,
   selectRelevantCatalog,
 } from "@/lib/aiAdvisor";
+import {
+  getAiSearchApiKey,
+  getAiSearchSettings,
+  type AiSearchProvider,
+} from "@/lib/aiSearchSettings";
 import { productImageUrl } from "@/utility/imageUrl";
 import type { AiAdvisorProduct, AiAdvisorResponse } from "@/type/aiAdvisorType";
 import { config } from "@/config";
@@ -17,10 +22,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
-const AI_STUDIO_URL = `https://generativelanguage.googleapis.com/v1beta/models/${config.aiStudio.model}:generateContent`;
 const CATALOG_PAGE_SIZE = 500;
 const RELEVANT_PRODUCT_LIMIT = 64;
-const ADVISOR_RESPONSE_SCHEMA = {
+const GEMINI_RESPONSE_SCHEMA = {
   type: "OBJECT",
   properties: {
     message: { type: "STRING" },
@@ -39,6 +43,34 @@ const ADVISOR_RESPONSE_SCHEMA = {
         properties: {
           productId: { type: "STRING" },
           reason: { type: "STRING" },
+        },
+        required: ["productId", "reason"],
+      },
+    },
+  },
+  required: ["message", "status", "suggestedReplies", "recommendations"],
+} as const;
+const OPENROUTER_RESPONSE_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    message: { type: "string" },
+    status: {
+      type: "string",
+      enum: ["answer", "clarifying", "recommendations", "no_match"],
+    },
+    suggestedReplies: {
+      type: "array",
+      items: { type: "string" },
+    },
+    recommendations: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          productId: { type: "string" },
+          reason: { type: "string" },
         },
         required: ["productId", "reason"],
       },
@@ -70,6 +102,11 @@ interface CatalogRow {
   }[];
 }
 
+interface ProviderResult {
+  content: string | null;
+  finishReason: string | null;
+}
+
 const CATALOG_SELECT = `
   id, title, slug, original_price, current_price, description, product_type,
   product_images ( path, is_main, sort ),
@@ -97,10 +134,157 @@ function uniqueValues(values: (string | null)[]): string[] {
   ];
 }
 
+async function callGemini(
+  apiKey: string,
+  systemPrompt: string,
+  messages: { role: "user" | "assistant"; content: string }[],
+): Promise<ProviderResult> {
+  const model = config.aiSearch.models.gemini;
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-goog-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: systemPrompt }],
+        },
+        contents: messages.map((message) => ({
+          role: message.role === "assistant" ? "model" : "user",
+          parts: [{ text: message.content }],
+        })),
+        generationConfig: {
+          maxOutputTokens: 4096,
+          responseMimeType: "application/json",
+          responseSchema: GEMINI_RESPONSE_SCHEMA,
+        },
+      }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(45_000),
+    },
+  );
+
+  if (!response.ok) {
+    const providerError = (await response.json().catch(() => null)) as {
+      error?: { code?: string | number; status?: string; message?: string };
+    } | null;
+    process.stderr.write(
+      `${JSON.stringify({
+        event: "AI Search provider request failed",
+        provider: "gemini",
+        status: response.status,
+        code: providerError?.error?.code ?? null,
+        providerStatus: providerError?.error?.status ?? null,
+        message: providerError?.error?.message ?? null,
+      })}\n`,
+    );
+    throw new Error("AI provider request failed");
+  }
+
+  const completion = (await response.json()) as {
+    candidates?: {
+      finishReason?: string;
+      content?: { parts?: { text?: unknown }[] };
+    }[];
+  };
+  const candidate = completion.candidates?.[0];
+  const content =
+    candidate?.content?.parts
+      ?.map((part) => part.text)
+      .filter((text): text is string => typeof text === "string")
+      .join("") || null;
+  return {
+    content,
+    finishReason: candidate?.finishReason ?? null,
+  };
+}
+
+async function callOpenrouter(
+  apiKey: string,
+  systemPrompt: string,
+  messages: { role: "user" | "assistant"; content: string }[],
+): Promise<ProviderResult> {
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: config.aiSearch.models.openrouter,
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...messages.map((message) => ({
+          role: message.role,
+          content: message.content,
+        })),
+      ],
+      max_tokens: 4096,
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "shopping_advisor_response",
+          strict: true,
+          schema: OPENROUTER_RESPONSE_SCHEMA,
+        },
+      },
+    }),
+    cache: "no-store",
+    signal: AbortSignal.timeout(45_000),
+  });
+
+  if (!response.ok) {
+    const providerError = (await response.json().catch(() => null)) as {
+      error?: { code?: string | number; message?: string };
+    } | null;
+    process.stderr.write(
+      `${JSON.stringify({
+        event: "AI Search provider request failed",
+        provider: "openrouter",
+        status: response.status,
+        code: providerError?.error?.code ?? null,
+        message: providerError?.error?.message ?? null,
+      })}\n`,
+    );
+    throw new Error("AI provider request failed");
+  }
+
+  const completion = (await response.json()) as {
+    choices?: {
+      finish_reason?: string;
+      message?: { content?: unknown };
+    }[];
+  };
+  const choice = completion.choices?.[0];
+  const content =
+    typeof choice?.message?.content === "string"
+      ? choice.message.content
+      : null;
+  return {
+    content,
+    finishReason: choice?.finish_reason ?? null,
+  };
+}
+
+async function callProvider(
+  provider: AiSearchProvider,
+  apiKey: string,
+  systemPrompt: string,
+  messages: { role: "user" | "assistant"; content: string }[],
+): Promise<ProviderResult> {
+  return provider === "openrouter"
+    ? callOpenrouter(apiKey, systemPrompt, messages)
+    : callGemini(apiKey, systemPrompt, messages);
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = config.aiStudio.apiKey;
-    if (!apiKey) {
+    const aiSearchSettings = await getAiSearchSettings();
+    const apiKey = getAiSearchApiKey(aiSearchSettings);
+    if (!aiSearchSettings.enabled || !apiKey) {
       return NextResponse.json(
         { error: "The shopping advisor is not configured." },
         { status: 503 },
@@ -171,68 +355,20 @@ export async function POST(request: NextRequest) {
       inventoryOverview,
       catalog: rankedCatalog,
     });
-    const aiStudioResponse = await fetch(AI_STUDIO_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-goog-api-key": apiKey,
-      },
-      body: JSON.stringify({
-        systemInstruction: {
-          parts: [{ text: systemPrompt }],
-        },
-        contents: messages.map((message) => ({
-          role: message.role === "assistant" ? "model" : "user",
-          parts: [{ text: message.content }],
-        })),
-        generationConfig: {
-          maxOutputTokens: 4096,
-          responseMimeType: "application/json",
-          responseSchema: ADVISOR_RESPONSE_SCHEMA,
-        },
-      }),
-      cache: "no-store",
-    });
-
-    if (!aiStudioResponse.ok) {
-      const providerError = (await aiStudioResponse
-        .json()
-        .catch(() => null)) as {
-        error?: { code?: string | number; status?: string; message?: string };
-      } | null;
-      process.stderr.write(
-        `${JSON.stringify({
-          event: "AI Studio advisor request failed",
-          status: aiStudioResponse.status,
-          code: providerError?.error?.code ?? null,
-          providerStatus: providerError?.error?.status ?? null,
-          message: providerError?.error?.message ?? null,
-        })}\n`,
-      );
-      return NextResponse.json(
-        { error: "The shopping advisor could not respond." },
-        { status: 502 },
-      );
-    }
-
-    const completion = (await aiStudioResponse.json()) as {
-      candidates?: {
-        finishReason?: string;
-        content?: { parts?: { text?: unknown }[] };
-      }[];
-    };
-    const candidate = completion.candidates?.[0];
-    const modelContent = candidate?.content?.parts
-      ?.map((part) => part.text)
-      .filter((text): text is string => typeof text === "string")
-      .join("");
-    const modelResult = parseModelAdvisorResponse(modelContent);
+    const completion = await callProvider(
+      aiSearchSettings.provider,
+      apiKey,
+      systemPrompt,
+      messages,
+    );
+    const modelResult = parseModelAdvisorResponse(completion.content);
     if (!modelResult) {
       process.stderr.write(
         `${JSON.stringify({
-          event: "AI Studio advisor response could not be parsed",
-          finishReason: candidate?.finishReason ?? null,
-          hasContent: Boolean(modelContent),
+          event: "AI Search provider response could not be parsed",
+          provider: aiSearchSettings.provider,
+          finishReason: completion.finishReason,
+          hasContent: Boolean(completion.content),
         })}\n`,
       );
       return NextResponse.json(

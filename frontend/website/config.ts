@@ -1,9 +1,11 @@
 import "server-only";
 
 export const config = {
-  aiStudio: {
-    apiKey: process.env.GEMINI_API_KEY?.trim() ?? "",
-    model: "gemini-3.5-flash",
+  aiSearch: {
+    models: {
+      gemini: "gemini-3.5-flash",
+      openrouter: "nvidia/nemotron-3-super-120b-a12b:free",
+    },
   },
 } as const;
 
