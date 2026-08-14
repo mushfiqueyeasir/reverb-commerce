@@ -193,7 +193,9 @@ export default function ProductFilters({
               </PopoverTrigger>
               <PopoverContent
                 align="start"
-                className="w-[min(25rem,calc(100vw-2rem))]"
+                sideOffset={8}
+                collisionPadding={16}
+                className="max-h-[var(--radix-popover-content-available-height)] w-[calc(100vw-2rem)] overflow-y-auto overscroll-contain sm:w-[25rem]"
               >
                 <CategoryMultiSelectPanel
                   options={categoryOptions}
