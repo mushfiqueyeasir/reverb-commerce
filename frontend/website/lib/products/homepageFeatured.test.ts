@@ -62,13 +62,23 @@ describe("selectHomepageProducts", () => {
       ],
     );
     expect(
-      selectHomepageProducts(products, 20, 5).map((item) => item.id),
+      selectHomepageProducts(products, 4, 5).map((item) => item.id),
     ).toEqual([
       "available-1",
       "available-2",
       "available-3",
       "available-4",
       "available-5",
+    ]);
+    expect(
+      selectHomepageProducts(products, 5, 6).map((item) => item.id),
+    ).toEqual([
+      "available-1",
+      "available-2",
+      "available-3",
+      "available-4",
+      "available-5",
+      "available-6",
     ]);
   });
 

@@ -491,7 +491,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     sort: 8,
     active: false,
     config: {
-      limit: 5,
+      limit: 6,
       cta_label: "View all products",
       cta_url: "/product",
     },

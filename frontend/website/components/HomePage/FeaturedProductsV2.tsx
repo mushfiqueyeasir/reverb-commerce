@@ -159,7 +159,7 @@ export default function FeaturedProductsV2({
 
   if (products.length === 0) return null;
 
-  const [spotlight, ...supportingProducts] = products.slice(0, 5);
+  const [spotlight, ...supportingProducts] = products.slice(0, 6);
   const availability = productAvailability(spotlight);
   const discount = productDiscount(spotlight);
   const isReduced = spotlight.originalPrice > spotlight.currentPrice;
@@ -314,7 +314,7 @@ export default function FeaturedProductsV2({
               </div>
             </V2Reveal>
             <ol
-              className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-7"
+              className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5 lg:gap-7"
               aria-label="Supporting featured products"
             >
               {supportingProducts.map((product, index) => (

@@ -119,11 +119,12 @@ export async function saveSection(
   };
   const metadata = getHomepageSectionMetadata(current.type);
   if (metadata?.family === "featured") {
-    const maximum = 5;
+    const maximum = metadata.version === 2 ? 6 : 5;
     const requestedLimit = Number(config.limit);
-    config.limit = Number.isFinite(requestedLimit)
+    const normalizedLimit = Number.isFinite(requestedLimit)
       ? Math.min(maximum, Math.max(1, Math.floor(requestedLimit)))
       : maximum;
+    config.limit = normalizedLimit === maximum - 1 ? maximum : normalizedLimit;
     config.cta_label =
       typeof config.cta_label === "string" && config.cta_label.trim()
         ? config.cta_label.trim()

@@ -70,10 +70,16 @@ const FAMILY_INFO: Record<HomepageSectionV1Type, string> = {
 const MIN_LIMIT = 1;
 const MAX_LIMIT = 24;
 const MAX_FEATURED_LIMIT = 5;
+const MAX_FEATURED_V2_LIMIT = 6;
 const MAX_MOSAIC_CATEGORIES = 4;
 
 function clampLimit(value: number, maximum = MAX_LIMIT): number {
   return Math.min(maximum, Math.max(MIN_LIMIT, Math.floor(value)));
+}
+
+function clampFeaturedLimit(value: number, maximum: number): number {
+  const limit = clampLimit(value, maximum);
+  return limit === maximum - 1 ? maximum : limit;
 }
 
 export interface HomepageCategoryOption {
@@ -198,7 +204,7 @@ export function SectionForm({
     family === "richtext";
   const limitMaximum =
     section.type === "featured_v2"
-      ? 5
+      ? MAX_FEATURED_V2_LIMIT
       : family === "featured"
         ? MAX_FEATURED_LIMIT
         : MAX_LIMIT;
@@ -206,7 +212,7 @@ export function SectionForm({
     family === "reviews"
       ? 24
       : section.type === "featured_v2"
-        ? 5
+        ? MAX_FEATURED_V2_LIMIT
         : family === "featured"
           ? 5
           : 8;
@@ -222,8 +228,11 @@ export function SectionForm({
   const [eyebrow, setEyebrow] = useState(strConfig(config, "eyebrow"));
   const [limit, setLimit] = useState(() => {
     if (hasOptionalLimit && typeof config.limit !== "number") return "";
+    const configuredLimit = numConfig(config, "limit", limitFallback);
     return String(
-      clampLimit(numConfig(config, "limit", limitFallback), limitMaximum),
+      family === "featured"
+        ? clampFeaturedLimit(configuredLimit, limitMaximum)
+        : clampLimit(configuredLimit, limitMaximum),
     );
   });
   const [ctaLabel, setCtaLabel] = useState(
@@ -390,7 +399,10 @@ export function SectionForm({
         limit.trim() && Number.isFinite(parsedLimit)
           ? parsedLimit
           : limitFallback;
-      nextConfig.limit = clampLimit(value, limitMaximum);
+      nextConfig.limit =
+        family === "featured"
+          ? clampFeaturedLimit(value, limitMaximum)
+          : clampLimit(value, limitMaximum);
     }
     if (hasOptionalLimit) {
       const value = Number(limit);

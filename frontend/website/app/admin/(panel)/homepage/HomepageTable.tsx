@@ -171,6 +171,7 @@ const previewProducts: TransformedProduct[] = [
   "Premium essential",
   "Limited edition",
   "Collection favorite",
+  "Runway exclusive",
 ].map((title, index) => ({
   id: `preview-product-${index}`,
   title,
@@ -356,11 +357,11 @@ function FeaturedPreview({ section }: { section: HomepageSectionRow }) {
 }
 
 function FeaturedV2Preview({ section }: { section: HomepageSectionRow }) {
-  const limit = Math.min(5, configLimit(section.config) ?? 5);
+  const limit = Math.min(6, configLimit(section.config) ?? 6);
   const products = selectHomepageProducts(
     previewProducts,
     limit,
-    5,
+    6,
     getHomepageSectionMetadata(section.type)?.productSelection,
   );
   return (

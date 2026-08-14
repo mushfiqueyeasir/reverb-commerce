@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildAdvisorSystemPrompt,
+  loadAllPages,
   parseAdvisorMessages,
   parseModelAdvisorResponse,
   productDescriptionText,
@@ -70,6 +71,25 @@ describe("AI advisor input", () => {
     expect(
       parseAdvisorMessages([{ role: "user", content: "x".repeat(601) }]),
     ).toBeNull();
+  });
+});
+
+describe("AI advisor catalog pagination", () => {
+  it("loads every page until the final partial page", async () => {
+    const ranges: [number, number][] = [];
+    const pages = [["one", "two"], ["three", "four"], ["five"]];
+
+    const rows = await loadAllPages(async (from, to) => {
+      ranges.push([from, to]);
+      return pages.shift() ?? [];
+    }, 2);
+
+    expect(rows).toEqual(["one", "two", "three", "four", "five"]);
+    expect(ranges).toEqual([
+      [0, 1],
+      [2, 3],
+      [4, 5],
+    ]);
   });
 });
 

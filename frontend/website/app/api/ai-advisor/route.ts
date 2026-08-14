@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   buildAdvisorSystemPrompt,
+  loadAllPages,
   parseAdvisorMessages,
   parseModelAdvisorResponse,
   productDescriptionText,
@@ -30,7 +31,7 @@ export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const CATALOG_LIMIT = 120;
+const CATALOG_PAGE_SIZE = 500;
 
 const RESPONSE_RECOVERY: AiAdvisorResponse = {
   message:
@@ -66,6 +67,27 @@ interface CatalogRow {
   product_categories: {
     categories: { name: string; slug: string } | null;
   }[];
+}
+
+async function getCatalogRows(): Promise<CatalogRow[]> {
+  const supabase = await createSupabaseServerClient();
+  return loadAllPages<CatalogRow>(async (from, to) => {
+    const { data, error } = await supabase
+      .from("products")
+      .select(
+        `
+          id, title, slug, original_price, current_price, description, product_type,
+          product_images ( path, is_main, sort ),
+          product_variants ( size, color, stock_quantity ),
+          product_categories ( categories ( name, slug ) )
+        `,
+      )
+      .eq("status", "active")
+      .order("id", { ascending: true })
+      .range(from, to);
+    if (error) throw error;
+    return (data as unknown as CatalogRow[]) ?? [];
+  }, CATALOG_PAGE_SIZE);
 }
 
 const RESPONSE_SCHEMA = {
@@ -351,10 +373,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = await createSupabaseServerClient();
-
     const [
-      { data, error },
+      catalogRows,
       settings,
       terms,
       privacy,
@@ -366,18 +386,7 @@ export async function POST(request: NextRequest) {
       promotions,
       reviews,
     ] = await Promise.all([
-      supabase
-        .from("products")
-        .select(
-          `
-            id, title, slug, original_price, current_price, description, product_type,
-            product_images ( path, is_main, sort ),
-            product_variants ( size, color, stock_quantity ),
-            product_categories ( categories ( name, slug ) )
-          `,
-        )
-        .eq("status", "active")
-        .limit(CATALOG_LIMIT),
+      getCatalogRows(),
       getSiteSettings(),
       getContentPage("terms"),
       getContentPage("privacy"),
@@ -391,9 +400,8 @@ export async function POST(request: NextRequest) {
       getPromotions().catch(() => []),
       getReviews().catch(() => []),
     ]);
-    if (error) throw error;
 
-    const rows = ((data as unknown as CatalogRow[]) ?? []).filter((product) =>
+    const rows = catalogRows.filter((product) =>
       product.product_variants.some((variant) => variant.stock_quantity > 0),
     );
     const storeName = settings.store_name.trim() || "the store";

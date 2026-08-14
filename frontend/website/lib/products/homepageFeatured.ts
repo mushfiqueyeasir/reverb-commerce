@@ -28,7 +28,11 @@ export function selectHomepageProducts(
   maximum = 5,
   selection: HomepageProductSelection = "featured",
 ): TransformedProduct[] {
-  const limit = Math.min(maximum, Math.max(1, Math.floor(requestedLimit)));
+  const requested = Math.floor(requestedLimit);
+  const upgradesLegacyLimit =
+    (maximum === 5 || maximum === 6) && requested === maximum - 1;
+  const normalizedRequest = upgradesLegacyLimit ? maximum : requested;
+  const limit = Math.min(maximum, Math.max(1, normalizedRequest));
   const ranked = products
     .map((product, index) => ({ product, index }))
     .filter(

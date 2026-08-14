@@ -63,7 +63,7 @@ test("buildHomepageSections returns the canonical Kawaii sections", () => {
       .filter((row) => row.active)
       .every((row) => row.config.limit === 5),
   );
-  assert.equal(rows.find((row) => row.type === "featured_v2").config.limit, 5);
+  assert.equal(rows.find((row) => row.type === "featured_v2").config.limit, 6);
   assert.equal(rows.find((row) => row.type === "reviews").config.limit, 12);
   assert.equal(rows.find((row) => row.type === "reviews_v2").config.limit, 12);
   for (const type of ["promo", "promo_v2"]) {
