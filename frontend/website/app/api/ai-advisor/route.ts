@@ -287,6 +287,9 @@ async function callGroq(
         })),
       ],
       max_completion_tokens: 4096,
+      temperature: 1,
+      top_p: 1,
+      reasoning_effort: "medium",
       response_format: {
         type: "json_schema",
         json_schema: {

@@ -124,7 +124,15 @@ export async function validateAiSearchApiKey(
   try {
     if (provider === "groq") {
       const groq = new Groq({ apiKey, timeout: 15_000, maxRetries: 0 });
-      await groq.models.retrieve(config.aiSearch.models.groq);
+      const models = await groq.models.list();
+      if (
+        !models.data.some((model) => model.id === config.aiSearch.models.groq)
+      ) {
+        return {
+          error:
+            "The Groq API key is valid but does not have access to the required model.",
+        };
+      }
       return {};
     }
 
@@ -168,6 +176,11 @@ export async function validateAiSearchApiKey(
       return {
         error:
           "Groq could not validate the key because its quota or rate limit was reached.",
+      };
+    }
+    if (error instanceof Groq.APIError && error.status) {
+      return {
+        error: `Groq rejected API key validation (${error.status}): ${error.message}`,
       };
     }
     return {
