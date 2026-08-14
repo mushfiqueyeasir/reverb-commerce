@@ -36,6 +36,140 @@ export async function loadAllPages<T>(
   }
 }
 
+interface AdvisorCatalogSearchItem {
+  title: string;
+  type: string | null;
+  price: number;
+  description: string;
+  categories: string[];
+  availableColors: string[];
+  availableSizes: string[];
+}
+
+const SEARCH_STOP_WORDS = new Set([
+  "a",
+  "an",
+  "and",
+  "available",
+  "best",
+  "can",
+  "find",
+  "for",
+  "give",
+  "help",
+  "i",
+  "in",
+  "is",
+  "item",
+  "me",
+  "of",
+  "one",
+  "please",
+  "product",
+  "recommend",
+  "show",
+  "some",
+  "the",
+  "to",
+  "want",
+  "with",
+]);
+
+function searchTerms(query: string): string[] {
+  return [
+    ...new Set(
+      (query.toLocaleLowerCase().match(/[\p{L}\p{N}]+/gu) ?? []).filter(
+        (term) => term.length > 1 && !SEARCH_STOP_WORDS.has(term),
+      ),
+    ),
+  ];
+}
+
+function textScore(text: string, terms: string[]): number {
+  const normalized = text.toLocaleLowerCase();
+  return terms.reduce(
+    (score, term) => score + (normalized.includes(term) ? 1 : 0),
+    0,
+  );
+}
+
+function rankByRelevance<T>(
+  items: readonly T[],
+  query: string,
+  searchableText: (item: T) => string,
+  limit: number,
+): T[] {
+  const terms = searchTerms(query);
+  if (terms.length === 0) return items.slice(0, limit);
+  return items
+    .map((item, index) => ({
+      item,
+      index,
+      score: textScore(searchableText(item), terms),
+    }))
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .slice(0, limit)
+    .map(({ item }) => item);
+}
+
+export function extractMaximumPrice(query: string): number | null {
+  const match = query
+    .replaceAll(",", "")
+    .match(
+      /(?:under|below|within|up to|max(?:imum)?|budget(?: of| is)?)\D{0,12}(\d+(?:\.\d+)?)/i,
+    );
+  if (!match) return null;
+  const value = Number(match[1]);
+  return Number.isFinite(value) && value >= 0 ? value : null;
+}
+
+export function selectRelevantCatalog<T extends AdvisorCatalogSearchItem>(
+  catalog: readonly T[],
+  query: string,
+  limit = 8,
+): T[] {
+  const budget = extractMaximumPrice(query);
+  const candidates =
+    budget === null ? catalog : catalog.filter((item) => item.price <= budget);
+  return rankByRelevance(
+    candidates,
+    query,
+    (item) =>
+      [
+        item.title,
+        item.title,
+        item.title,
+        item.type,
+        ...item.categories,
+        ...item.categories,
+        ...item.availableColors,
+        ...item.availableSizes,
+        item.description,
+      ]
+        .filter(Boolean)
+        .join(" "),
+    limit,
+  );
+}
+
+export function selectRelevantKnowledge(
+  documents: readonly WebsiteKnowledgeDocument[],
+  query: string,
+  limit = 2,
+  contentLimit = 700,
+): WebsiteKnowledgeDocument[] {
+  return rankByRelevance(
+    documents,
+    query,
+    (document) =>
+      `${document.title} ${document.title} ${document.sourceType} ${document.content}`,
+    limit,
+  ).map((document) => ({
+    ...document,
+    content: document.content.slice(0, contentLimit),
+  }));
+}
+
 export function buildAdvisorSystemPrompt({
   storeName,
   catalog,

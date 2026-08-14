@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   buildAdvisorSystemPrompt,
+  extractMaximumPrice,
   loadAllPages,
   parseAdvisorMessages,
   parseModelAdvisorResponse,
   productDescriptionText,
+  selectRelevantCatalog,
+  selectRelevantKnowledge,
   type WebsiteKnowledgeDocument,
 } from "@/lib/aiAdvisor";
+import { requestAdvisorEmbedding } from "@/lib/aiAdvisorEmbeddings";
 import { productImageUrl } from "@/utility/imageUrl";
 import { getAboutSections } from "@/utility/getAboutSections";
 import { getBanners } from "@/utility/getBanners";
@@ -69,25 +74,81 @@ interface CatalogRow {
   }[];
 }
 
+const CATALOG_SELECT = `
+  id, title, slug, original_price, current_price, description, product_type,
+  product_images ( path, is_main, sort ),
+  product_variants ( size, color, stock_quantity ),
+  product_categories ( categories ( name, slug ) )
+`;
+
 async function getCatalogRows(): Promise<CatalogRow[]> {
   const supabase = await createSupabaseServerClient();
   return loadAllPages<CatalogRow>(async (from, to) => {
     const { data, error } = await supabase
       .from("products")
-      .select(
-        `
-          id, title, slug, original_price, current_price, description, product_type,
-          product_images ( path, is_main, sort ),
-          product_variants ( size, color, stock_quantity ),
-          product_categories ( categories ( name, slug ) )
-        `,
-      )
+      .select(CATALOG_SELECT)
       .eq("status", "active")
       .order("id", { ascending: true })
       .range(from, to);
     if (error) throw error;
     return (data as unknown as CatalogRow[]) ?? [];
   }, CATALOG_PAGE_SIZE);
+}
+
+async function getCatalogRowsById(productIds: string[]): Promise<CatalogRow[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select(CATALOG_SELECT)
+    .eq("status", "active")
+    .in("id", productIds);
+  if (error) throw error;
+  const rows = (data as unknown as CatalogRow[]) ?? [];
+  const position = new Map(
+    productIds.map((productId, index) => [productId, index]),
+  );
+  return rows.sort(
+    (a, b) =>
+      (position.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+      (position.get(b.id) ?? Number.MAX_SAFE_INTEGER),
+  );
+}
+
+async function getAdvisorCatalogRows(
+  shopperContext: string,
+  apiKey: string,
+): Promise<{ rows: CatalogRow[]; semantic: boolean }> {
+  try {
+    const queryEmbedding = await requestAdvisorEmbedding(
+      shopperContext,
+      apiKey,
+    );
+    const supabase = createSupabaseAdminClient();
+    const { data, error } = await supabase.rpc("match_product_embeddings", {
+      p_query_embedding: queryEmbedding,
+      p_max_price: extractMaximumPrice(shopperContext),
+      p_match_count: 12,
+    });
+    if (error)
+      throw new Error(`Semantic product search failed (${error.code}).`);
+    const productIds = Array.isArray(data)
+      ? data.flatMap((item) => {
+          const productId = (item as { product_id?: unknown }).product_id;
+          return typeof productId === "string" ? [productId] : [];
+        })
+      : [];
+    if (productIds.length > 0) {
+      return { rows: await getCatalogRowsById(productIds), semantic: true };
+    }
+  } catch (error) {
+    process.stderr.write(
+      `${JSON.stringify({
+        event: "AI advisor semantic fallback",
+        message: error instanceof Error ? error.message : "Unknown error",
+      })}\n`,
+    );
+  }
+  return { rows: await getCatalogRows(), semantic: false };
 }
 
 const RESPONSE_SCHEMA = {
@@ -373,8 +434,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const shopperContext = messages
+      .filter((message) => message.role === "user")
+      .slice(-3)
+      .map((message) => message.content)
+      .join(" ");
     const [
-      catalogRows,
+      catalogResult,
       settings,
       terms,
       privacy,
@@ -386,7 +452,7 @@ export async function POST(request: NextRequest) {
       promotions,
       reviews,
     ] = await Promise.all([
-      getCatalogRows(),
+      getAdvisorCatalogRows(shopperContext, apiKey),
       getSiteSettings(),
       getContentPage("terms"),
       getContentPage("privacy"),
@@ -401,7 +467,7 @@ export async function POST(request: NextRequest) {
       getReviews().catch(() => []),
     ]);
 
-    const rows = catalogRows.filter((product) =>
+    const rows = catalogResult.rows.filter((product) =>
       product.product_variants.some((variant) => variant.stock_quantity > 0),
     );
     const storeName = settings.store_name.trim() || "the store";
@@ -445,7 +511,7 @@ export async function POST(request: NextRequest) {
         title: product.title,
         type: product.product_type,
         price: Number(product.current_price),
-        description: productDescriptionText(product.description),
+        description: productDescriptionText(product.description, 220),
         categories: uniqueValues(
           product.product_categories.map((row) => row.categories?.name ?? null),
         ),
@@ -462,49 +528,81 @@ export async function POST(request: NextRequest) {
       };
     });
 
+    const promptCatalog = catalogResult.semantic
+      ? catalog.slice(0, 8)
+      : selectRelevantCatalog(catalog, shopperContext);
+    const promptKnowledge = selectRelevantKnowledge(
+      websiteKnowledge,
+      shopperContext,
+    );
     const priorAssistantTurns = messages.filter(
       (message) => message.role === "assistant",
     ).length;
     const systemPrompt = buildAdvisorSystemPrompt({
       storeName,
-      catalog,
-      websiteKnowledge,
+      catalog: promptCatalog,
+      websiteKnowledge: promptKnowledge,
       priorAssistantTurns,
     });
 
-    const openRouterResponse = await fetch(OPENROUTER_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": process.env.SITE_URL?.trim() || request.nextUrl.origin,
-        "X-OpenRouter-Title": `${storeName} Shopping Assistant`,
-      },
-      body: JSON.stringify({
-        model: config.openRouter.model,
-        messages: [{ role: "system", content: systemPrompt }, ...messages],
-        temperature: 0.55,
-        top_p: 0.9,
-        max_tokens: 700,
-        provider: {
-          require_parameters: true,
-          data_collection: "deny",
+    const requestCompletion = (model: string, timeoutMs = 20_000) =>
+      fetch(OPENROUTER_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer":
+            process.env.SITE_URL?.trim() || request.nextUrl.origin,
+          "X-OpenRouter-Title": `${storeName} Shopping Assistant`,
         },
-        plugins: [{ id: "response-healing" }],
-        response_format: {
-          type: "json_schema",
-          json_schema: {
-            name: "shopping_advisor_response",
-            strict: true,
-            schema: RESPONSE_SCHEMA,
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "system", content: systemPrompt }, ...messages],
+          temperature: 0.55,
+          top_p: 0.9,
+          max_tokens: 350,
+          provider: {
+            require_parameters: true,
+            data_collection: "deny",
           },
-        },
-      }),
-      signal: AbortSignal.timeout(20_000),
-      cache: "no-store",
-    });
+          plugins: [{ id: "response-healing" }],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "shopping_advisor_response",
+              strict: true,
+              schema: RESPONSE_SCHEMA,
+            },
+          },
+        }),
+        signal: AbortSignal.timeout(timeoutMs),
+        cache: "no-store",
+      });
+    let openRouterResponse = await requestCompletion(config.openRouter.model);
+    if (openRouterResponse.status === 402) {
+      process.stderr.write(
+        `${JSON.stringify({
+          event: "OpenRouter advisor free-model fallback",
+          model: config.openRouter.model,
+        })}\n`,
+      );
+      openRouterResponse = await requestCompletion("openrouter/free", 45_000);
+    }
 
     if (!openRouterResponse.ok) {
+      const providerError = (await openRouterResponse
+        .json()
+        .catch(() => null)) as {
+        error?: { code?: string | number; message?: string };
+      } | null;
+      process.stderr.write(
+        `${JSON.stringify({
+          event: "OpenRouter advisor request failed",
+          status: openRouterResponse.status,
+          code: providerError?.error?.code ?? null,
+          message: providerError?.error?.message ?? null,
+        })}\n`,
+      );
       return NextResponse.json(
         {
           error:

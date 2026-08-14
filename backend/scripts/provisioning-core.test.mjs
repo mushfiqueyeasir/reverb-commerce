@@ -482,3 +482,58 @@ test("courier settings save supports service role and no active provider", () =>
     /grant execute on function public\.save_courier_settings\(jsonb, text\) to service_role/,
   );
 });
+
+test("defines private exact product semantic search", () => {
+  const migration = readFileSync(
+    join(
+      import.meta.dirname,
+      "..",
+      "supabase",
+      "migrations",
+      "0035_ai_advisor_product_embeddings.sql",
+    ),
+    "utf8",
+  );
+  const productTrigger = migration.match(
+    /create trigger trg_invalidate_product_embedding_from_product[\s\S]*?;/,
+  )?.[0];
+  const variantTrigger = migration.match(
+    /create trigger trg_invalidate_product_embedding_from_variant[\s\S]*?;/,
+  )?.[0];
+
+  assert.match(migration, /create extension if not exists vector with schema extensions/);
+  assert.match(migration, /embedding extensions\.vector\(2048\) not null/);
+  assert.match(migration, /alter table public\.product_embeddings enable row level security/);
+  assert.doesNotMatch(migration, /create policy/);
+  assert.match(
+    productTrigger,
+    /update of title, description, product_type, sizing_mode, size_chart/,
+  );
+  assert.doesNotMatch(productTrigger, /price|stock|image/);
+  assert.match(variantTrigger, /update of product_id, size, color/);
+  assert.doesNotMatch(variantTrigger, /price|stock|image/);
+  assert.match(migration, /after update of name, description on public\.categories/);
+  assert.match(migration, /after insert or update or delete on public\.product_categories/);
+  assert.match(migration, /where product\.status = 'active'[\s\S]*?not exists/);
+  assert.match(migration, /product_embedding\.content_hash = md5\(source\.document\)/);
+  assert.match(migration, /p_source_document is distinct from current_source/);
+  assert.match(migration, /variant\.stock_quantity > 0/);
+  assert.match(migration, /product\.current_price <= p_max_price/);
+  assert.match(migration, /embedding <=> p_query_embedding/);
+  assert.match(migration, /set enable_indexscan = off/);
+  assert.match(migration, /least\(greatest\(coalesce\(p_match_count, 10\), 1\), 50\)/);
+  for (const signature of [
+    "get_product_embedding_sources\\(integer\\)",
+    "store_product_embedding\\(uuid, extensions\\.vector, text, text\\)",
+    "match_product_embeddings\\(extensions\\.vector, numeric, integer\\)",
+  ]) {
+    assert.match(
+      migration,
+      new RegExp(`revoke all on function public\\.${signature} from public`),
+    );
+    assert.match(
+      migration,
+      new RegExp(`grant execute on function public\\.${signature} to service_role`),
+    );
+  }
+});

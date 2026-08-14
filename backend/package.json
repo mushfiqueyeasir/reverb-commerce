@@ -20,6 +20,7 @@
     "client:env:backup": "node scripts/build-client-env-backup.mjs",
     "client:cleanup:list": "node scripts/list-cleanup-clients.mjs",
     "fleet:status": "node scripts/fleet-status.mjs",
+    "embeddings:sync": "node scripts/sync-product-embeddings.mjs",
     "cleanup:assets": "node scripts/cleanup-unused-assets.mjs",
     "cleanup:assets:dry": "node scripts/cleanup-unused-assets.mjs --dry-run"
   },

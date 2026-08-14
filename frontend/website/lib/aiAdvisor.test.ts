@@ -1,11 +1,56 @@
 import { describe, expect, it } from "vitest";
 import {
+  AI_ADVISOR_EMBEDDING_DIMENSIONS,
+  AI_ADVISOR_EMBEDDING_MODEL,
+  OPENROUTER_EMBEDDINGS_URL,
+  parseAdvisorEmbedding,
+  requestAdvisorEmbedding,
+} from "./aiAdvisorEmbeddings";
+import {
   buildAdvisorSystemPrompt,
   loadAllPages,
   parseAdvisorMessages,
   parseModelAdvisorResponse,
   productDescriptionText,
+  selectRelevantCatalog,
+  selectRelevantKnowledge,
 } from "./aiAdvisor";
+
+describe("AI advisor embeddings", () => {
+  const embedding = Array.from(
+    { length: AI_ADVISOR_EMBEDDING_DIMENSIONS },
+    () => 0.25,
+  );
+
+  it("validates the configured embedding dimensions", () => {
+    expect(parseAdvisorEmbedding({ data: [{ embedding }] })).toEqual(embedding);
+    expect(
+      parseAdvisorEmbedding({ data: [{ embedding: embedding.slice(1) }] }),
+    ).toBeNull();
+  });
+
+  it("requests the configured OpenRouter embedding model", async () => {
+    let request: { url: string; options?: RequestInit } | undefined;
+    const result = await requestAdvisorEmbedding(
+      "red skincare for sensitive skin",
+      "test-key",
+      (async (url, options) => {
+        request = { url: String(url), options };
+        return {
+          ok: true,
+          json: async () => ({ data: [{ embedding }] }),
+        } as Response;
+      }) as typeof fetch,
+    );
+
+    expect(result).toEqual(embedding);
+    expect(request?.url).toBe(OPENROUTER_EMBEDDINGS_URL);
+    expect(JSON.parse(String(request?.options?.body))).toEqual({
+      model: AI_ADVISOR_EMBEDDING_MODEL,
+      input: "red skincare for sensitive skin",
+    });
+  });
+});
 
 describe("AI advisor sales prompt", () => {
   it("sets a natural, truthful sales style with a limited discovery phase", () => {
@@ -89,6 +134,67 @@ describe("AI advisor catalog pagination", () => {
       [0, 1],
       [2, 3],
       [4, 5],
+    ]);
+  });
+});
+
+describe("AI advisor catalog retrieval", () => {
+  const catalog = Array.from({ length: 10 }, (_, index) => ({
+    id: String(index),
+    title: index === 9 ? "Red Silk Kimono" : `Everyday Item ${index}`,
+    type: index === 9 ? "kimono" : "accessory",
+    price: index === 9 ? 1800 : 2500 + index,
+    description: index === 9 ? "Lightweight red occasion wear" : "Daily use",
+    categories: index === 9 ? ["Clothing"] : ["Accessories"],
+    availableColors: index === 9 ? ["Red"] : ["Black"],
+    availableSizes: ["M"],
+  }));
+
+  it("ranks matches from the full catalog before applying the prompt limit", () => {
+    const selected = selectRelevantCatalog(catalog, "red kimono", 3);
+
+    expect(selected).toHaveLength(3);
+    expect(selected[0].id).toBe("9");
+  });
+
+  it("honors a shopper's maximum budget", () => {
+    const selected = selectRelevantCatalog(catalog, "under 2000", 3);
+
+    expect(selected.map((item) => item.id)).toEqual(["9"]);
+    expect(selectRelevantCatalog(catalog, "under 1000", 3)).toEqual([]);
+  });
+
+  it("ranks and compacts website knowledge", () => {
+    const selected = selectRelevantKnowledge(
+      [
+        {
+          id: "delivery",
+          title: "Delivery charges",
+          href: "/checkout",
+          sourceType: "delivery",
+          content: "Delivery details ".repeat(100),
+        },
+        {
+          id: "returns",
+          title: "Return policy",
+          href: "/refund-policy",
+          sourceType: "policy",
+          content: "Returns are accepted within seven days.",
+        },
+      ],
+      "Can I return an item?",
+      1,
+      40,
+    );
+
+    expect(selected).toEqual([
+      {
+        id: "returns",
+        title: "Return policy",
+        href: "/refund-policy",
+        sourceType: "policy",
+        content: "Returns are accepted within seven days.",
+      },
     ]);
   });
 });
