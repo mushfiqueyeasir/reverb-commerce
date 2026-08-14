@@ -184,6 +184,9 @@ export async function validateAiSearchApiKey(
               "AIHubMix could not validate the key because its rate limit was reached.",
           };
         }
+        if (/cannot be routed at the moment/i.test(providerMessage ?? "")) {
+          return {};
+        }
         return {
           error: providerMessage
             ? `AIHubMix rejected validation: ${providerMessage.replace(/\s+/g, " ").slice(0, 300)}`
