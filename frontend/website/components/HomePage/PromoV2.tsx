@@ -79,8 +79,8 @@ export default function PromoV2({
 
             {promotion.imageUrl ? (
               <motion.div
-                className="absolute inset-y-0 right-0 w-[74%] overflow-hidden [-webkit-mask-image:linear-gradient(to_right,transparent_0%,black_28%,black_100%)] [mask-image:linear-gradient(to_right,transparent_0%,black_28%,black_100%)] sm:w-[70%] lg:w-[64%]"
-                initial={reduceMotion ? false : { opacity: 0, scale: 1.06 }}
+                className="absolute inset-0 overflow-hidden"
+                initial={reduceMotion ? false : { opacity: 0, scale: 1.04 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{
@@ -93,7 +93,7 @@ export default function PromoV2({
                   animate={
                     reduceMotion
                       ? undefined
-                      : { x: [0, 8, 0], scale: [1, 1.025, 1] }
+                      : { x: [0, 8, 0], scale: [1, 1.02, 1] }
                   }
                   transition={{
                     duration: 9,
@@ -105,14 +105,14 @@ export default function PromoV2({
                     src={promotion.imageUrl}
                     alt=""
                     fill
-                    sizes="(max-width: 640px) 62vw, (max-width: 1024px) 58vw, 52vw"
-                    className="object-cover"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1600px) 94vw, 1500px"
+                    className="object-cover object-center lg:object-[62%_center]"
                   />
                   <div
                     className="absolute inset-0"
                     style={{
                       background:
-                        "linear-gradient(90deg, var(--surface) 0%, var(--surface) 42%, color-mix(in srgb, var(--surface) 88%, transparent) 58%, color-mix(in srgb, var(--surface) 28%, transparent) 100%), linear-gradient(0deg, color-mix(in srgb, var(--surface) 85%, transparent), transparent 65%)",
+                        "linear-gradient(90deg, color-mix(in srgb, var(--surface) 88%, transparent) 0%, color-mix(in srgb, var(--surface) 68%, transparent) 28%, color-mix(in srgb, var(--surface) 22%, transparent) 58%, color-mix(in srgb, var(--surface) 6%, transparent) 100%), linear-gradient(0deg, color-mix(in srgb, var(--surface) 52%, transparent) 0%, transparent 42%, color-mix(in srgb, var(--surface) 14%, transparent) 100%)",
                     }}
                     aria-hidden="true"
                   />
