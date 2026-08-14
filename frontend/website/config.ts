@@ -4,7 +4,7 @@ import "server-only";
 export const config = {
   openRouter: {
     apiKey: process.env.OPENROUTER_API_KEY?.trim() ?? "",
-    model: "google/gemini-2.5-flash",
+    model: "nvidia/nemotron-3-super-120b-a12b:free",
   },
 } as const;
 

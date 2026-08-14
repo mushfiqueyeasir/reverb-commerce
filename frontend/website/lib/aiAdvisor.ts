@@ -226,6 +226,66 @@ LIVE CATALOG JSON:
 ${JSON.stringify(catalog)}`;
 }
 
+export const AI_ADVISOR_PROMPT_TOKEN_BUDGET = 12_000;
+
+export function estimateAdvisorTokens(value: string): number {
+  return Math.ceil(value.length / 4);
+}
+
+export function buildBudgetedAdvisorContext<T>({
+  storeName,
+  catalog,
+  websiteKnowledge,
+  priorAssistantTurns,
+  messages,
+  tokenBudget = AI_ADVISOR_PROMPT_TOKEN_BUDGET,
+}: {
+  storeName: string;
+  catalog: readonly T[];
+  websiteKnowledge: readonly WebsiteKnowledgeDocument[];
+  priorAssistantTurns: number;
+  messages: readonly AiAdvisorMessage[];
+  tokenBudget?: number;
+}): {
+  catalog: T[];
+  websiteKnowledge: WebsiteKnowledgeDocument[];
+  systemPrompt: string;
+  estimatedTokens: number;
+} {
+  const selectedCatalog: T[] = [];
+  const selectedKnowledge: WebsiteKnowledgeDocument[] = [];
+  const conversationTokens = estimateAdvisorTokens(JSON.stringify(messages));
+  const buildPrompt = () =>
+    buildAdvisorSystemPrompt({
+      storeName,
+      catalog: selectedCatalog,
+      websiteKnowledge: selectedKnowledge,
+      priorAssistantTurns,
+    });
+  const fits = () =>
+    estimateAdvisorTokens(buildPrompt()) + conversationTokens <= tokenBudget;
+
+  for (const document of websiteKnowledge.slice(0, 6)) {
+    selectedKnowledge.push(document);
+    if (!fits()) selectedKnowledge.pop();
+  }
+  for (const product of catalog.slice(0, 48)) {
+    selectedCatalog.push(product);
+    if (!fits()) {
+      selectedCatalog.pop();
+      break;
+    }
+  }
+
+  const systemPrompt = buildPrompt();
+  return {
+    catalog: selectedCatalog,
+    websiteKnowledge: selectedKnowledge,
+    systemPrompt,
+    estimatedTokens: estimateAdvisorTokens(systemPrompt) + conversationTokens,
+  };
+}
+
 export function parseAdvisorMessages(
   value: unknown,
 ): AiAdvisorMessage[] | null {

@@ -1,13 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
-  AI_ADVISOR_EMBEDDING_DIMENSIONS,
-  AI_ADVISOR_EMBEDDING_MODEL,
-  OPENROUTER_EMBEDDINGS_URL,
-  parseAdvisorEmbedding,
-  requestAdvisorEmbedding,
-} from "./aiAdvisorEmbeddings";
-import {
   buildAdvisorSystemPrompt,
+  buildBudgetedAdvisorContext,
+  estimateAdvisorTokens,
   loadAllPages,
   parseAdvisorMessages,
   parseModelAdvisorResponse,
@@ -15,42 +10,6 @@ import {
   selectRelevantCatalog,
   selectRelevantKnowledge,
 } from "./aiAdvisor";
-
-describe("AI advisor embeddings", () => {
-  const embedding = Array.from(
-    { length: AI_ADVISOR_EMBEDDING_DIMENSIONS },
-    () => 0.25,
-  );
-
-  it("validates the configured embedding dimensions", () => {
-    expect(parseAdvisorEmbedding({ data: [{ embedding }] })).toEqual(embedding);
-    expect(
-      parseAdvisorEmbedding({ data: [{ embedding: embedding.slice(1) }] }),
-    ).toBeNull();
-  });
-
-  it("requests the configured OpenRouter embedding model", async () => {
-    let request: { url: string; options?: RequestInit } | undefined;
-    const result = await requestAdvisorEmbedding(
-      "red skincare for sensitive skin",
-      "test-key",
-      (async (url, options) => {
-        request = { url: String(url), options };
-        return {
-          ok: true,
-          json: async () => ({ data: [{ embedding }] }),
-        } as Response;
-      }) as typeof fetch,
-    );
-
-    expect(result).toEqual(embedding);
-    expect(request?.url).toBe(OPENROUTER_EMBEDDINGS_URL);
-    expect(JSON.parse(String(request?.options?.body))).toEqual({
-      model: AI_ADVISOR_EMBEDDING_MODEL,
-      input: "red skincare for sensitive skin",
-    });
-  });
-});
 
 describe("AI advisor sales prompt", () => {
   it("sets a natural, truthful sales style with a limited discovery phase", () => {
@@ -85,6 +44,35 @@ describe("AI advisor sales prompt", () => {
     });
 
     expect(prompt).toContain("at most 0 more clarification questions");
+  });
+});
+
+describe("AI advisor prompt budget", () => {
+  it("keeps ranked full-inventory context within the token budget", () => {
+    const catalog = Array.from({ length: 100 }, (_, index) => ({
+      id: String(index),
+      title: `Product ${index}`,
+      description: "Detailed product information ".repeat(30),
+    }));
+    const messages = [
+      { role: "user" as const, content: "Show me a suitable product" },
+    ];
+    const result = buildBudgetedAdvisorContext({
+      storeName: "Signal Store",
+      catalog,
+      websiteKnowledge: [],
+      priorAssistantTurns: 0,
+      messages,
+      tokenBudget: 3_000,
+    });
+
+    expect(result.estimatedTokens).toBeLessThanOrEqual(3_000);
+    expect(result.catalog.length).toBeGreaterThan(0);
+    expect(result.catalog.length).toBeLessThan(48);
+    expect(result.estimatedTokens).toBe(
+      estimateAdvisorTokens(result.systemPrompt) +
+        estimateAdvisorTokens(JSON.stringify(messages)),
+    );
   });
 });
 

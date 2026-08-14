@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
-  buildAdvisorSystemPrompt,
-  extractMaximumPrice,
+  buildBudgetedAdvisorContext,
   loadAllPages,
   parseAdvisorMessages,
   parseModelAdvisorResponse,
@@ -12,7 +10,6 @@ import {
   selectRelevantKnowledge,
   type WebsiteKnowledgeDocument,
 } from "@/lib/aiAdvisor";
-import { requestAdvisorEmbedding } from "@/lib/aiAdvisorEmbeddings";
 import { productImageUrl } from "@/utility/imageUrl";
 import { getAboutSections } from "@/utility/getAboutSections";
 import { getBanners } from "@/utility/getBanners";
@@ -80,62 +77,6 @@ async function getCatalogRows(): Promise<CatalogRow[]> {
     if (error) throw error;
     return (data as unknown as CatalogRow[]) ?? [];
   }, CATALOG_PAGE_SIZE);
-}
-
-async function getCatalogRowsById(productIds: string[]): Promise<CatalogRow[]> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from("products")
-    .select(CATALOG_SELECT)
-    .eq("status", "active")
-    .in("id", productIds);
-  if (error) throw error;
-  const rows = (data as unknown as CatalogRow[]) ?? [];
-  const position = new Map(
-    productIds.map((productId, index) => [productId, index]),
-  );
-  return rows.sort(
-    (a, b) =>
-      (position.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
-      (position.get(b.id) ?? Number.MAX_SAFE_INTEGER),
-  );
-}
-
-async function getAdvisorCatalogRows(
-  shopperContext: string,
-  apiKey: string,
-): Promise<{ rows: CatalogRow[]; semantic: boolean }> {
-  try {
-    const queryEmbedding = await requestAdvisorEmbedding(
-      shopperContext,
-      apiKey,
-    );
-    const supabase = createSupabaseAdminClient();
-    const { data, error } = await supabase.rpc("match_product_embeddings", {
-      p_query_embedding: queryEmbedding,
-      p_max_price: extractMaximumPrice(shopperContext),
-      p_match_count: 12,
-    });
-    if (error)
-      throw new Error(`Semantic product search failed (${error.code}).`);
-    const productIds = Array.isArray(data)
-      ? data.flatMap((item) => {
-          const productId = (item as { product_id?: unknown }).product_id;
-          return typeof productId === "string" ? [productId] : [];
-        })
-      : [];
-    if (productIds.length > 0) {
-      return { rows: await getCatalogRowsById(productIds), semantic: true };
-    }
-  } catch (error) {
-    process.stderr.write(
-      `${JSON.stringify({
-        event: "AI advisor semantic fallback",
-        message: error instanceof Error ? error.message : "Unknown error",
-      })}\n`,
-    );
-  }
-  return { rows: await getCatalogRows(), semantic: false };
 }
 
 const RESPONSE_SCHEMA = {
@@ -427,7 +368,7 @@ export async function POST(request: NextRequest) {
       .map((message) => message.content)
       .join(" ");
     const [
-      catalogResult,
+      catalogRows,
       settings,
       terms,
       privacy,
@@ -439,7 +380,7 @@ export async function POST(request: NextRequest) {
       promotions,
       reviews,
     ] = await Promise.all([
-      getAdvisorCatalogRows(shopperContext, apiKey),
+      getCatalogRows(),
       getSiteSettings(),
       getContentPage("terms"),
       getContentPage("privacy"),
@@ -454,7 +395,7 @@ export async function POST(request: NextRequest) {
       getReviews().catch(() => []),
     ]);
 
-    const rows = catalogResult.rows.filter((product) =>
+    const rows = catalogRows.filter((product) =>
       product.product_variants.some((variant) => variant.stock_quantity > 0),
     );
     const storeName = settings.store_name.trim() || "the store";
@@ -515,22 +456,29 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    const promptCatalog = catalogResult.semantic
-      ? catalog.slice(0, 8)
-      : selectRelevantCatalog(catalog, shopperContext);
-    const promptKnowledge = selectRelevantKnowledge(
+    const rankedCatalog = selectRelevantCatalog(
+      catalog,
+      shopperContext,
+      catalog.length,
+    );
+    const rankedKnowledge = selectRelevantKnowledge(
       websiteKnowledge,
       shopperContext,
+      8,
+      1_200,
     );
     const priorAssistantTurns = messages.filter(
       (message) => message.role === "assistant",
     ).length;
-    const systemPrompt = buildAdvisorSystemPrompt({
+    const promptContext = buildBudgetedAdvisorContext({
       storeName,
-      catalog: promptCatalog,
-      websiteKnowledge: promptKnowledge,
+      catalog: rankedCatalog,
+      websiteKnowledge: rankedKnowledge,
       priorAssistantTurns,
+      messages,
     });
+    const promptCatalog = promptContext.catalog;
+    const systemPrompt = promptContext.systemPrompt;
     const fallbackRecommendations = promptCatalog
       .slice(0, 3)
       .flatMap((item) => {
@@ -576,7 +524,7 @@ export async function POST(request: NextRequest) {
             sources: [],
           };
 
-    const requestCompletion = (model: string, timeoutMs = 20_000) =>
+    const requestCompletion = (model: string, timeoutMs = 60_000) =>
       fetch(OPENROUTER_URL, {
         method: "POST",
         headers: {
@@ -591,10 +539,9 @@ export async function POST(request: NextRequest) {
           messages: [{ role: "system", content: systemPrompt }, ...messages],
           temperature: 0.55,
           top_p: 0.9,
-          max_tokens: 280,
+          max_tokens: 700,
           provider: {
             require_parameters: true,
-            data_collection: "deny",
           },
           plugins: [{ id: "response-healing" }],
           response_format: {
@@ -612,18 +559,6 @@ export async function POST(request: NextRequest) {
     let openRouterResponse: Response;
     try {
       openRouterResponse = await requestCompletion(config.openRouter.model);
-      if (openRouterResponse.status === 402) {
-        process.stderr.write(
-          `${JSON.stringify({
-            event: "OpenRouter advisor free-model fallback",
-            model: config.openRouter.model,
-          })}\n`,
-        );
-        openRouterResponse = await requestCompletion(
-          "liquid/lfm-2.5-2.6b:free",
-          30_000,
-        );
-      }
     } catch (error) {
       process.stderr.write(
         `${JSON.stringify({
