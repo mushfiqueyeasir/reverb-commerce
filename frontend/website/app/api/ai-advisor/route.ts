@@ -36,10 +36,6 @@ const GEMINI_RESPONSE_SCHEMA = {
       type: "STRING",
       enum: ["answer", "clarifying", "recommendations", "no_match"],
     },
-    suggestedReplies: {
-      type: "ARRAY",
-      items: { type: "STRING" },
-    },
     recommendations: {
       type: "ARRAY",
       items: {
@@ -52,7 +48,7 @@ const GEMINI_RESPONSE_SCHEMA = {
       },
     },
   },
-  required: ["message", "status", "suggestedReplies", "recommendations"],
+  required: ["message", "status", "recommendations"],
 } as const;
 const OPENROUTER_RESPONSE_SCHEMA = {
   type: "object",
@@ -62,10 +58,6 @@ const OPENROUTER_RESPONSE_SCHEMA = {
     status: {
       type: "string",
       enum: ["answer", "clarifying", "recommendations", "no_match"],
-    },
-    suggestedReplies: {
-      type: "array",
-      items: { type: "string" },
     },
     recommendations: {
       type: "array",
@@ -80,7 +72,7 @@ const OPENROUTER_RESPONSE_SCHEMA = {
       },
     },
   },
-  required: ["message", "status", "suggestedReplies", "recommendations"],
+  required: ["message", "status", "recommendations"],
 } as const;
 
 interface CatalogRow {
@@ -273,6 +265,74 @@ async function callOpenrouter(
   };
 }
 
+async function callAihubmix(
+  apiKey: string,
+  systemPrompt: string,
+  messages: { role: "user" | "assistant"; content: string }[],
+): Promise<ProviderResult> {
+  const response = await fetch("https://aihubmix.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: config.aiSearch.models.aihubmix,
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...messages.map((message) => ({
+          role: message.role,
+          content: message.content,
+        })),
+      ],
+      max_tokens: 2048,
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "shopping_advisor_response",
+          strict: true,
+          schema: OPENROUTER_RESPONSE_SCHEMA,
+        },
+      },
+    }),
+    cache: "no-store",
+    signal: AbortSignal.timeout(45_000),
+  });
+
+  if (!response.ok) {
+    const providerError = (await response.json().catch(() => null)) as {
+      error?: { code?: string | number; message?: string };
+      message?: string;
+    } | null;
+    process.stderr.write(
+      `${JSON.stringify({
+        event: "AI Search provider request failed",
+        provider: "aihubmix",
+        status: response.status,
+        code: providerError?.error?.code ?? null,
+        message:
+          providerError?.error?.message ?? providerError?.message ?? null,
+      })}\n`,
+    );
+    throw new Error("AI provider request failed");
+  }
+
+  const completion = (await response.json()) as {
+    choices?: {
+      finish_reason?: string;
+      message?: { content?: unknown };
+    }[];
+  };
+  const choice = completion.choices?.[0];
+  return {
+    content:
+      typeof choice?.message?.content === "string"
+        ? choice.message.content
+        : null,
+    finishReason: choice?.finish_reason ?? null,
+  };
+}
+
 async function callGroq(
   apiKey: string,
   systemPrompt: string,
@@ -335,6 +395,9 @@ async function callProvider(
   }
   if (provider === "groq") {
     return callGroq(apiKey, systemPrompt, messages);
+  }
+  if (provider === "aihubmix") {
+    return callAihubmix(apiKey, systemPrompt, messages);
   }
   return callGemini(apiKey, systemPrompt, messages);
 }
@@ -450,7 +513,6 @@ export async function POST(request: NextRequest) {
     const response: AiAdvisorResponse = {
       message: modelResult.message,
       status: modelResult.status,
-      suggestedReplies: modelResult.suggestedReplies,
       recommendations,
     };
 

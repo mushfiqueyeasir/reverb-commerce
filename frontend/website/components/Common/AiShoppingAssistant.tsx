@@ -43,7 +43,6 @@ export default function AiShoppingAssistant({
 }) {
   const { format } = useCurrency();
   const [messages, setMessages] = useState<ConversationItem[]>([GREETING]);
-  const [suggestedReplies, setSuggestedReplies] = useState<string[]>(STARTERS);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
@@ -68,7 +67,6 @@ export default function AiShoppingAssistant({
     const nextMessages = [...messages, userMessage];
     setMessages(nextMessages);
     setInput("");
-    setSuggestedReplies([]);
     setPending(true);
 
     abortRef.current?.abort();
@@ -104,7 +102,6 @@ export default function AiShoppingAssistant({
           recommendations: payload.recommendations,
         },
       ]);
-      setSuggestedReplies(payload.suggestedReplies);
     } catch (requestError) {
       if (
         requestError instanceof DOMException &&
@@ -137,7 +134,6 @@ export default function AiShoppingAssistant({
   const restart = () => {
     abortRef.current?.abort();
     setMessages([GREETING]);
-    setSuggestedReplies(STARTERS);
     setInput("");
     setPending(false);
   };
@@ -267,20 +263,6 @@ export default function AiShoppingAssistant({
       </div>
 
       <footer className="shrink-0 border-t border-border/80 bg-background/80 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl sm:pb-5 sm:pt-4">
-        {hasStarted && suggestedReplies.length > 0 && !pending && (
-          <div className="mb-3 flex flex-wrap gap-2">
-            {suggestedReplies.map((reply) => (
-              <button
-                key={reply}
-                type="button"
-                onClick={() => void sendMessage(reply)}
-                className="max-w-full border border-border bg-card/40 px-3 py-2 text-left text-[11px] text-muted-foreground transition hover:border-primary hover:text-primary"
-              >
-                {reply}
-              </button>
-            ))}
-          </div>
-        )}
         <form
           onSubmit={submit}
           className="group flex items-end gap-3 border border-border bg-card/60 p-2 transition focus-within:border-primary focus-within:ring-glow sm:p-3"

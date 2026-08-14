@@ -6,8 +6,8 @@ e-commerce platform by Reverb Solution.
 ## Getting Started
 
 The storefront requires Supabase server configuration. Store administrators
-configure the AI shopping assistant with their own Gemini, OpenRouter, or Groq
-API key under **Settings → AI Search**. Provider keys are stored in private per-store
+configure the AI shopping assistant with their own Gemini, OpenRouter, Groq,
+or AIHubMix API key under **Settings → AI Search**. Provider keys are stored in private per-store
 settings and are never exposed to the storefront client.
 
 First, run the development server:

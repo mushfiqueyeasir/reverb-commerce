@@ -6,6 +6,7 @@ export const config = {
       gemini: "gemini-3.5-flash",
       openrouter: "nvidia/nemotron-3-super-120b-a12b:free",
       groq: "openai/gpt-oss-120b",
+      aihubmix: "gpt-5.5-free",
     },
   },
 } as const;

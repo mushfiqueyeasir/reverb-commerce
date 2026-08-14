@@ -3,7 +3,6 @@ import type { AiAdvisorMessage } from "@/type/aiAdvisorType";
 export interface ModelAdvisorResponse {
   message: string;
   status: "answer" | "clarifying" | "recommendations" | "no_match";
-  suggestedReplies: string[];
   recommendations: { productId: string; reason: string }[];
 }
 
@@ -203,7 +202,7 @@ export function buildAdvisorSystemPrompt({
   return `You are the shopping advisor for ${storeName}. Talk naturally in the visitor's language, including Bangla and Banglish. Understand what they need and recommend matching products from the active, in-stock inventory below. For beauty and skincare questions, use the customer's concern, skin or hair type, routine, sensitivities, and budget to identify suitable products. Use the overview to understand the whole active inventory, but recommend only exact products present in the relevant products list.
 
 Return a JSON object with this shape:
-{"message":"your response","status":"answer | clarifying | recommendations | no_match","suggestedReplies":["reply"],"recommendations":[{"productId":"exact relevant product ID","reason":"why it fits"}]}
+{"message":"your response","status":"answer | clarifying | recommendations | no_match","recommendations":[{"productId":"exact relevant product ID","reason":"why it fits"}]}
 
 WHOLE ACTIVE IN-STOCK INVENTORY OVERVIEW:
 ${JSON.stringify(inventoryOverview)}
@@ -318,13 +317,6 @@ export function parseModelAdvisorResponse(
     return null;
   }
 
-  const suggestedReplies = Array.isArray(result.suggestedReplies)
-    ? result.suggestedReplies
-        .filter((reply): reply is string => typeof reply === "string")
-        .map((reply) => reply.trim())
-        .filter(Boolean)
-    : [];
-
   const recommendations = Array.isArray(result.recommendations)
     ? result.recommendations.flatMap((item) => {
         if (!item || typeof item !== "object") return [];
@@ -341,5 +333,5 @@ export function parseModelAdvisorResponse(
       })
     : [];
 
-  return { message, status, suggestedReplies, recommendations };
+  return { message, status, recommendations };
 }

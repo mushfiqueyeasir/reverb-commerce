@@ -18,6 +18,7 @@ export interface AiSearchDraft extends AiSearchSettingsPublic {
   geminiApiKey: string;
   openrouterApiKey: string;
   groqApiKey: string;
+  aihubmixApiKey: string;
 }
 
 export function aiSearchDraftFromPublic(
@@ -28,6 +29,7 @@ export function aiSearchDraftFromPublic(
     geminiApiKey: "",
     openrouterApiKey: "",
     groqApiKey: "",
+    aihubmixApiKey: "",
   };
 }
 
@@ -85,6 +87,28 @@ function GroqIcon({ className }: { className?: string }) {
   );
 }
 
+function AihubmixIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="3" fill="currentColor" />
+      <circle cx="5" cy="7" r="2" fill="currentColor" />
+      <circle cx="19" cy="7" r="2" fill="currentColor" />
+      <circle cx="5" cy="17" r="2" fill="currentColor" />
+      <circle cx="19" cy="17" r="2" fill="currentColor" />
+      <path
+        d="m7 8 3 2m4 0 3-2m-7 6-3 2m7-2 3 2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+    </svg>
+  );
+}
+
 const PROVIDERS: {
   id: AiSearchProvider;
   label: string;
@@ -109,6 +133,12 @@ const PROVIDERS: {
     description: "Connect with a GroqCloud key",
     icon: GroqIcon,
   },
+  {
+    id: "aihubmix",
+    label: "AIHubMix",
+    description: "Connect with an AIHubMix key",
+    icon: AihubmixIcon,
+  },
 ];
 
 export function AiSearchSettings({
@@ -129,7 +159,9 @@ export function AiSearchSettings({
       ? value.openrouterApiKey
       : value.provider === "groq"
         ? value.groqApiKey
-        : value.geminiApiKey;
+        : value.provider === "aihubmix"
+          ? value.aihubmixApiKey
+          : value.geminiApiKey;
 
   const setApiKey = (nextApiKey: string) => {
     if (value.provider === "openrouter") {
@@ -138,6 +170,10 @@ export function AiSearchSettings({
     }
     if (value.provider === "groq") {
       onChange({ ...value, groqApiKey: nextApiKey });
+      return;
+    }
+    if (value.provider === "aihubmix") {
+      onChange({ ...value, aihubmixApiKey: nextApiKey });
       return;
     }
     onChange({ ...value, geminiApiKey: nextApiKey });
@@ -166,11 +202,14 @@ export function AiSearchSettings({
         geminiApiKey: "",
         openrouterApiKey: "",
         groqApiKey: "",
+        aihubmixApiKey: "",
         hasGeminiApiKey:
           value.hasGeminiApiKey || value.provider === "gemini",
         hasOpenrouterApiKey:
           value.hasOpenrouterApiKey || value.provider === "openrouter",
         hasGroqApiKey: value.hasGroqApiKey || value.provider === "groq",
+        hasAihubmixApiKey:
+          value.hasAihubmixApiKey || value.provider === "aihubmix",
       });
       toast.success(`${providerName} connected. AI Search is now enabled.`);
       router.refresh();
@@ -191,6 +230,7 @@ export function AiSearchSettings({
         geminiApiKey: "",
         openrouterApiKey: "",
         groqApiKey: "",
+        aihubmixApiKey: "",
       });
       toast.success("AI Search disabled");
       router.refresh();
@@ -200,8 +240,8 @@ export function AiSearchSettings({
   return (
     <div className="space-y-5">
       <p className="text-sm text-muted-foreground">
-        Connect Gemini, OpenRouter, or Groq with your own API key. The key is
-        validated before AI Search is enabled and remains server-side.
+        Connect Gemini, OpenRouter, Groq, or AIHubMix with your own API key. The
+        key is validated before AI Search is enabled and remains server-side.
       </p>
 
       {value.enabled ? (
@@ -244,7 +284,7 @@ export function AiSearchSettings({
       )}
 
       <FormField label={value.enabled ? "Change provider or key" : "Provider"}>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           {PROVIDERS.map((provider) => {
             const Icon = provider.icon;
             return (

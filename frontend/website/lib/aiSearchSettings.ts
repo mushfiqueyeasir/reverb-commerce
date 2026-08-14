@@ -4,7 +4,11 @@ import Groq from "groq-sdk";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { config } from "@/config";
 
-export type AiSearchProvider = "gemini" | "openrouter" | "groq";
+export type AiSearchProvider =
+  | "gemini"
+  | "openrouter"
+  | "groq"
+  | "aihubmix";
 
 export interface AiSearchSettings {
   enabled: boolean;
@@ -12,9 +16,11 @@ export interface AiSearchSettings {
   geminiApiKey: string | null;
   openrouterApiKey: string | null;
   groqApiKey: string | null;
+  aihubmixApiKey: string | null;
   hasGeminiApiKey: boolean;
   hasOpenrouterApiKey: boolean;
   hasGroqApiKey: boolean;
+  hasAihubmixApiKey: boolean;
 }
 
 export interface AiSearchSettingsPublic {
@@ -23,6 +29,7 @@ export interface AiSearchSettingsPublic {
   hasGeminiApiKey: boolean;
   hasOpenrouterApiKey: boolean;
   hasGroqApiKey: boolean;
+  hasAihubmixApiKey: boolean;
 }
 
 type AiSearchSettingsRow = {
@@ -31,6 +38,7 @@ type AiSearchSettingsRow = {
   gemini_api_key: string | null;
   openrouter_api_key: string | null;
   groq_api_key: string | null;
+  aihubmix_api_key: string | null;
 };
 
 export type SaveAiSearchSettingsInput = {
@@ -39,16 +47,24 @@ export type SaveAiSearchSettingsInput = {
   geminiApiKey: string | null;
   openrouterApiKey: string | null;
   groqApiKey: string | null;
+  aihubmixApiKey: string | null;
 };
 
 function providerName(provider: AiSearchProvider): string {
   if (provider === "openrouter") return "OpenRouter";
   if (provider === "groq") return "Groq";
+  if (provider === "aihubmix") return "AIHubMix";
   return "Gemini";
 }
 
 function normalizeProvider(provider: string): AiSearchProvider {
-  if (provider === "openrouter" || provider === "groq") return provider;
+  if (
+    provider === "openrouter" ||
+    provider === "groq" ||
+    provider === "aihubmix"
+  ) {
+    return provider;
+  }
   return "gemini";
 }
 
@@ -59,9 +75,11 @@ function emptySettings(): AiSearchSettings {
     geminiApiKey: null,
     openrouterApiKey: null,
     groqApiKey: null,
+    aihubmixApiKey: null,
     hasGeminiApiKey: false,
     hasOpenrouterApiKey: false,
     hasGroqApiKey: false,
+    hasAihubmixApiKey: false,
   };
 }
 
@@ -69,15 +87,18 @@ function mapRow(row: AiSearchSettingsRow): AiSearchSettings {
   const geminiApiKey = row.gemini_api_key?.trim() || null;
   const openrouterApiKey = row.openrouter_api_key?.trim() || null;
   const groqApiKey = row.groq_api_key?.trim() || null;
+  const aihubmixApiKey = row.aihubmix_api_key?.trim() || null;
   return {
     enabled: Boolean(row.enabled),
     provider: normalizeProvider(row.provider),
     geminiApiKey,
     openrouterApiKey,
     groqApiKey,
+    aihubmixApiKey,
     hasGeminiApiKey: Boolean(geminiApiKey),
     hasOpenrouterApiKey: Boolean(openrouterApiKey),
     hasGroqApiKey: Boolean(groqApiKey),
+    hasAihubmixApiKey: Boolean(aihubmixApiKey),
   };
 }
 
@@ -87,7 +108,7 @@ export async function getAiSearchSettings(): Promise<AiSearchSettings> {
     const { data, error } = await admin
       .from("ai_search_settings")
       .select(
-        "enabled, provider, gemini_api_key, openrouter_api_key, groq_api_key",
+        "enabled, provider, gemini_api_key, openrouter_api_key, groq_api_key, aihubmix_api_key",
       )
       .eq("id", 1)
       .maybeSingle();
@@ -107,12 +128,14 @@ export async function getAiSearchSettingsForAdmin(): Promise<AiSearchSettingsPub
     hasGeminiApiKey: settings.hasGeminiApiKey,
     hasOpenrouterApiKey: settings.hasOpenrouterApiKey,
     hasGroqApiKey: settings.hasGroqApiKey,
+    hasAihubmixApiKey: settings.hasAihubmixApiKey,
   };
 }
 
 export function getAiSearchApiKey(settings: AiSearchSettings): string | null {
   if (settings.provider === "openrouter") return settings.openrouterApiKey;
   if (settings.provider === "groq") return settings.groqApiKey;
+  if (settings.provider === "aihubmix") return settings.aihubmixApiKey;
   return settings.geminiApiKey;
 }
 
@@ -122,6 +145,44 @@ export async function validateAiSearchApiKey(
 ): Promise<{ error?: string }> {
   const name = providerName(provider);
   try {
+    if (provider === "aihubmix") {
+      const response = await fetch("https://aihubmix.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: config.aiSearch.models.aihubmix,
+          messages: [{ role: "user", content: "Reply with OK." }],
+          max_tokens: 16,
+        }),
+        cache: "no-store",
+        signal: AbortSignal.timeout(30_000),
+      });
+      if (response.status === 401) {
+        return { error: "The AIHubMix API key is invalid or expired." };
+      }
+      if (response.status === 403) {
+        return {
+          error:
+            "AIHubMix rejected the API key because of permissions or account balance.",
+        };
+      }
+      if (response.status === 429) {
+        return {
+          error:
+            "AIHubMix could not validate the key because its rate limit was reached.",
+        };
+      }
+      if (!response.ok) {
+        return {
+          error: `AIHubMix could not validate this API key or model access (${response.status}).`,
+        };
+      }
+      return {};
+    }
+
     if (provider === "groq") {
       const groq = new Groq({ apiKey, timeout: 15_000, maxRetries: 0 });
       const models = await groq.models.list();
@@ -195,7 +256,9 @@ export async function saveAiSearchSettingsRow(
   const admin = createSupabaseAdminClient();
   const { data: current } = await admin
     .from("ai_search_settings")
-    .select("gemini_api_key, openrouter_api_key, groq_api_key")
+    .select(
+      "gemini_api_key, openrouter_api_key, groq_api_key, aihubmix_api_key",
+    )
     .eq("id", 1)
     .maybeSingle();
 
@@ -205,16 +268,22 @@ export async function saveAiSearchSettingsRow(
     ((current?.openrouter_api_key as string | null) ?? "").trim() || null;
   const existingGroqKey =
     ((current?.groq_api_key as string | null) ?? "").trim() || null;
+  const existingAihubmixKey =
+    ((current?.aihubmix_api_key as string | null) ?? "").trim() || null;
   const geminiApiKey = input.geminiApiKey?.trim() || existingGeminiKey;
   const openrouterApiKey =
     input.openrouterApiKey?.trim() || existingOpenrouterKey;
   const groqApiKey = input.groqApiKey?.trim() || existingGroqKey;
+  const aihubmixApiKey =
+    input.aihubmixApiKey?.trim() || existingAihubmixKey;
   const selectedApiKey =
     input.provider === "openrouter"
       ? openrouterApiKey
       : input.provider === "groq"
         ? groqApiKey
-        : geminiApiKey;
+        : input.provider === "aihubmix"
+          ? aihubmixApiKey
+          : geminiApiKey;
 
   if (input.enabled && !selectedApiKey) {
     return {
@@ -230,6 +299,7 @@ export async function saveAiSearchSettingsRow(
       gemini_api_key: geminiApiKey,
       openrouter_api_key: openrouterApiKey,
       groq_api_key: groqApiKey,
+      aihubmix_api_key: aihubmixApiKey,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "id" },

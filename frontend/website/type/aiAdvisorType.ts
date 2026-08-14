@@ -20,6 +20,5 @@ export interface AiAdvisorRecommendation {
 export interface AiAdvisorResponse {
   message: string;
   status: "answer" | "clarifying" | "recommendations" | "no_match";
-  suggestedReplies: string[];
   recommendations: AiAdvisorRecommendation[];
 }

@@ -154,7 +154,6 @@ describe("AI advisor model response", () => {
       JSON.stringify({
         message: "These products fit.",
         status: "recommendations",
-        suggestedReplies: ["One", "Two", "Three", "Four", "Five"],
         recommendations,
       }),
     );
@@ -162,7 +161,6 @@ describe("AI advisor model response", () => {
     expect(result).toEqual({
       message: "These products fit.",
       status: "recommendations",
-      suggestedReplies: ["One", "Two", "Three", "Four", "Five"],
       recommendations,
     });
   });
@@ -170,12 +168,11 @@ describe("AI advisor model response", () => {
   it("accepts fenced JSON returned by the model", () => {
     expect(
       parseModelAdvisorResponse(
-        '```json\n{"message":"Tell me your budget.","status":"clarifying","suggestedReplies":[],"recommendations":[]}\n```',
+        '```json\n{"message":"Tell me your budget.","status":"clarifying","recommendations":[]}\n```',
       ),
     ).toEqual({
       message: "Tell me your budget.",
       status: "clarifying",
-      suggestedReplies: [],
       recommendations: [],
     });
   });
