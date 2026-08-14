@@ -16,7 +16,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+const AI_STUDIO_URL = `https://generativelanguage.googleapis.com/v1beta/models/${config.aiStudio.model}:generateContent`;
 const CATALOG_PAGE_SIZE = 500;
 
 interface CatalogRow {
@@ -71,7 +71,7 @@ function uniqueValues(values: (string | null)[]): string[] {
 
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = config.openRouter.apiKey;
+    const apiKey = config.aiStudio.apiKey;
     if (!apiKey) {
       return NextResponse.json(
         { error: "The shopping advisor is not configured." },
@@ -144,33 +144,40 @@ export async function POST(request: NextRequest) {
       storeName: request.nextUrl.hostname,
       catalog: rankedCatalog,
     });
-    const openRouterResponse = await fetch(OPENROUTER_URL, {
+    const aiStudioResponse = await fetch(AI_STUDIO_URL, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": process.env.SITE_URL?.trim() || request.nextUrl.origin,
-        "X-OpenRouter-Title": `${request.nextUrl.hostname} Shopping Advisor`,
+        "X-goog-api-key": apiKey,
       },
       body: JSON.stringify({
-        model: config.openRouter.model,
-        messages: [{ role: "system", content: systemPrompt }, ...messages],
-        max_tokens: 280,
+        systemInstruction: {
+          parts: [{ text: systemPrompt }],
+        },
+        contents: messages.map((message) => ({
+          role: message.role === "assistant" ? "model" : "user",
+          parts: [{ text: message.content }],
+        })),
+        generationConfig: {
+          maxOutputTokens: 1024,
+          responseMimeType: "application/json",
+        },
       }),
       cache: "no-store",
     });
 
-    if (!openRouterResponse.ok) {
-      const providerError = (await openRouterResponse
+    if (!aiStudioResponse.ok) {
+      const providerError = (await aiStudioResponse
         .json()
         .catch(() => null)) as {
-        error?: { code?: string | number; message?: string };
+        error?: { code?: string | number; status?: string; message?: string };
       } | null;
       process.stderr.write(
         `${JSON.stringify({
-          event: "OpenRouter advisor request failed",
-          status: openRouterResponse.status,
+          event: "AI Studio advisor request failed",
+          status: aiStudioResponse.status,
           code: providerError?.error?.code ?? null,
+          providerStatus: providerError?.error?.status ?? null,
           message: providerError?.error?.message ?? null,
         })}\n`,
       );
@@ -180,12 +187,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const completion = (await openRouterResponse.json()) as {
-      choices?: { message?: { content?: unknown } }[];
+    const completion = (await aiStudioResponse.json()) as {
+      candidates?: { content?: { parts?: { text?: unknown }[] } }[];
     };
-    const modelResult = parseModelAdvisorResponse(
-      completion.choices?.[0]?.message?.content,
-    );
+    const modelContent = completion.candidates?.[0]?.content?.parts
+      ?.map((part) => part.text)
+      .filter((text): text is string => typeof text === "string")
+      .join("");
+    const modelResult = parseModelAdvisorResponse(modelContent);
     if (!modelResult) {
       return NextResponse.json(
         { error: "The shopping advisor returned an invalid response." },

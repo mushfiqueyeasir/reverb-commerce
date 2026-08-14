@@ -1,11 +1,9 @@
 import "server-only";
 
-/** Server-only configuration. Never import this module into a client component. */
 export const config = {
-  openRouter: {
-    apiKey:
-      "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",
-    model: "google/gemini-2.5-flash",
+  aiStudio: {
+    apiKey: "AQ.Ab8RN6Kr93ifaaGCSObe92lzF9bw-mlyfaUzUXVy1f_l2xZLqA",
+    model: "gemini-3.5-flash",
   },
 } as const;
 
