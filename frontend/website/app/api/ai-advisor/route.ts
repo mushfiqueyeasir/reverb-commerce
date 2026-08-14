@@ -25,6 +25,9 @@ export const fetchCache = "force-no-store";
 
 const CATALOG_PAGE_SIZE = 500;
 const RELEVANT_PRODUCT_LIMIT = 64;
+const GROQ_RELEVANT_PRODUCT_LIMIT = 16;
+const PRODUCT_DESCRIPTION_LIMIT = 400;
+const GROQ_PRODUCT_DESCRIPTION_LIMIT = 180;
 const GEMINI_RESPONSE_SCHEMA = {
   type: "OBJECT",
   properties: {
@@ -276,20 +279,21 @@ async function callGroq(
   messages: { role: "user" | "assistant"; content: string }[],
 ): Promise<ProviderResult> {
   const groq = new Groq({ apiKey, timeout: 45_000, maxRetries: 0 });
+  const recentMessages = messages.slice(-8);
   try {
     const completion = await groq.chat.completions.create({
       model: config.aiSearch.models.groq,
       messages: [
         { role: "system", content: systemPrompt },
-        ...messages.map((message) => ({
+        ...recentMessages.map((message) => ({
           role: message.role,
           content: message.content,
         })),
       ],
-      max_completion_tokens: 4096,
+      max_completion_tokens: 1024,
       temperature: 1,
       top_p: 1,
-      reasoning_effort: "medium",
+      reasoning_effort: "low",
       response_format: {
         type: "json_schema",
         json_schema: {
@@ -379,7 +383,12 @@ export async function POST(request: NextRequest) {
         title: product.title,
         type: product.product_type,
         price: Number(product.current_price),
-        description: productDescriptionText(product.description, 400),
+        description: productDescriptionText(
+          product.description,
+          aiSearchSettings.provider === "groq"
+            ? GROQ_PRODUCT_DESCRIPTION_LIMIT
+            : PRODUCT_DESCRIPTION_LIMIT,
+        ),
         categories: uniqueValues(
           product.product_categories.map((row) => row.categories?.name ?? null),
         ),
@@ -403,7 +412,9 @@ export async function POST(request: NextRequest) {
     const rankedCatalog = selectRelevantCatalog(
       catalog,
       shopperContext,
-      RELEVANT_PRODUCT_LIMIT,
+      aiSearchSettings.provider === "groq"
+        ? GROQ_RELEVANT_PRODUCT_LIMIT
+        : RELEVANT_PRODUCT_LIMIT,
     );
     const systemPrompt = buildAdvisorSystemPrompt({
       storeName: request.nextUrl.hostname,
