@@ -77,9 +77,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!customerEmail || !isValidEmail(customerEmail)) {
+    if (customerEmail && !isValidEmail(customerEmail)) {
       return NextResponse.json(
-        { error: "A valid email address is required for order confirmation" },
+        { error: "Please enter a valid email address" },
         { status: 400 },
       );
     }

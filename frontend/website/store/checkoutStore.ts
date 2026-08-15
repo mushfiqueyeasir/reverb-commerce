@@ -10,6 +10,7 @@ export interface CheckoutFormData {
   address: string;
   city: string;
   postalCode: string;
+  phoneCode: string;
   phone: string;
   saveInfo: boolean;
   shippingMethod: "inside-dhaka" | "outside-dhaka";
@@ -35,6 +36,7 @@ interface SavedDeliveryInfo {
   address: string;
   city: string;
   postalCode: string;
+  phoneCode: string;
   phone: string;
 }
 
@@ -57,6 +59,7 @@ const defaultFormData: CheckoutFormData = {
   address: "",
   city: "",
   postalCode: "",
+  phoneCode: "+880",
   phone: "",
   saveInfo: false,
   shippingMethod: "inside-dhaka",
@@ -103,6 +106,7 @@ export const useCheckoutStore = create<CheckoutStore>()(
             address: formData.address,
             city: formData.city,
             postalCode: formData.postalCode,
+            phoneCode: formData.phoneCode,
             phone: formData.phone,
           };
           if (typeof window !== "undefined") {
@@ -124,6 +128,7 @@ export const useCheckoutStore = create<CheckoutStore>()(
                 formData: {
                   ...state.formData,
                   ...deliveryInfo,
+                  phoneCode: deliveryInfo.phoneCode || "+880",
                   saveInfo: true,
                 },
               }));

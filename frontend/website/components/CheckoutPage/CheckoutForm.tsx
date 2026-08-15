@@ -19,6 +19,19 @@ function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
+const PHONE_CODES = [
+  { value: "+880", label: "BD +880" },
+  { value: "+91", label: "IN +91" },
+  { value: "+1", label: "US +1" },
+  { value: "+44", label: "GB +44" },
+  { value: "+971", label: "AE +971" },
+  { value: "+966", label: "SA +966" },
+  { value: "+60", label: "MY +60" },
+  { value: "+65", label: "SG +65" },
+  { value: "+61", label: "AU +61" },
+  { value: "+49", label: "DE +49" },
+];
+
 export default function CheckoutForm({
   deliveryCharges,
   bkashEnabled = false,
@@ -61,7 +74,7 @@ export default function CheckoutForm({
   }, [bkashEnabled, formData.paymentMethod, updateFormData]);
 
   const handleCompleteOrder = async () => {
-    if (!formData.emailOrPhone || !isValidEmail(formData.emailOrPhone)) {
+    if (formData.emailOrPhone && !isValidEmail(formData.emailOrPhone)) {
       toast.error("Please enter a valid email address");
       return;
     }
@@ -96,6 +109,10 @@ export default function CheckoutForm({
         ? computePromoDiscount(subtotal, appliedPromo.percent)
         : 0;
       const total = Math.max(0, subtotal - discount) + shipping;
+      const fullPhone = `${formData.phoneCode}${formData.phone.replace(
+        /^0+/,
+        "",
+      )}`;
 
       const orderData = {
         delivery: {
@@ -105,7 +122,7 @@ export default function CheckoutForm({
           address: formData.address,
           city: formData.city,
           postalCode: formData.postalCode,
-          phone: formData.phone,
+          phone: fullPhone,
           email: formData.emailOrPhone.trim(),
           shippingMethod: formData.shippingMethod,
         },
@@ -148,7 +165,9 @@ export default function CheckoutForm({
 
       toast.success("Order placed successfully!", {
         description: result.orderNumber
-          ? `Order ${result.orderNumber} received. A confirmation email is on the way.`
+          ? formData.emailOrPhone.trim()
+            ? `Order ${result.orderNumber} received. A confirmation email is on the way.`
+            : `Order ${result.orderNumber} received.`
           : "Your order has been received and will be processed shortly.",
       });
       clearCart();
@@ -173,10 +192,14 @@ export default function CheckoutForm({
         <h2 className="font-display text-lg font-semibold">Contact</h2>
         <Input
           type="email"
-          placeholder="Email address"
+          label="Email (optional)"
+          placeholder="you@example.com"
           value={formData.emailOrPhone}
           onChange={(e) => updateFormData({ emailOrPhone: e.target.value })}
         />
+        <p className="text-xs text-muted-foreground">
+          We&apos;ll send your order invoice here only if you provide an email.
+        </p>
       </div>
 
       <div className="space-y-4">
@@ -190,12 +213,14 @@ export default function CheckoutForm({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input
             type="text"
+            label="First name *"
             placeholder="First name"
             value={formData.firstName}
             onChange={(e) => updateFormData({ firstName: e.target.value })}
           />
           <Input
             type="text"
+            label="Last name *"
             placeholder="Last name"
             value={formData.lastName}
             onChange={(e) => updateFormData({ lastName: e.target.value })}
@@ -203,28 +228,54 @@ export default function CheckoutForm({
         </div>
         <Input
           type="text"
-          placeholder="Address"
+          label="Address *"
+          placeholder="House, street, area"
           value={formData.address}
           onChange={(e) => updateFormData({ address: e.target.value })}
         />
         <Input
           type="text"
+          label="City *"
           placeholder="City"
           value={formData.city}
           onChange={(e) => updateFormData({ city: e.target.value })}
         />
         <Input
           type="text"
-          placeholder="Postal code (optional)"
+          label="Postal code (optional)"
+          placeholder="Postal code"
           value={formData.postalCode}
           onChange={(e) => updateFormData({ postalCode: e.target.value })}
         />
-        <Input
-          type="tel"
-          placeholder="Phone"
-          value={formData.phone}
-          onChange={(e) => updateFormData({ phone: e.target.value })}
-        />
+        <div>
+          <label className="mb-2 block text-sm font-medium text-foreground">
+            Phone number *
+          </label>
+          <div className="flex gap-3">
+            <div className="w-[130px] shrink-0">
+              <Select
+                aria-label="Country code"
+                value={formData.phoneCode}
+                onChange={(e) =>
+                  updateFormData({ phoneCode: e.target.value })
+                }
+              >
+                {PHONE_CODES.map((code) => (
+                  <option key={code.value} value={code.value}>
+                    {code.label}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <Input
+              type="tel"
+              placeholder="1XXXXXXXXXX"
+              value={formData.phone}
+              onChange={(e) => updateFormData({ phone: e.target.value })}
+              className="flex-1"
+            />
+          </div>
+        </div>
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
           <input
             type="checkbox"
