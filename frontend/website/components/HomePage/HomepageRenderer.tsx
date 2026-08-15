@@ -15,6 +15,7 @@ import RichTextSectionV2 from "@/components/HomePage/RichTextSectionV2";
 import KawaiiFashionBanner from "@/components/themes/kawaii-fashion/homepage/Banner";
 import KawaiiFashionCategories from "@/components/themes/kawaii-fashion/homepage/Categories";
 import KawaiiFashionFeaturedProducts from "@/components/themes/kawaii-fashion/homepage/FeaturedProducts";
+import KawaiiFashionHomepageSupport from "@/components/themes/kawaii-fashion/homepage/HomepageSupport";
 import KawaiiFashionPromo from "@/components/themes/kawaii-fashion/homepage/Promo";
 import KawaiiFashionReviews from "@/components/themes/kawaii-fashion/homepage/Reviews";
 import KawaiiFashionStory from "@/components/themes/kawaii-fashion/homepage/Story";
@@ -621,6 +622,9 @@ export default function HomepageRenderer({
 }: HomepageRendererProps) {
   const headingBannerId =
     primaryBannerId ?? getPrimaryHomepageBannerId(sections, data);
+  const isKawaiiFashionHomepage = Object.values(rendererMapping ?? {}).some(
+    (rendererId) => rendererId?.startsWith("kawaii-fashion."),
+  );
   const rendered: { id: string; node: ReactNode }[] = [];
 
   for (const section of sections) {
@@ -642,6 +646,7 @@ export default function HomepageRenderer({
       {rendered.map(({ id, node }) => (
         <div key={id}>{node}</div>
       ))}
+      {isKawaiiFashionHomepage ? <KawaiiFashionHomepageSupport /> : null}
     </div>
   );
 }

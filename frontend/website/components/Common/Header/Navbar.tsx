@@ -320,7 +320,7 @@ function MenuLinkItem({
   );
 }
 
-function CategoryMegaMenu({
+export function CategoryMegaMenu({
   menu,
   pathname,
   activeCategory,

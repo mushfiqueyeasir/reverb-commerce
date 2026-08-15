@@ -113,6 +113,7 @@ export function ThemeStorefrontPreview({
             <ThemeFooter
               rendererId={manifest.renderers.footer}
               settings={settings}
+              preview
             />
             <div
               className="h-[calc(5.75rem+env(safe-area-inset-bottom))] md:hidden"

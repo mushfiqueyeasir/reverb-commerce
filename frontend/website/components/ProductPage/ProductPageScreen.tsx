@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { TransformedProduct } from "@/type/productType";
 import type { Category } from "@/type/categoryType";
+import type { ProductCardVariant } from "@/components/Common/ProductCard";
 import { Button } from "@/components/ui/button";
 import ProductFilters, { type StorefrontFilterState } from "./ProductFilters";
 import ProductGrid from "./ProductGrid";
@@ -16,6 +17,7 @@ interface ProductPageScreenProps {
   maxCatalogPrice: number;
   previousHref: string | null;
   nextHref: string | null;
+  productCardVariant?: ProductCardVariant;
 }
 
 export default function ProductPageScreen({
@@ -28,6 +30,7 @@ export default function ProductPageScreen({
   maxCatalogPrice,
   previousHref,
   nextHref,
+  productCardVariant = "default",
 }: ProductPageScreenProps) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const firstResult = total === 0 ? 0 : (page - 1) * pageSize + 1;
@@ -51,7 +54,7 @@ export default function ProductPageScreen({
         lastResult={lastResult}
         total={total}
       />
-      <ProductGrid products={products} />
+      <ProductGrid products={products} variant={productCardVariant} />
       {total > 0 ? (
         <nav
           aria-label="Product pagination"

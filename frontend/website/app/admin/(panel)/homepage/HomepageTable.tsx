@@ -24,13 +24,9 @@ import { toast } from "sonner";
 import {
   HomepageSectionView,
   type HomepageRendererData,
+  type HomepageSectionRendererMapping,
 } from "@/components/HomePage/HomepageRenderer";
-import type { Category } from "@/type/categoryType";
-import type { HomepageSectionRow } from "@/type/db";
-import type { TransformedProduct } from "@/type/productType";
-import type { Promotion } from "@/type/promotionType";
-import type { TransformedReview } from "@/type/reviewType";
-import type { Banner } from "@/utility/getBanners";
+import type { HomepageSectionRow, HomepageSectionType } from "@/type/db";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -98,145 +94,42 @@ function ActiveToggle({
   );
 }
 
-const previewImages = [
-  "/images/lovable/hero-biker.jpg",
-  "/images/lovable/fabric-texture.jpg",
-];
-
-const previewBanners: Banner[] = [
-  {
-    id: "preview-banner-1",
-    title: "Made for *every moment.*",
-    subtitle: "New collection",
-    imageUrl: previewImages[0],
-    mobileImageUrl: previewImages[0],
-    ctaLabel: "Shop collection",
-    ctaUrl: "/product",
-  },
-  {
-    id: "preview-banner-2",
-    title: "Quality in *every detail.*",
-    subtitle: "Thoughtful design",
-    imageUrl: previewImages[1],
-    mobileImageUrl: previewImages[1],
-    ctaLabel: "Explore products",
-    ctaUrl: "/product",
-  },
-];
-
-const previewBannersV2 = previewBanners.map((banner) => ({
-  ...banner,
-  title: banner.title?.replaceAll("*", "") ?? null,
-}));
-
-const previewCategories: Category[] = [
-  "New arrivals",
-  "Everyday essentials",
-  "Limited collection",
-  "Accessories",
-].map((categoryName, index) => ({
-  _id: `preview-category-${index}`,
-  categoryName,
-  categoryDescription: "Curated collection",
-  imageUrl: previewImages[index % previewImages.length],
-  parentId: null,
-  sort: (index + 1) * 10,
-  depth: 0,
-  isDefault: false,
-  categoryUrl: { current: "preview" },
-}));
-
-const previewProducts: TransformedProduct[] = [
-  "Signature product",
-  "Everyday staple",
-  "Premium essential",
-  "Limited edition",
-  "Collection favorite",
-  "Runway exclusive",
-].map((title, index) => ({
-  id: `preview-product-${index}`,
-  title,
-  image: previewImages[index % previewImages.length],
-  images: [previewImages[index % previewImages.length]],
-  originalPrice: 72 + index * 12,
-  currentPrice: 54 + index * 10,
-  discount: 25,
-  href: "/product",
-  slug: "preview",
-  sizingMode: "none",
-  stock: [
-    {
-      id: `preview-stock-${index}`,
-      size: null,
-      color: null,
-      quantity: 10,
-    },
-  ],
-  sizeChart: [],
-  categories: [],
-  createdAt: new Date(Date.UTC(2026, 0, index + 1)).toISOString(),
-}));
-
-const previewReviews: TransformedReview[] = [
-  {
-    id: "preview-review-1",
-    image: previewImages[0],
-    customerName: "Alex Morgan",
-    body: "The quality exceeded my expectations and every detail feels considered.",
-    rating: 5,
-  },
-  {
-    id: "preview-review-2",
-    image: previewImages[1],
-    customerName: "Jordan Lee",
-    body: "Beautifully made, easy to order, and delivered right on time.",
-    rating: 5,
-  },
-  {
-    id: "preview-review-3",
-    image: previewImages[0],
-    customerName: "Taylor Smith",
-    body: "A new favorite. I will definitely be coming back for more.",
-    rating: 4,
-  },
-  {
-    id: "preview-review-4",
-    image: previewImages[1],
-    customerName: "Casey Brown",
-    body: "Thoughtful design and a great experience from start to finish.",
-    rating: 5,
-  },
-];
-
-const previewPromotion: Promotion = {
-  _id: "preview-promotion",
-  title: "The season's best offer.",
-  description:
-    "Explore selected favorites at a special price for a limited time.",
-  imageUrl: previewImages[0],
-  discountPercent: 30,
-  ctaUrl: "/product",
-  ctaLabel: "Shop the drop",
+const KAWAII_SECTION_LABELS: Partial<Record<HomepageSectionType, string>> = {
+  banner: "Kawaii Hero",
+  categories: "Beauty Categories",
+  deals: "Today’s Best Deals",
+  new_arrivals: "New Arrival Products",
+  featured: "Featured Products",
+  richtext: "Kawaii Brand Story",
+  reviews: "Customer Reviews",
+  promo: "Featured Promotion",
 };
 
-const previewRendererData: HomepageRendererData = {
-  banners: previewBanners,
-  bannersV2: previewBannersV2,
-  categories: previewCategories,
-  products: previewProducts,
-  reviews: previewReviews,
-  promotions: [previewPromotion],
-};
+function sectionDisplayName(section: HomepageSectionRow, themeId: string) {
+  return themeId === "kawaii-fashion"
+    ? (KAWAII_SECTION_LABELS[section.type] ?? section.title ?? section.type)
+    : (getHomepageSectionDisplayName(section.type) ?? section.type);
+}
 
-function SectionPreview({ section }: { section: HomepageSectionRow }) {
+function SectionPreview({
+  section,
+  rendererMapping,
+  previewData,
+}: {
+  section: HomepageSectionRow;
+  rendererMapping: HomepageSectionRendererMapping;
+  previewData: HomepageRendererData;
+}) {
   const { storageBaseUrl } = useAdmin();
 
   return (
     <HomepageSectionView
       section={section}
-      data={previewRendererData}
+      data={previewData}
       preview
+      useLiveBindingsInPreview
       primaryBannerId={section.id}
+      rendererMapping={rendererMapping}
       resolveImageUrl={(path) =>
         buildStoragePublicUrl(storageBaseUrl, BUCKETS.branding, path)
       }
@@ -244,9 +137,20 @@ function SectionPreview({ section }: { section: HomepageSectionRow }) {
   );
 }
 
-function PreviewDialog({ section }: { section: HomepageSectionRow }) {
-  const displayName =
-    getHomepageSectionDisplayName(section.type) ?? section.type;
+function PreviewDialog({
+  section,
+  themeId,
+  themeName,
+  rendererMapping,
+  previewData,
+}: {
+  section: HomepageSectionRow;
+  themeId: string;
+  themeName: string;
+  rendererMapping: HomepageSectionRendererMapping;
+  previewData: HomepageRendererData;
+}) {
+  const displayName = sectionDisplayName(section, themeId);
   const version = getHomepageSectionVersion(section.type);
 
   return (
@@ -269,11 +173,16 @@ function PreviewDialog({ section }: { section: HomepageSectionRow }) {
             <span>preview</span>
           </DialogTitle>
           <DialogDescription>
-            Storefront layout shown with the saved section content.
+            {themeName} layout shown with the saved section content and live
+            storefront images.
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="h-[75dvh] bg-background text-foreground [&_a]:pointer-events-none [&_button]:pointer-events-none [&_button[data-preview-interactive]]:pointer-events-auto">
-          <SectionPreview section={section} />
+          <SectionPreview
+            section={section}
+            rendererMapping={rendererMapping}
+            previewData={previewData}
+          />
         </ScrollArea>
       </DialogContent>
     </Dialog>
@@ -283,12 +192,19 @@ function PreviewDialog({ section }: { section: HomepageSectionRow }) {
 function SortableRow({
   section,
   canWrite,
+  themeId,
+  themeName,
+  rendererMapping,
+  previewData,
 }: {
   section: HomepageSectionRow;
   canWrite: boolean;
+  themeId: string;
+  themeName: string;
+  rendererMapping: HomepageSectionRendererMapping;
+  previewData: HomepageRendererData;
 }) {
-  const displayName =
-    getHomepageSectionDisplayName(section.type) ?? section.type;
+  const displayName = sectionDisplayName(section, themeId);
   const version = getHomepageSectionVersion(section.type);
   const {
     attributes,
@@ -342,7 +258,13 @@ function SortableRow({
       </div>
 
       <div className="flex w-full shrink-0 flex-wrap items-center justify-end gap-3 border-t border-border/60 pt-3 sm:w-auto sm:border-0 sm:pt-0">
-        <PreviewDialog section={section} />
+        <PreviewDialog
+          section={section}
+          themeId={themeId}
+          themeName={themeName}
+          rendererMapping={rendererMapping}
+          previewData={previewData}
+        />
         <ActiveToggle
           id={section.id}
           active={section.active}
@@ -362,9 +284,17 @@ function SortableRow({
 export function HomepageTable({
   data,
   canWrite,
+  themeId,
+  themeName,
+  rendererMapping,
+  previewData,
 }: {
   data: HomepageSectionRow[];
   canWrite: boolean;
+  themeId: string;
+  themeName: string;
+  rendererMapping: HomepageSectionRendererMapping;
+  previewData: HomepageRendererData;
 }) {
   const [items, setItems] = useState(data);
   const [, startTransition] = useTransition();
@@ -429,6 +359,10 @@ export function HomepageTable({
                 key={section.id}
                 section={section}
                 canWrite={canWrite}
+                themeId={themeId}
+                themeName={themeName}
+                rendererMapping={rendererMapping}
+                previewData={previewData}
               />
             ))}
           </div>

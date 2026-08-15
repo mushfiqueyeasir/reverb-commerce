@@ -10,6 +10,8 @@ import {
 } from "@/utility/getProducts";
 import { getCategories } from "@/utility/getCategory";
 import { getDescendantIds } from "@/lib/categories/hierarchy";
+import { getStorefrontThemeManifest } from "@/lib/theme/manifest";
+import { readCurrentPublishedStorefrontTheme } from "@/lib/theme/store";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -116,7 +118,16 @@ export default async function ProductsPage({
   );
   const minPrice = priceParam(params.minPrice);
   const maxPrice = priceParam(params.maxPrice);
-  const categories = await getCategories();
+  const [categories, publishedTheme] = await Promise.all([
+    getCategories(),
+    readCurrentPublishedStorefrontTheme(),
+  ]);
+  const manifest = getStorefrontThemeManifest(
+    publishedTheme.config.themeId,
+    publishedTheme.config.themeVersion,
+  );
+  const productCardVariant =
+    manifest.id === "kawaii-fashion" ? "kawaii-fashion" : "default";
   const categoryBySlug = new Map(
     categories.map((category) => [category.categoryUrl.current, category]),
   );
@@ -166,6 +177,7 @@ export default async function ProductsPage({
       maxCatalogPrice={result.maxCatalogPrice}
       previousHref={page > 1 ? productUrl(page - 1, filters) : null}
       nextHref={page < totalPages ? productUrl(page + 1, filters) : null}
+      productCardVariant={productCardVariant}
     />
   );
 }

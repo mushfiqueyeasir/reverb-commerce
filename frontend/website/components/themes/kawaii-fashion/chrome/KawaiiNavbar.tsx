@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   ChevronDown,
   Heart,
@@ -13,6 +13,7 @@ import {
   Sparkles,
   Store,
 } from "lucide-react";
+import { CategoryMegaMenu } from "@/components/Common/Header/Navbar";
 import SearchSidebar from "@/components/Common/SearchSidebar";
 import {
   DropdownMenu,
@@ -49,9 +50,11 @@ export default function KawaiiNavbar({
   preview = false,
 }: KawaiiNavbarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const itemCount = useCartStore((state) => state.getItemCount());
   const wishlistCount = useWishlistStore((state) => state.getItemCount());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const activeCategory = searchParams.get("category")?.trim() || null;
   const menus = menuData.filter((menu): menu is MenuType & { href: string } =>
     Boolean(menu.href && isSafeChromeHref(menu.href)),
   );
@@ -91,6 +94,7 @@ export default function KawaiiNavbar({
                   key={`${menu.kind}-${menu.label}-${menu.href}`}
                   menu={menu}
                   pathname={pathname}
+                  activeCategory={activeCategory}
                 />
               ))}
             </nav>
@@ -207,7 +211,15 @@ function Brand({
   );
 }
 
-function DesktopMenu({ menu, pathname }: { menu: MenuType; pathname: string }) {
+function DesktopMenu({
+  menu,
+  pathname,
+  activeCategory,
+}: {
+  menu: MenuType;
+  pathname: string;
+  activeCategory: string | null;
+}) {
   const external = isExternalChromeHref(menu.href);
   const active = !external && isActivePath(pathname, menu.href);
   const className = cn(
@@ -240,27 +252,35 @@ function DesktopMenu({ menu, pathname }: { menu: MenuType; pathname: string }) {
         {menu.label}
         <ChevronDown className="size-3.5" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="center"
-        sideOffset={14}
-        collisionPadding={16}
-        className="w-[min(90vw,38rem)] rounded-2xl border-border bg-background p-3 text-foreground shadow-lg"
-      >
-        <DropdownMenuItem asChild className="rounded-xl p-0">
-          <Link
-            href={menu.href}
-            className="flex items-center justify-between rounded-xl bg-primary/10 px-4 py-3 text-sm font-semibold text-primary outline-none transition hover:bg-primary/15"
-          >
-            <span>Shop all {menu.label.toLowerCase()}</span>
-            <span aria-hidden>→</span>
-          </Link>
-        </DropdownMenuItem>
-        <div className="mt-2 grid max-h-[min(60vh,24rem)] grid-cols-2 gap-1 overflow-y-auto sm:grid-cols-3">
-          {children.map((item) => (
-            <CategoryLink key={`${item.label}-${item.href}`} item={item} />
-          ))}
-        </div>
-      </DropdownMenuContent>
+      {menu.kind === "categories" ? (
+        <CategoryMegaMenu
+          menu={menu}
+          pathname={pathname}
+          activeCategory={activeCategory}
+        />
+      ) : (
+        <DropdownMenuContent
+          align="center"
+          sideOffset={14}
+          collisionPadding={16}
+          className="w-[min(90vw,38rem)] rounded-2xl border-border bg-background p-3 text-foreground shadow-lg"
+        >
+          <DropdownMenuItem asChild className="rounded-xl p-0">
+            <Link
+              href={menu.href}
+              className="flex items-center justify-between rounded-xl bg-primary/10 px-4 py-3 text-sm font-semibold text-primary outline-none transition hover:bg-primary/15"
+            >
+              <span>Shop all {menu.label.toLowerCase()}</span>
+              <span aria-hidden>→</span>
+            </Link>
+          </DropdownMenuItem>
+          <div className="mt-2 grid max-h-[min(60vh,24rem)] grid-cols-2 gap-1 overflow-y-auto sm:grid-cols-3">
+            {children.map((item) => (
+              <CategoryLink key={`${item.label}-${item.href}`} item={item} />
+            ))}
+          </div>
+        </DropdownMenuContent>
+      )}
     </DropdownMenu>
   );
 }
