@@ -116,16 +116,6 @@ create trigger trg_theme_state_touch
   before update on public.theme_state
   for each row execute function public.touch_updated_at();
 
-create constraint trigger trg_theme_revisions_validate_state
-  after insert or update or delete on public.theme_revisions
-  deferrable initially deferred
-  for each row execute function public.validate_theme_revision_state();
-
-create constraint trigger trg_theme_state_validate_state
-  after insert or update or delete on public.theme_state
-  deferrable initially deferred
-  for each row execute function public.validate_theme_revision_state();
-
 do $$
 declare
   v_published_id uuid := gen_random_uuid();
@@ -562,5 +552,15 @@ revoke all on function public.rollback_theme_revision(uuid, bigint) from public,
 grant execute on function public.save_theme_draft(bigint, text, integer, jsonb, jsonb) to authenticated, service_role;
 grant execute on function public.publish_theme_draft(bigint) to authenticated, service_role;
 grant execute on function public.rollback_theme_revision(uuid, bigint) to authenticated, service_role;
+
+create constraint trigger trg_theme_revisions_validate_state
+  after insert or update or delete on public.theme_revisions
+  deferrable initially deferred
+  for each row execute function public.validate_theme_revision_state();
+
+create constraint trigger trg_theme_state_validate_state
+  after insert or update or delete on public.theme_state
+  deferrable initially deferred
+  for each row execute function public.validate_theme_revision_state();
 
 notify pgrst, 'reload schema';
