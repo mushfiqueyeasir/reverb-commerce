@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { HardDrive, Loader2, MailCheck, Save } from "lucide-react";
 import { toast } from "sonner";
@@ -47,9 +48,7 @@ import {
 } from "@/lib/chatWidgets";
 import {
   DEFAULT_PALETTE,
-  PALETTE_FIELDS,
   normalizePalette,
-  type PalettePreset,
   type ThemePalette,
 } from "@/lib/theme/palette";
 import { cn } from "@/lib/utils";
@@ -106,7 +105,6 @@ export function SettingsForm({
   deliveryCharges: initialDeliveryCharges,
   chatWidgets: initialChatWidgets,
   palette: initialPalette,
-  palettePresets,
   smtp: initialSmtp,
   bkash: initialBkash,
   courier: initialCourier,
@@ -121,7 +119,6 @@ export function SettingsForm({
   deliveryCharges?: DeliveryCharges | null;
   chatWidgets?: ChatWidgets | null;
   palette?: ThemePalette | null;
-  palettePresets: PalettePreset[];
   smtp: SmtpSettingsPublic;
   bkash: BkashSettingsPublic;
   courier: CourierSettingsPublic;
@@ -214,7 +211,7 @@ export function SettingsForm({
     }));
   };
 
-  const [palette, setPalette] = useState<ThemePalette>(() =>
+  const [palette] = useState<ThemePalette>(() =>
     normalizePalette(initialPalette ?? DEFAULT_PALETTE),
   );
 
@@ -247,10 +244,6 @@ export function SettingsForm({
   const [aiSearch, setAiSearch] = useState(() =>
     aiSearchDraftFromPublic(initialAiSearch),
   );
-
-  const setPaletteColor = (key: keyof ThemePalette, value: string) => {
-    setPalette((prev) => ({ ...prev, [key]: value }));
-  };
 
   const toggleCurrency = (code: CurrencyCode, on: boolean) => {
     setEnabledCurrencies((prev) => {
@@ -591,140 +584,18 @@ export function SettingsForm({
             </TabsContent>
 
             <TabsContent value="colors" className="mt-0 space-y-6">
-              <p className="text-sm text-muted-foreground">
-                Storefront theme — buttons, backgrounds, text, and borders.
-              </p>
-
-              <div>
-                <p className="mb-3 text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                  Presets
+              <div className="rounded-2xl border border-border bg-card p-6">
+                <p className="font-display text-lg font-semibold text-foreground">
+                  Colors are managed by your published theme
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  {palettePresets.map((preset) => {
-                    const active =
-                      JSON.stringify(normalizePalette(palette)) ===
-                      JSON.stringify(preset.palette);
-                    return (
-                      <button
-                        key={preset.id}
-                        type="button"
-                        onClick={() => setPalette({ ...preset.palette })}
-                        className={cn(
-                          "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition",
-                          active
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground",
-                        )}
-                      >
-                        <span
-                          className="size-3.5 rounded-full border border-white/20"
-                          style={{ backgroundColor: preset.palette.primary }}
-                        />
-                        {preset.name}
-                      </button>
-                    );
-                  })}
-                  <button
-                    type="button"
-                    onClick={() => setPalette({ ...DEFAULT_PALETTE })}
-                    className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition hover:border-primary/40 hover:text-foreground"
-                  >
-                    Reset default
-                  </button>
-                </div>
-              </div>
-
-              <div
-                className="overflow-hidden rounded-2xl border border-border"
-                style={{
-                  background: palette.background,
-                  color: palette.foreground,
-                  borderColor: palette.border,
-                }}
-              >
-                <div
-                  className="border-b px-4 py-3 text-xs uppercase tracking-[0.18em]"
-                  style={{
-                    borderColor: palette.border,
-                    color: palette.mutedForeground,
-                  }}
-                >
-                  Live preview
-                </div>
-                <div className="space-y-3 p-4">
-                  <div
-                    className="rounded-xl border p-4"
-                    style={{
-                      background: palette.card,
-                      borderColor: palette.border,
-                    }}
-                  >
-                    <p
-                      className="text-sm font-medium"
-                      style={{ color: palette.foreground }}
-                    >
-                      Product card
-                    </p>
-                    <p
-                      className="mt-1 text-xs"
-                      style={{ color: palette.mutedForeground }}
-                    >
-                      Supporting copy uses muted text.
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <span
-                        className="rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider"
-                        style={{
-                          background: palette.primary,
-                          color: palette.primaryForeground,
-                        }}
-                      >
-                        Shop now
-                      </span>
-                      <span
-                        className="rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider"
-                        style={{
-                          borderColor: palette.border,
-                          color: palette.foreground,
-                          background: palette.surface,
-                        }}
-                      >
-                        View details
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                {PALETTE_FIELDS.map((field) => (
-                  <FormField
-                    key={field.key}
-                    label={field.label}
-                    hint={field.hint}
-                  >
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={palette[field.key]}
-                        onChange={(e) =>
-                          setPaletteColor(field.key, e.target.value)
-                        }
-                        className="h-10 w-12 cursor-pointer rounded-lg border border-border bg-transparent p-1"
-                        aria-label={field.label}
-                      />
-                      <Input
-                        value={palette[field.key]}
-                        onChange={(e) =>
-                          setPaletteColor(field.key, e.target.value)
-                        }
-                        className={cn(adminInputClass, "font-mono uppercase")}
-                        maxLength={7}
-                        spellCheck={false}
-                      />
-                    </div>
-                  </FormField>
-                ))}
+                <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                  Open Themes to edit the private draft palette, preview it with
+                  current store content, publish it, or restore an earlier
+                  revision.
+                </p>
+                <Button asChild className="mt-5">
+                  <Link href="/admin/themes">Open Themes</Link>
+                </Button>
               </div>
             </TabsContent>
 

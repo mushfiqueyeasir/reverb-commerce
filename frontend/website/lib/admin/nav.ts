@@ -69,6 +69,13 @@ export const NAV_ITEMS: NavItem[] = [
   },
 
   {
+    label: "Themes",
+    href: "/admin/themes",
+    icon: "Palette",
+    roles: ["admin"],
+    group: "Content",
+  },
+  {
     label: "Navbar",
     href: "/admin/navbar",
     icon: "GalleryHorizontalEnd",

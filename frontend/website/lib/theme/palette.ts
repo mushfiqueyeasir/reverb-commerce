@@ -135,6 +135,18 @@ function normalizeHex(value: unknown, fallback: string): string {
   return v.toLowerCase();
 }
 
+export function normalizePaletteOverrides(raw: unknown): Partial<ThemePalette> {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const source = raw as Record<string, unknown>;
+  const overrides: Partial<ThemePalette> = {};
+  for (const key of Object.keys(DEFAULT_PALETTE) as (keyof ThemePalette)[]) {
+    const value = source[key];
+    if (typeof value !== "string" || !HEX_RE.test(value.trim())) continue;
+    overrides[key] = normalizeHex(value, DEFAULT_PALETTE[key]);
+  }
+  return overrides;
+}
+
 export function normalizePalette(raw: unknown): ThemePalette {
   const o =
     raw && typeof raw === "object" ? (raw as Partial<ThemePalette>) : {};

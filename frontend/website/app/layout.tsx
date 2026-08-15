@@ -4,6 +4,8 @@ import "./globals.css";
 import AppToaster from "@/components/Common/AppToaster";
 import ThemeStyle from "@/components/Common/ThemeStyle";
 import { isLightPalette, normalizePalette } from "@/lib/theme/palette";
+import { resolveStorefrontThemeTokens } from "@/lib/theme/manifest";
+import { readCurrentPublishedStorefrontTheme } from "@/lib/theme/store";
 import { generateMetadata as generateSeoMetadata } from "@/utility/generateMetadata";
 import { getBaseSeoItem } from "@/utility/getSeoSettings";
 import { getSiteSettings } from "@/utility/getSettings";
@@ -53,8 +55,13 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const settings = await getSiteSettings();
-  const palette = normalizePalette(settings.palette);
+  const [settings, publishedTheme] = await Promise.all([
+    getSiteSettings(),
+    readCurrentPublishedStorefrontTheme(),
+  ]);
+  const palette = publishedTheme.isFallback
+    ? normalizePalette(settings.palette)
+    : resolveStorefrontThemeTokens(publishedTheme.config).palette;
   const light = isLightPalette(palette);
 
   return (

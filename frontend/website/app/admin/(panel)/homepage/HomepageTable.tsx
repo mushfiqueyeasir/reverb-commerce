@@ -21,27 +21,12 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Eye, GripVertical, Pencil } from "lucide-react";
 import { toast } from "sonner";
-import BannerV2 from "@/components/HomePage/BannerV2";
-import CategorySection from "@/components/HomePage/Category";
-import CategoryV2 from "@/components/HomePage/CategoryV2";
-import FeaturedProducts from "@/components/HomePage/FeaturedProducts";
-import FeaturedProductsV2 from "@/components/HomePage/FeaturedProductsV2";
-import Hero from "@/components/HomePage/Hero";
-import Marquee from "@/components/HomePage/Marquee";
-import PromoStrip from "@/components/HomePage/PromoStrip";
-import PromoV2 from "@/components/HomePage/PromoV2";
-import ReviewSlider from "@/components/HomePage/ReviewSlider";
-import ReviewsV2 from "@/components/HomePage/ReviewsV2";
-import RichTextSection from "@/components/HomePage/RichTextSection";
-import RichTextSectionV2 from "@/components/HomePage/RichTextSectionV2";
-import type { Category } from "@/type/categoryType";
 import {
-  DEFAULT_BANNER_DESCRIPTION,
-  DEFAULT_BANNER_MARQUEE,
-  DEFAULT_BANNER_STATS,
-  type BannerStatItem,
-  type HomepageSectionRow,
-} from "@/type/db";
+  HomepageSectionView,
+  type HomepageRendererData,
+} from "@/components/HomePage/HomepageRenderer";
+import type { Category } from "@/type/categoryType";
+import type { HomepageSectionRow } from "@/type/db";
 import type { TransformedProduct } from "@/type/productType";
 import type { Promotion } from "@/type/promotionType";
 import type { TransformedReview } from "@/type/reviewType";
@@ -60,15 +45,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { useAdmin } from "@/components/admin/AdminContext";
 import { BUCKETS } from "@/lib/supabase/config";
-import { sanitizeCmsHtml } from "@/lib/html/sanitize";
 import { buildStoragePublicUrl } from "@/utility/storageUrl";
 import {
   getHomepageSectionDisplayName,
-  getHomepageSectionFamily,
-  getHomepageSectionMetadata,
   getHomepageSectionVersion,
 } from "@/lib/cms/homepageSections";
-import { selectHomepageProducts } from "@/lib/products/homepageFeatured";
 import { cn } from "@/lib/utils";
 import { toggleSection, reorderSections } from "./actions";
 
@@ -238,303 +219,29 @@ const previewPromotion: Promotion = {
   ctaLabel: "Shop the drop",
 };
 
-function configString(
-  config: Record<string, unknown>,
-  key: string,
-): string | null {
-  const value = config[key];
-  return typeof value === "string" && value.trim() ? value : null;
-}
-
-function configLimit(config: Record<string, unknown>): number | undefined {
-  const value = config.limit;
-  if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
-  return Math.min(24, Math.max(1, Math.floor(value)));
-}
-
-function previewStats(config: Record<string, unknown>): BannerStatItem[] {
-  if (!Array.isArray(config.stats)) return DEFAULT_BANNER_STATS;
-  const stats = config.stats
-    .map((item) => {
-      if (!item || typeof item !== "object") return null;
-      const value = item as Record<string, unknown>;
-      const label = typeof value.label === "string" ? value.label.trim() : "";
-      const statValue =
-        typeof value.value === "string" ? value.value.trim() : "";
-      return label || statValue
-        ? { label: label || "—", value: statValue || "—" }
-        : null;
-    })
-    .filter((item): item is BannerStatItem => item !== null);
-  return stats.length ? stats : DEFAULT_BANNER_STATS;
-}
-
-function previewMarquee(config: Record<string, unknown>): string[] {
-  if (!Array.isArray(config.marquee_items)) return DEFAULT_BANNER_MARQUEE;
-  const items = config.marquee_items
-    .map((item) => (typeof item === "string" ? item.trim() : ""))
-    .filter(Boolean);
-  return items.length ? items : DEFAULT_BANNER_MARQUEE;
-}
-
-function BannerPreview({ section }: { section: HomepageSectionRow }) {
-  const description =
-    configString(section.config, "description") ?? DEFAULT_BANNER_DESCRIPTION;
-  const showMarquee = section.config.show_marquee !== false;
-
-  return (
-    <>
-      <Hero
-        banners={previewBanners}
-        description={description}
-        stats={previewStats(section.config)}
-      />
-      {showMarquee ? <Marquee items={previewMarquee(section.config)} /> : null}
-    </>
-  );
-}
-
-function BannerV2Preview({ section }: { section: HomepageSectionRow }) {
-  return (
-    <BannerV2
-      banners={previewBannersV2}
-      description={
-        configString(section.config, "description") ??
-        DEFAULT_BANNER_DESCRIPTION
-      }
-    />
-  );
-}
-
-function CategoriesPreview({ section }: { section: HomepageSectionRow }) {
-  return (
-    <CategorySection
-      categories={previewCategories}
-      title={section.title}
-      subtitle={section.subtitle}
-      eyebrow={configString(section.config, "eyebrow")}
-      ctaLabel={configString(section.config, "cta_label")}
-      ctaHref={configString(section.config, "cta_url") ?? "/product"}
-    />
-  );
-}
-
-function CategoriesV2Preview({ section }: { section: HomepageSectionRow }) {
-  return (
-    <CategoryV2
-      categories={previewCategories}
-      title={section.title}
-      subtitle={section.subtitle}
-      eyebrow={configString(section.config, "eyebrow")}
-      ctaLabel={configString(section.config, "cta_label")}
-      ctaHref={configString(section.config, "cta_url") ?? "/product"}
-      limit={configLimit(section.config)}
-      preview
-    />
-  );
-}
-
-function FeaturedPreview({ section }: { section: HomepageSectionRow }) {
-  const limit = Math.min(5, configLimit(section.config) ?? 5);
-  const products = selectHomepageProducts(
-    previewProducts,
-    limit,
-    5,
-    getHomepageSectionMetadata(section.type)?.productSelection,
-  );
-  return (
-    <FeaturedProducts
-      products={products}
-      title={section.title}
-      subtitle={section.subtitle}
-      eyebrow={configString(section.config, "eyebrow")}
-      ctaLabel={
-        configString(section.config, "cta_label") ?? "View all products"
-      }
-      ctaHref="/product"
-    />
-  );
-}
-
-function FeaturedV2Preview({ section }: { section: HomepageSectionRow }) {
-  const limit = Math.min(6, configLimit(section.config) ?? 6);
-  const products = selectHomepageProducts(
-    previewProducts,
-    limit,
-    6,
-    getHomepageSectionMetadata(section.type)?.productSelection,
-  );
-  return (
-    <FeaturedProductsV2
-      products={products}
-      title={section.title}
-      subtitle={section.subtitle}
-      eyebrow={configString(section.config, "eyebrow")}
-      ctaLabel={
-        configString(section.config, "cta_label") ?? "View all products"
-      }
-      ctaHref="/product"
-      preview
-    />
-  );
-}
-
-function ReviewsPreview({ section }: { section: HomepageSectionRow }) {
-  const limit = configLimit(section.config) ?? previewReviews.length;
-  return (
-    <ReviewSlider
-      reviews={previewReviews.slice(0, limit)}
-      title={section.title}
-      subtitle={section.subtitle}
-      eyebrow={configString(section.config, "eyebrow")}
-      ctaLabel={configString(section.config, "cta_label")}
-      ctaHref={configString(section.config, "cta_url") ?? "/reviews"}
-    />
-  );
-}
-
-function ReviewsV2Preview({ section }: { section: HomepageSectionRow }) {
-  const limit = configLimit(section.config) ?? previewReviews.length;
-  return (
-    <ReviewsV2
-      reviews={previewReviews.slice(0, limit)}
-      title={section.title}
-      subtitle={section.subtitle}
-      eyebrow={configString(section.config, "eyebrow")}
-      ctaLabel={configString(section.config, "cta_label")}
-      ctaHref={configString(section.config, "cta_url") ?? "/reviews"}
-    />
-  );
-}
-
-function PromoPreview({ section }: { section: HomepageSectionRow }) {
-  return (
-    <PromoStrip
-      promotion={previewPromotion}
-      title={section.title}
-      subtitle={section.subtitle}
-      ctaHref={
-        configString(section.config, "cta_url") ??
-        previewPromotion.ctaUrl ??
-        "/product"
-      }
-      ctaLabel={
-        configString(section.config, "cta_label") ??
-        previewPromotion.ctaLabel ??
-        "Shop the drop"
-      }
-    />
-  );
-}
-
-function PromoV2Preview({ section }: { section: HomepageSectionRow }) {
-  return (
-    <PromoV2
-      promotion={previewPromotion}
-      title={section.title}
-      subtitle={section.subtitle}
-      ctaHref={
-        configString(section.config, "cta_url") ??
-        previewPromotion.ctaUrl ??
-        "/product"
-      }
-      ctaLabel={
-        configString(section.config, "cta_label") ??
-        previewPromotion.ctaLabel ??
-        "Shop the drop"
-      }
-    />
-  );
-}
-
-function RichTextPreview({
-  section,
-  imageUrl,
-}: {
-  section: HomepageSectionRow;
-  imageUrl: string | null;
-}) {
-  return (
-    <RichTextSection
-      title={section.title}
-      subtitle={section.subtitle}
-      body={section.body ? sanitizeCmsHtml(section.body) : null}
-      eyebrow={configString(section.config, "eyebrow")}
-      ctaLabel={configString(section.config, "cta_label")}
-      ctaHref={configString(section.config, "cta_url")}
-      config={section.config}
-      imageUrl={imageUrl}
-    />
-  );
-}
-
-function RichTextV2Preview({
-  section,
-  imageUrl,
-}: {
-  section: HomepageSectionRow;
-  imageUrl: string | null;
-}) {
-  return (
-    <RichTextSectionV2
-      title={section.title}
-      subtitle={section.subtitle}
-      body={section.body ? sanitizeCmsHtml(section.body) : null}
-      eyebrow={configString(section.config, "eyebrow")}
-      ctaLabel={configString(section.config, "cta_label")}
-      ctaHref={configString(section.config, "cta_url")}
-      config={section.config}
-      imageUrl={imageUrl}
-      preview
-    />
-  );
-}
+const previewRendererData: HomepageRendererData = {
+  banners: previewBanners,
+  bannersV2: previewBannersV2,
+  categories: previewCategories,
+  products: previewProducts,
+  reviews: previewReviews,
+  promotions: [previewPromotion],
+};
 
 function SectionPreview({ section }: { section: HomepageSectionRow }) {
   const { storageBaseUrl } = useAdmin();
-  const family = getHomepageSectionFamily(section.type);
-  const version = getHomepageSectionVersion(section.type);
-  const storyImageUrl =
-    buildStoragePublicUrl(
-      storageBaseUrl,
-      BUCKETS.branding,
-      configString(section.config, "image_path"),
-    ) ??
-    (section.config.variant === "fabric"
-      ? "/images/lovable/fabric-texture.jpg"
-      : null);
 
-  if (version === 2) {
-    switch (family) {
-      case "banner":
-        return <BannerV2Preview section={section} />;
-      case "categories":
-        return <CategoriesV2Preview section={section} />;
-      case "featured":
-        return <FeaturedV2Preview section={section} />;
-      case "reviews":
-        return <ReviewsV2Preview section={section} />;
-      case "promo":
-        return <PromoV2Preview section={section} />;
-      case "richtext":
-        return <RichTextV2Preview section={section} imageUrl={storyImageUrl} />;
-    }
-  }
-
-  switch (family) {
-    case "banner":
-      return <BannerPreview section={section} />;
-    case "categories":
-      return <CategoriesPreview section={section} />;
-    case "featured":
-      return <FeaturedPreview section={section} />;
-    case "reviews":
-      return <ReviewsPreview section={section} />;
-    case "promo":
-      return <PromoPreview section={section} />;
-    case "richtext":
-      return <RichTextPreview section={section} imageUrl={storyImageUrl} />;
-  }
+  return (
+    <HomepageSectionView
+      section={section}
+      data={previewRendererData}
+      preview
+      primaryBannerId={section.id}
+      resolveImageUrl={(path) =>
+        buildStoragePublicUrl(storageBaseUrl, BUCKETS.branding, path)
+      }
+    />
+  );
 }
 
 function PreviewDialog({ section }: { section: HomepageSectionRow }) {

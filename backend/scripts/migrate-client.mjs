@@ -13,6 +13,7 @@ import {
   repositoryRoot,
 } from "./client-registry.mjs";
 import {
+  assertMigrationStoreIdentity,
   requestJson,
   responseRows,
   sha256,
@@ -124,6 +125,45 @@ async function runSql(query, readOnly = false) {
       body: { query, read_only: readOnly },
       expected: [201],
     },
+  );
+}
+
+async function readStoreIdentityClientId() {
+  const relation = responseRows(
+    await runSql(
+      "select to_regclass('provisioning.store_identity')::text as relation",
+      true,
+    ),
+  )[0]?.relation;
+  if (!relation) return null;
+  return (
+    responseRows(
+      await runSql(
+        "select client_id from provisioning.store_identity where singleton = true",
+        true,
+      ),
+    )[0]?.client_id ?? null
+  );
+}
+
+async function readLegacyProjectBinding() {
+  const relation = responseRows(
+    await runSql(
+      "select to_regclass('provisioning.client_registry_bindings')::text as relation",
+      true,
+    ),
+  )[0]?.relation;
+  if (!relation) return null;
+  return (
+    responseRows(
+      await runSql(
+        `select client_id, project_ref
+        from provisioning.client_registry_bindings
+        where project_ref = ${sqlLiteral(manifest.supabase.projectRef)}
+        limit 1`,
+        true,
+      ),
+    )[0] ?? null
   );
 }
 
@@ -272,6 +312,20 @@ values
 on conflict (migration_name) do nothing;`;
 }
 
+function legacyProjectBindingSql() {
+  return `
+create table if not exists provisioning.client_registry_bindings (
+  client_id text primary key,
+  project_ref text not null unique,
+  bound_at timestamptz not null default now()
+);
+insert into provisioning.client_registry_bindings (client_id, project_ref)
+values (${sqlLiteral(manifest.id)}, ${sqlLiteral(manifest.supabase.projectRef)})
+on conflict (client_id) do update
+set project_ref = excluded.project_ref;
+`;
+}
+
 const missingTables = await readMissingTables();
 const cmsFallbackCounts = await readCmsFallbackCounts();
 const restoredCmsEntities = new Set(await readCmsRestorations());
@@ -287,6 +341,20 @@ for (const row of repairLedger) {
 }
 let ledger = await readLedger();
 const hadLedger = ledger !== null;
+const storeIdentityClientId = await readStoreIdentityClientId();
+const legacyProjectBinding =
+  storeIdentityClientId === null ? await readLegacyProjectBinding() : null;
+const hasMatchingLegacyBinding =
+  legacyProjectBinding?.client_id === manifest.id &&
+  legacyProjectBinding?.project_ref === manifest.supabase.projectRef;
+assertMigrationStoreIdentity(storeIdentityClientId, manifest.id, {
+  allowMissing:
+    dryRun ||
+    hasMatchingLegacyBinding ||
+    (!hadLedger &&
+      args["adopt-manifest"] === true &&
+      args["bind-project"] === true),
+});
 let adoption = [];
 if (!ledger) {
   if (!dryRun && args["adopt-manifest"] !== true) {
@@ -302,7 +370,13 @@ if (!ledger) {
     const adoptionSql = adoption
       .map((record) => ledgerInsertSql(record, "local-schema-adoption"))
       .join("\n");
-    await runSql(`begin;${ledgerSchemaSql()}${adoptionSql}\ncommit;`);
+    const bindingSql =
+      storeIdentityClientId === null && args["bind-project"] === true
+        ? legacyProjectBindingSql()
+        : "";
+    await runSql(
+      `begin;${ledgerSchemaSql()}${adoptionSql}\n${bindingSql}\ncommit;`,
+    );
     ledger = await readLedger();
   } else {
     ledger = [];
@@ -429,6 +503,8 @@ console.log(
     trackedVersion: manifest.supabase.schemaVersion,
     targetVersion: target.version,
     ledgerExists: hadLedger,
+    storeIdentityClientId,
+    legacyProjectBinding,
     adopted: adoption.map((record) => record.name),
     pending: pending.map((record) => record.name),
     repairs: repairs.map((record) => record.key),

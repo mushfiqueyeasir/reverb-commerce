@@ -8,12 +8,14 @@ interface HeaderProps {
   categories: Category[];
   settings: SiteSettings;
   aiSearchEnabled: boolean;
+  preview?: boolean;
 }
 
 export default function Header({
   categories,
   settings,
   aiSearchEnabled,
+  preview = false,
 }: HeaderProps) {
   const menuData = getMenuData(categories, settings.navbar);
   const storeName = settings.store_name || "Store";
@@ -30,6 +32,7 @@ export default function Header({
         storeName={storeName}
         config={settings.navbar}
         aiSearchEnabled={aiSearchEnabled}
+        preview={preview}
       />
     </Suspense>
   );

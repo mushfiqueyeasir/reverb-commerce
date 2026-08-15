@@ -10,7 +10,9 @@ export type AuditAction =
   | "status_change"
   | "login"
   | "logout"
-  | "login_failed";
+  | "login_failed"
+  | "publish"
+  | "rollback";
 
 export type AuditEntity =
   | "product"
@@ -30,7 +32,8 @@ export type AuditEntity =
   | "user"
   | "security"
   | "auth"
-  | "promo_code";
+  | "promo_code"
+  | "storefront_theme";
 
 export interface WriteAuditLogInput {
   actor?: Pick<AdminSession, "userId" | "email" | "role"> | null;

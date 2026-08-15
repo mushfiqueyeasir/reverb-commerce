@@ -585,3 +585,23 @@ export interface AuditLogRow {
   summary: string;
   metadata: Record<string, unknown>;
 }
+
+export type StorefrontThemeRevisionStatus = "draft" | "published";
+
+export interface StorefrontThemeRevisionRow {
+  id: string;
+  revision_number: number | null;
+  status: StorefrontThemeRevisionStatus;
+  theme_key: string;
+  schema_version: number;
+  version: number;
+  manifest: Record<string, unknown>;
+  design_config: unknown;
+  source_revision_id: string | null;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  updated_by: string | null;
+  published_at: string | null;
+  published_by: string | null;
+}

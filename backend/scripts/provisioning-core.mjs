@@ -64,6 +64,25 @@ export function validateClientId(value) {
   return value;
 }
 
+export function assertMigrationStoreIdentity(
+  identityClientId,
+  expectedClientId,
+  { allowMissing = false } = {},
+) {
+  if (identityClientId === null || identityClientId === undefined) {
+    if (allowMissing) return null;
+    throw new Error(
+      "Supabase provisioning identity is missing; legacy adoption requires an existing project binding or explicit --adopt-manifest --bind-project approval",
+    );
+  }
+  if (identityClientId !== expectedClientId) {
+    throw new Error(
+      `Supabase provisioning identity ${identityClientId} does not match selected client ${expectedClientId}`,
+    );
+  }
+  return identityClientId;
+}
+
 function titleFromClientId(clientId) {
   return clientId
     .split("-")

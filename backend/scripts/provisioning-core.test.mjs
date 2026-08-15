@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import {
+  assertMigrationStoreIdentity,
   buildPlaceholderAssets,
   createSupabaseFetch,
   deriveStoreDefaults,
@@ -39,6 +40,27 @@ test("validates and normalizes provisioning identifiers", () => {
   assert.throws(() => normalizeHttpsUrl("http://example.com", "SITE_URL"));
   assert.throws(() =>
     normalizeHttpsUrl("https://example.com/path", "SITE_URL"),
+  );
+});
+
+test("requires the selected client to match the migration store identity", () => {
+  assert.equal(
+    assertMigrationStoreIdentity("sample-store", "sample-store"),
+    "sample-store",
+  );
+  assert.throws(
+    () => assertMigrationStoreIdentity("other-store", "sample-store"),
+    /does not match selected client/,
+  );
+  assert.throws(
+    () => assertMigrationStoreIdentity(null, "sample-store"),
+    /provisioning identity is missing/,
+  );
+  assert.equal(
+    assertMigrationStoreIdentity(null, "sample-store", {
+      allowMissing: true,
+    }),
+    null,
   );
 });
 
@@ -498,4 +520,132 @@ test("removes product vector search infrastructure", () => {
   assert.match(migration, /drop table if exists public\.product_embeddings/);
   assert.match(migration, /drop function if exists public\.match_product_embeddings/);
   assert.match(migration, /drop extension if exists vector/);
+});
+
+test("defines a revisioned theme builder with referenced legacy content", () => {
+  const migration = readFileSync(
+    join(
+      import.meta.dirname,
+      "..",
+      "supabase",
+      "migrations",
+      "0040_theme_builder_foundation.sql",
+    ),
+    "utf8",
+  );
+
+  assert.doesNotMatch(migration, /--/);
+  assert.match(
+    migration,
+    /create table if not exists provisioning\.theme_builder_backups/,
+  );
+  assert.match(
+    migration,
+    /'siteSettings'[\s\S]*'homepageSections'[\s\S]*'banners'/,
+  );
+  assert.match(migration, /create table public\.theme_revisions/);
+  assert.match(migration, /create table public\.theme_state/);
+  assert.match(
+    migration,
+    /create unique index theme_revisions_single_draft_idx[\s\S]*where status = 'draft'/,
+  );
+  assert.match(migration, /published theme revisions are immutable/);
+  assert.match(
+    migration,
+    /after insert or update or delete on public\.theme_revisions\n  deferrable initially deferred/,
+  );
+  assert.match(
+    migration,
+    /after insert or update or delete on public\.theme_state\n  deferrable initially deferred/,
+  );
+  assert.match(migration, /'legacy-classic'/);
+  assert.match(migration, /'legacy-classic',\n    1,/);
+  assert.match(migration, /settings\.socials #> '\{_cms,palette\}'/);
+  assert.match(migration, /'contentReferences'/);
+  assert.match(
+    migration,
+    /'navbar'[\s\S]*'relation', 'site_settings'[\s\S]*'socials', '_cms', 'navbar'/,
+  );
+  assert.match(
+    migration,
+    /'footer'[\s\S]*'relation', 'site_settings'[\s\S]*'socials', '_cms', 'footer'/,
+  );
+  assert.match(
+    migration,
+    /'homepage'[\s\S]*'relation', 'homepage_sections'/,
+  );
+});
+
+test("restricts theme writes to atomic optimistic admin RPCs", () => {
+  const migration = readFileSync(
+    join(
+      import.meta.dirname,
+      "..",
+      "supabase",
+      "migrations",
+      "0040_theme_builder_foundation.sql",
+    ),
+    "utf8",
+  );
+
+  for (const rpc of [
+    "save_theme_draft",
+    "publish_theme_draft",
+    "rollback_theme_revision",
+  ]) {
+    assert.match(
+      migration,
+      new RegExp(
+        `create or replace function public\\.${rpc}\\([\\s\\S]*?security definer[\\s\\S]*?set search_path = public`,
+      ),
+    );
+  }
+  assert.equal([...migration.matchAll(/auth\.uid\(\)/g)].length >= 4, true);
+  assert.equal([...migration.matchAll(/not public\.is_admin\(\)/g)].length, 3);
+  assert.equal([...migration.matchAll(/errcode = '40001'/g)].length, 3);
+  assert.equal(
+    [...migration.matchAll(/v_published\.design_config #> '\{resolvedTokens,palette\}'/g)]
+      .length,
+    2,
+  );
+  assert.match(
+    migration,
+    /rollback requires a historical published revision[\s\S]*insert into public\.theme_revisions/,
+  );
+  assert.match(
+    migration,
+    /revoke all on table public\.theme_revisions from public, anon, authenticated, service_role/,
+  );
+  assert.match(
+    migration,
+    /grant execute on function public\.save_theme_draft\(bigint, text, integer, jsonb, jsonb\) to authenticated, service_role/,
+  );
+  assert.match(migration, /notify pgrst, 'reload schema'/);
+});
+
+test("checks migration store identity before schema reconciliation", () => {
+  const script = readFileSync(
+    join(import.meta.dirname, "migrate-client.mjs"),
+    "utf8",
+  );
+  const identityCheck = script.indexOf("assertMigrationStoreIdentity(");
+  const adoptionWrite = script.indexOf("const bindingSql =");
+  const migrationWrite = script.indexOf(
+    '`begin;\\n${record.sql}\\n${ledgerInsertSql(record, "local-client-migration")}\\ncommit;`',
+  );
+
+  assert.notEqual(identityCheck, -1);
+  assert.ok(identityCheck < adoptionWrite);
+  assert.ok(identityCheck < migrationWrite);
+  assert.match(script, /readStoreIdentityClientId/);
+  assert.match(script, /hasMatchingLegacyBinding/);
+  assert.match(script, /function legacyProjectBindingSql\(\)/);
+  assert.match(
+    script,
+    /const bindingSql =[\s\S]*storeIdentityClientId === null[\s\S]*args\["bind-project"\] === true[\s\S]*legacyProjectBindingSql\(\)/,
+  );
+  assert.match(
+    script,
+    /!hadLedger[\s\S]*args\["adopt-manifest"\] === true[\s\S]*args\["bind-project"\] === true/,
+  );
 });

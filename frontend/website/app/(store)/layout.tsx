@@ -1,5 +1,4 @@
-import Header from "@/components/Common/Header/Header";
-import Footer from "@/components/Common/Footer";
+import { ThemeFooter, ThemeHeader } from "@/components/Common/ThemeChrome";
 import StoreScrollShell from "@/components/Common/StoreScrollShell";
 import PromotionModalWrapper from "@/components/Common/PromotionModalWrapper";
 import ChatPlugins from "@/components/Common/ChatPlugins";
@@ -11,6 +10,8 @@ import { getPromotions } from "@/utility/getPromotion";
 import { getCategories } from "@/utility/getCategory";
 import { getSiteSettings } from "@/utility/getSettings";
 import { getAiSearchSettings } from "@/lib/aiSearchSettings";
+import { getStorefrontThemeManifest } from "@/lib/theme/manifest";
+import { readCurrentPublishedStorefrontTheme } from "@/lib/theme/store";
 import { appConfig } from "@/lib/config";
 
 // Catalog + CMS change constantly — never statically cache storefront pages.
@@ -21,16 +22,26 @@ export const fetchCache = "force-no-store";
 export default async function StoreLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [promotions, categories, settings, aiSearch] = await Promise.all([
-    getPromotions(),
-    getCategories(),
-    getSiteSettings(),
-    getAiSearchSettings(),
-  ]);
+  const [promotions, categories, settings, aiSearch, publishedTheme] =
+    await Promise.all([
+      getPromotions(),
+      getCategories(),
+      getSiteSettings(),
+      getAiSearchSettings(),
+      readCurrentPublishedStorefrontTheme(),
+    ]);
+  const manifest = getStorefrontThemeManifest(
+    publishedTheme.config.themeId,
+    publishedTheme.config.themeVersion,
+  );
 
   return (
     <CurrencyProvider currencies={settings.currencies}>
-      <div className="relative bg-background text-foreground">
+      <div
+        data-store-theme={manifest.id}
+        data-store-theme-version={manifest.version}
+        className="relative bg-background text-foreground"
+      >
         {settings.analytics_enabled && (
           <Analytics
             googleAnalyticsId={settings.google_analytics_id}
@@ -43,13 +54,17 @@ export default async function StoreLayout({
         <CursorGlow />
         <StoreScrollShell>
           <div className="relative">
-            <Header
+            <ThemeHeader
+              rendererId={manifest.renderers.navbar}
               categories={categories}
               settings={settings}
               aiSearchEnabled={aiSearch.enabled}
             />
             <div className="min-h-[60vh]">{children}</div>
-            <Footer settings={settings} />
+            <ThemeFooter
+              rendererId={manifest.renderers.footer}
+              settings={settings}
+            />
             {/* Clearance for the mobile shopping tab bar */}
             <div
               className="h-[calc(5.75rem+env(safe-area-inset-bottom))] md:hidden"
