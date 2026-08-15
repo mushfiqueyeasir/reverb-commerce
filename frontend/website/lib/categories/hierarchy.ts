@@ -62,6 +62,10 @@ export function filterCategoriesWithProductLinks(
     }
   }
 
+  for (const category of categories) {
+    if (category.isDefault || !category.parentId) included.add(category._id);
+  }
+
   return categories.filter((category) => included.has(category._id));
 }
 

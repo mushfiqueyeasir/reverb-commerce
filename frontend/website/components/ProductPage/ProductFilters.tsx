@@ -195,7 +195,7 @@ export default function ProductFilters({
                 align="start"
                 sideOffset={8}
                 collisionPadding={16}
-                className="max-h-[var(--radix-popover-content-available-height)] w-[calc(100vw-2rem)] overflow-y-auto overscroll-contain sm:w-[25rem]"
+                className="w-[calc(100vw-2rem)] sm:w-[25rem]"
               >
                 <CategoryMultiSelectPanel
                   options={categoryOptions}
