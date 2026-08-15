@@ -49,7 +49,7 @@ export default function KawaiiAboutHero({
 
   return (
     <section
-      className="relative overflow-hidden bg-background py-16 text-foreground sm:py-24 lg:py-32"
+      className="relative overflow-hidden bg-background pb-16 pt-8 text-foreground sm:pb-24 sm:pt-12 md:pt-20 lg:pb-32"
       aria-labelledby={headingText ? headingId : undefined}
     >
       <div

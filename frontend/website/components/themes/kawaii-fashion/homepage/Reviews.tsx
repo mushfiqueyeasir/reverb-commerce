@@ -44,6 +44,7 @@ export default function KawaiiFashionReviews({
     handleTouchEnd,
     handleScroll,
     handleClickCapture,
+    onDragStart,
     onPointerEnter,
     onPointerLeave,
     onFocusCapture,
@@ -92,6 +93,7 @@ export default function KawaiiFashionReviews({
           onFocusCapture={onFocusCapture}
           onBlurCapture={onBlurCapture}
           onClickCapture={handleClickCapture}
+          onDragStart={onDragStart}
         >
           <div className="flex w-max">
             {[false, true].map((duplicate) => (

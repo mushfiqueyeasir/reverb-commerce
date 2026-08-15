@@ -11,7 +11,7 @@ export function KawaiiContactForm({
   handleSubmit,
 }: ContactFormLayoutProps) {
   return (
-    <section className="relative overflow-hidden bg-background py-16 text-foreground sm:py-24 lg:py-32">
+    <section className="relative overflow-hidden bg-background pb-16 pt-8 text-foreground sm:pb-24 sm:pt-12 md:pt-20 lg:pb-32">
       <div
         className="pointer-events-none absolute -left-24 top-1/4 size-72 rounded-[9999px] bg-primary/10 blur-3xl"
         aria-hidden="true"

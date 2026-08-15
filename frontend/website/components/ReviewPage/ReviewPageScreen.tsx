@@ -1,13 +1,16 @@
 import { ArrowDown, Star } from "lucide-react";
 import ReviewCard from "@/components/Common/ReviewCard";
+import { cn } from "@/lib/utils";
 import type { TransformedReview } from "@/type/reviewType";
 
 export default function ReviewPageScreen({
   reviews,
   storeName,
+  compactTopSpacing = false,
 }: {
   reviews: TransformedReview[];
   storeName: string;
+  compactTopSpacing?: boolean;
 }) {
   const ratings = reviews
     .map((review) => Number(review.rating) || 0)
@@ -17,7 +20,12 @@ export default function ReviewPageScreen({
     : 0;
 
   return (
-    <main className="overflow-hidden pb-24 pt-24 md:pt-36">
+    <main
+      className={cn(
+        "overflow-hidden pb-24",
+        compactTopSpacing ? "pt-8 sm:pt-12 md:pt-20" : "pt-24 md:pt-36",
+      )}
+    >
       <section className="relative mx-auto max-w-[1600px] px-6 md:px-10">
         <div
           className="pointer-events-none absolute -right-40 -top-40 size-[34rem] rounded-full blur-3xl"

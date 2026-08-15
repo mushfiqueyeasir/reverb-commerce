@@ -46,6 +46,7 @@ export default function KawaiiFashionCategories({
     handleTouchEnd,
     handleScroll,
     handleClickCapture,
+    onDragStart,
     onPointerEnter,
     onPointerLeave,
     onFocusCapture,
@@ -100,6 +101,7 @@ export default function KawaiiFashionCategories({
           onFocusCapture={onFocusCapture}
           onBlurCapture={onBlurCapture}
           onClickCapture={handleClickCapture}
+          onDragStart={onDragStart}
         >
           <div className="flex w-max gap-3 pe-3 sm:gap-5 sm:pe-5">
             {[0, 1, 2].map((copy) => (

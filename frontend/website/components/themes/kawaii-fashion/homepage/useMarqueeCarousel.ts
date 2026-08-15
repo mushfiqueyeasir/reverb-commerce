@@ -11,11 +11,7 @@ function normalizePosition(position: number, stepWidth: number) {
   return ((position % stepWidth) + stepWidth) % stepWidth;
 }
 
-function resolvePosition(
-  el: HTMLDivElement,
-  position: number,
-  copies: number,
-) {
+function resolvePosition(el: HTMLDivElement, position: number, copies: number) {
   const stepWidth = el.scrollWidth / copies;
   if (stepWidth > el.clientWidth) {
     return normalizePosition(position, stepWidth);
@@ -41,6 +37,7 @@ export function useMarqueeCarousel(
     moved: boolean;
   } | null>(null);
   const suppressClickRef = useRef(false);
+  const autoScrollFrameRef = useRef(0);
   const momentumFrameRef = useRef(0);
   const nativeTouchRef = useRef(false);
   const touchContactRef = useRef(false);
@@ -60,7 +57,6 @@ export function useMarqueeCarousel(
   useEffect(() => {
     const el = trackRef.current;
     if (!el || !autoScroll) return;
-    let frame = 0;
     let last = performance.now();
     let position = el.scrollLeft;
     const step = (now: number) => {
@@ -74,10 +70,10 @@ export function useMarqueeCarousel(
         el.scrollLeft = position;
       }
       last = now;
-      frame = requestAnimationFrame(step);
+      autoScrollFrameRef.current = requestAnimationFrame(step);
     };
-    frame = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(frame);
+    autoScrollFrameRef.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(autoScrollFrameRef.current);
   }, [autoScroll, autoScrollSpeed, copies]);
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -90,6 +86,7 @@ export function useMarqueeCarousel(
     }
     const el = trackRef.current;
     if (!el) return;
+    cancelAnimationFrame(autoScrollFrameRef.current);
     cancelAnimationFrame(momentumFrameRef.current);
     setSettling(false);
     suppressClickRef.current = false;
@@ -180,6 +177,7 @@ export function useMarqueeCarousel(
     if (touchResumeTimeoutRef.current) {
       clearTimeout(touchResumeTimeoutRef.current);
     }
+    cancelAnimationFrame(autoScrollFrameRef.current);
     nativeTouchRef.current = true;
     touchContactRef.current = true;
     touchStartXRef.current = event.touches[0]?.clientX ?? 0;
@@ -217,6 +215,7 @@ export function useMarqueeCarousel(
 
   useEffect(
     () => () => {
+      cancelAnimationFrame(autoScrollFrameRef.current);
       cancelAnimationFrame(momentumFrameRef.current);
       if (touchResumeTimeoutRef.current) {
         clearTimeout(touchResumeTimeoutRef.current);
@@ -236,6 +235,9 @@ export function useMarqueeCarousel(
     handleTouchEnd,
     handleScroll,
     handleClickCapture,
+    onDragStart: (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+    },
     onPointerEnter: (event: React.PointerEvent<HTMLDivElement>) => {
       if (event.pointerType === "mouse") setHovering(true);
     },

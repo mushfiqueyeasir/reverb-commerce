@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+  type ReactNode,
+} from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Check,
@@ -194,7 +201,11 @@ export default function ProductFilters({
 
   const categoriesPanel = (
     <div>
-      {sectionLabel(<Tags className="size-3.5" />, "Categories", filters.categories.length)}
+      {sectionLabel(
+        <Tags className="size-3.5" />,
+        "Categories",
+        filters.categories.length,
+      )}
       <CategoryMultiSelectPanel
         options={categoryOptions}
         selected={filters.categories}
@@ -227,11 +238,7 @@ export default function ProductFilters({
               key={value}
               type="button"
               onClick={() =>
-                toggleListValue(
-                  "availability",
-                  filters.availability,
-                  value,
-                )
+                toggleListValue("availability", filters.availability, value)
               }
               className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
                 checked
@@ -242,7 +249,9 @@ export default function ProductFilters({
               <span
                 className={`flex size-5 shrink-0 items-center justify-center rounded-md border-2 ${checked ? "border-primary bg-primary/20 text-foreground" : "border-foreground/40 bg-background"}`}
               >
-                {checked ? <Check className="size-3.5" strokeWidth={3} /> : null}
+                {checked ? (
+                  <Check className="size-3.5" strokeWidth={3} />
+                ) : null}
               </span>
               {label}
             </button>
@@ -301,24 +310,24 @@ export default function ProductFilters({
   const searchPanel = (
     <div className="relative">
       <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="search"
-          value={searchDraft}
-          onChange={(event) => setSearchDraft(event.target.value)}
-          placeholder="Search products"
-          className="h-10 rounded-full pl-10 pr-9"
-          aria-label="Search products"
-        />
-        {searchDraft ? (
-          <button
-            type="button"
-            aria-label="Clear search"
-            onClick={() => setSearchDraft("")}
-            className="absolute right-3 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
-          >
-            <X className="size-3.5" />
-          </button>
-        ) : null}
+      <Input
+        type="search"
+        value={searchDraft}
+        onChange={(event) => setSearchDraft(event.target.value)}
+        placeholder="Search products"
+        className="h-10 rounded-full pl-10 pr-9"
+        aria-label="Search products"
+      />
+      {searchDraft ? (
+        <button
+          type="button"
+          aria-label="Clear search"
+          onClick={() => setSearchDraft("")}
+          className="absolute right-3 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
+        >
+          <X className="size-3.5" />
+        </button>
+      ) : null}
     </div>
   );
 
@@ -409,22 +418,20 @@ export default function ProductFilters({
           side="left"
           className="flex flex-col gap-0 overflow-hidden p-4"
         >
-          <div className="flex min-h-11 items-center justify-end pr-12">
-            <SheetTitle className="sr-only">Filters</SheetTitle>
+          <SheetTitle className="sr-only">Filters</SheetTitle>
+          <div className="min-h-0 flex-1 overflow-y-auto pb-4 pt-1">
+            {filterSections}
             {activeCount ? (
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-8 rounded-full text-xs"
+                className="mt-6 h-8 rounded-full text-xs"
                 onClick={() => startTransition(() => router.push(pathname))}
               >
                 Clear all
               </Button>
             ) : null}
-          </div>
-          <div className="min-h-0 flex-1 overflow-y-auto pb-4 pt-1">
-            {filterSections}
           </div>
         </SheetContent>
       </Sheet>
