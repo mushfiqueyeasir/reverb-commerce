@@ -95,6 +95,8 @@ describe("storefront theme manifest", () => {
       { id: "legacy-classic", version: 1 },
       { id: "v2-design", version: 1 },
     ]);
+    expect(LEGACY_CLASSIC_THEME.displayName).toBe("Tee Drop Classic");
+    expect(LEGACY_CLASSIC_THEME.id).toBe("legacy-classic");
     expect(LEGACY_CLASSIC_THEME.defaultTokens.palette).toEqual(DEFAULT_PALETTE);
     expect(V2_DESIGN_THEME.defaultTokens.palette).toEqual(DEFAULT_PALETTE);
     expect(LEGACY_CLASSIC_THEME.renderers.navbar).toBe("legacy-classic.navbar");

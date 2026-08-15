@@ -36,8 +36,8 @@ export default async function ThemesAdminPage() {
             <div className="relative aspect-[3/4] overflow-hidden rounded-sm border border-border bg-background">
               {theme.id === "legacy-classic" ? (
                 <Image
-                  src="/images/themes/legacy-classic/desktop.png"
-                  alt="Legacy Classic landing page preview"
+                  src="/images/themes/legacy-classic/mobile.png"
+                  alt="Tee Drop Classic T-shirt storefront preview"
                   fill
                   sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 100vw"
                   className="object-cover object-top transition duration-300 group-hover:scale-[1.01]"

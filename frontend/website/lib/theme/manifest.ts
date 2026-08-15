@@ -125,10 +125,10 @@ export const LEGACY_CLASSIC_THEME: StorefrontThemeManifest = {
   id: "legacy-classic",
   schemaVersion: STOREFRONT_THEME_SCHEMA_VERSION,
   version: 1,
-  displayName: "Legacy Classic",
-  category: "Classic storefront",
+  displayName: "Tee Drop Classic",
+  category: "T-shirt dropshipping",
   description:
-    "The classic Reverb storefront package with complete homepage and About coverage.",
+    "A conversion-focused T-shirt storefront for graphic drops, oversized fits, and streetwear collections.",
   defaultTokens: { palette: { ...DEFAULT_PALETTE } },
   renderers: {
     navbar: "legacy-classic.navbar",

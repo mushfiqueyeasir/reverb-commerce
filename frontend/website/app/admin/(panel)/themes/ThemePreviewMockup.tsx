@@ -21,7 +21,7 @@ export function ThemePreviewMockup({
   className?: string;
 }) {
   const v2 = themeId === "v2-design";
-  const label = `${v2 ? "V2 Design" : "Legacy Classic"} ${viewport} landing page preview`;
+  const label = `${v2 ? "V2 Design" : "Tee Drop Classic"} ${viewport} landing page preview`;
 
   return (
     <svg
