@@ -28,7 +28,6 @@ export interface ProductCardProps {
   stock?: ProductStock[];
   sizingMode: "none" | "required";
   sizeChart?: ProductSizeChartRow[];
-  tag?: string;
   label?: string;
   variant?: ProductCardVariant;
 }
@@ -46,7 +45,6 @@ export default function ProductCard({
   stock,
   sizingMode,
   sizeChart,
-  tag,
   label,
   variant = "default",
 }: ProductCardProps) {
@@ -62,13 +60,6 @@ export default function ProductCard({
     return stock.reduce((sum, item) => sum + (item.quantity || 0), 0) === 0;
   })();
 
-  const badge =
-    tag ||
-    (isOutOfStock
-      ? "Sold Out"
-      : discount && discount > 0
-        ? `${discount}% Off`
-        : "New");
   if (variant === "kawaii-fashion") {
     return (
       <>
@@ -219,12 +210,6 @@ export default function ProductCard({
           </Link>
 
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 transition-opacity group-hover:opacity-90" />
-
-          <div className="absolute left-2.5 top-2.5 flex items-center gap-2 sm:left-4 sm:top-4">
-            <span className="rounded-full border border-border bg-background/60 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.18em] text-foreground backdrop-blur-md sm:px-3 sm:text-[10px] sm:tracking-[0.2em]">
-              {badge}
-            </span>
-          </div>
 
           <button
             type="button"

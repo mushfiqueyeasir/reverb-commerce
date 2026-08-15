@@ -145,7 +145,7 @@ export default function KawaiiFashionBanner({
       ) : null}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-2/3 bg-[radial-gradient(circle_at_18%_16%,color-mix(in_srgb,var(--primary)_13%,transparent),transparent_38%)]" />
       <div className="relative mx-auto grid max-w-[1520px] overflow-hidden border border-border bg-surface lg:min-h-[720px] lg:grid-cols-[0.88fr_1.12fr]">
-        <div className="relative z-10 flex flex-col justify-between px-5 py-6 sm:px-10 sm:py-10 lg:px-14 lg:py-14 xl:px-20">
+        <div className="relative z-10 order-2 flex flex-col justify-between px-5 py-6 sm:px-10 sm:py-10 lg:order-1 lg:px-14 lg:py-14 xl:px-20">
           <div className="flex items-center justify-between gap-4 border-b border-border pb-4 text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground sm:text-[11px]">
             {normalizedEditLabel ? (
               <span id={labelId}>{normalizedEditLabel}</span>
@@ -190,7 +190,7 @@ export default function KawaiiFashionBanner({
           ) : null}
         </div>
 
-        <div className="relative min-h-[360px] overflow-hidden bg-card sm:min-h-[480px] lg:min-h-full">
+        <div className="relative order-1 min-h-[360px] overflow-hidden bg-card sm:min-h-[480px] lg:order-2 lg:min-h-full">
           {mobileImage || desktopImage ? (
             <picture>
               {desktopSrcSet ? (

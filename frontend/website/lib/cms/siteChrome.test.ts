@@ -79,7 +79,7 @@ describe("site chrome normalization", () => {
 
     expect(navbar.copy.mobileHomeLabel).toBe("Start");
     expect(navbar.copy.shopAllTemplate).toBe("Browse {label}");
-    expect(navbar.copy.mobileBagLabel).toBe("Bag");
+    expect(navbar.copy.mobileBagLabel).toBe("Cart");
     expect(navbar.productCardCopy.addFavoriteAriaLabel).toBe("Keep this");
     expect(navbar.productCardCopy.favoriteSavedToast).toHaveLength(160);
     expect(navbar.productCardCopy.quickAddButtonLabel).toBe("Quick Add");

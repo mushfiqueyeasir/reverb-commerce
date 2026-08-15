@@ -55,7 +55,7 @@ const NAVBAR_COPY_FIELDS: ReadonlyArray<{
   { key: "mobileHomeLabel", label: "Mobile Home label" },
   { key: "mobileSavedLabel", label: "Mobile Saved label" },
   { key: "mobileShopLabel", label: "Mobile Shop label" },
-  { key: "mobileBagLabel", label: "Mobile Bag label" },
+  { key: "mobileBagLabel", label: "Mobile Cart label" },
   { key: "mobileSearchLabel", label: "Mobile Search label" },
   { key: "mobileSearchAriaLabel", label: "Mobile search aria label" },
   { key: "countOverflowLabel", label: "Count overflow label" },

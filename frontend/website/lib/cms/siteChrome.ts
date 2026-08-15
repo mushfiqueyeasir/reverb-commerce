@@ -155,7 +155,7 @@ export const DEFAULT_NAVBAR: NavbarConfig = {
     mobileHomeLabel: "Home",
     mobileSavedLabel: "Saved",
     mobileShopLabel: "Shop",
-    mobileBagLabel: "Bag",
+    mobileBagLabel: "Cart",
     mobileSearchLabel: "Search",
     mobileSearchAriaLabel: "Search products",
     countOverflowLabel: "9+",

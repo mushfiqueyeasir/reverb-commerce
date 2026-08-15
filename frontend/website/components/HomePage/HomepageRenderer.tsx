@@ -490,9 +490,6 @@ function KawaiiFashionFeaturedRenderer({
       eyebrow={configString(config, "eyebrow")}
       ctaLabel={configString(config, "cta_label")}
       ctaHref={configString(config, "cta_url") ?? "/product"}
-      soldOutBadge={configString(config, "sold_out_badge")}
-      specialPriceBadge={configString(config, "special_price_badge")}
-      defaultBadge={configString(config, "default_badge")}
       listLabel={configString(config, "product_list_label")}
       uncategorizedLabelTemplate={configString(
         config,

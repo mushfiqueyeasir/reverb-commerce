@@ -350,9 +350,6 @@ export function SectionForm({
     resumeLabel: strConfig(config, "resume_label"),
     previousLabel: strConfig(config, "previous_label"),
     nextLabel: strConfig(config, "next_label"),
-    soldOutBadge: strConfig(config, "sold_out_badge"),
-    specialPriceBadge: strConfig(config, "special_price_badge"),
-    defaultBadge: strConfig(config, "default_badge"),
     productListLabel: strConfig(config, "product_list_label"),
     uncategorizedLabelTemplate: strConfig(
       config,
@@ -493,10 +490,6 @@ export function SectionForm({
       nextConfig.next_label = kawaiiText.nextLabel.trim() || null;
     }
     if (isKawaii && family === "featured") {
-      nextConfig.sold_out_badge = kawaiiText.soldOutBadge.trim() || null;
-      nextConfig.special_price_badge =
-        kawaiiText.specialPriceBadge.trim() || null;
-      nextConfig.default_badge = kawaiiText.defaultBadge.trim() || null;
       nextConfig.product_list_label =
         kawaiiText.productListLabel.trim() || null;
       nextConfig.uncategorized_label_template =
@@ -1069,9 +1062,6 @@ export function SectionForm({
                 </p>
               </div>
               <div className="grid gap-5 sm:grid-cols-2">
-                {kawaiiField("soldOutBadge", "Sold-out badge")}
-                {kawaiiField("specialPriceBadge", "Special-price badge")}
-                {kawaiiField("defaultBadge", "Default badge")}
                 {kawaiiField("productListLabel", "Product list label")}
               </div>
               {kawaiiField(

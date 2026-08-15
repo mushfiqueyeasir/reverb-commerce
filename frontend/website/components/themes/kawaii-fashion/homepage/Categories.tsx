@@ -1,7 +1,10 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import SectionHeading from "./SectionHeading";
+import { useMarqueeCarousel } from "./useMarqueeCarousel";
 import type { Category } from "@/type/categoryType";
 
 interface KawaiiFashionCategoriesProps {
@@ -32,6 +35,15 @@ export default function KawaiiFashionCategories({
   categoryIds,
   limit = 5,
 }: KawaiiFashionCategoriesProps) {
+  const {
+    trackRef,
+    handlePointerDown,
+    handlePointerMove,
+    endDrag,
+    onMouseEnter,
+    onMouseLeave,
+  } = useMarqueeCarousel();
+
   const eligible = categories.filter(
     (category) => category.isDefault || !category.parentId,
   );
@@ -57,43 +69,72 @@ export default function KawaiiFashionCategories({
           ctaHref={ctaHref}
           align="center"
         />
-        <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 sm:gap-y-10 lg:grid-cols-5 lg:gap-x-7">
-          {visible.map((category) => (
-            <article key={category._id} className="group min-w-0">
-              <Link
-                href={categoryHref(category)}
-                className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background"
-                aria-label={category.categoryName}
+      </div>
+      <div className="relative mx-auto mt-10 max-w-[1600px] sm:mt-14">
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-background to-transparent sm:w-16" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-background to-transparent sm:w-16" />
+        <div
+          ref={trackRef}
+          role="list"
+          aria-label={title || "Categories"}
+          className="scrollbar-hide touch-pan-y select-none overflow-x-auto px-4 sm:px-6 lg:px-10"
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+        >
+          <div className="flex w-max gap-3 pe-3 sm:gap-5 sm:pe-5">
+            {[false, true].map((duplicate) => (
+              <div
+                key={duplicate ? "duplicate" : "original"}
+                className="flex gap-3 pe-3 sm:gap-5 sm:pe-5"
+                aria-hidden={duplicate || undefined}
               >
-                <div className="relative aspect-[4/5] overflow-hidden border border-border bg-surface">
-                  {category.imageUrl ? (
-                    <Image
-                      src={category.imageUrl}
-                      alt={category.categoryName}
-                      fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                      className="object-cover transition-transform duration-700 group-hover:scale-[1.035] motion-reduce:transition-none"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_60%_26%,color-mix(in_srgb,var(--primary)_22%,transparent),transparent_30%),linear-gradient(145deg,var(--card),var(--surface))]" />
-                  )}
-                  <span className="absolute bottom-3 right-3 grid size-10 place-items-center bg-background/90 text-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground motion-reduce:transition-none sm:bottom-4 sm:right-4">
-                    <ArrowUpRight className="size-4" aria-hidden="true" />
-                  </span>
-                </div>
-                <div className="pt-4">
-                  <h3 className="truncate font-display text-xl font-semibold tracking-[-0.03em] text-foreground sm:text-2xl">
-                    {category.categoryName}
-                  </h3>
-                  {category.categoryDescription?.trim() ? (
-                    <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground sm:text-sm">
-                      {category.categoryDescription.trim()}
-                    </p>
-                  ) : null}
-                </div>
-              </Link>
-            </article>
-          ))}
+                {visible.map((category) => (
+                  <div key={`${category._id}-${duplicate ? "duplicate" : "original"}`} className="w-[min(62vw,13.5rem)] shrink-0">
+                    <article className="group">
+                      <Link
+                        href={categoryHref(category)}
+                        tabIndex={duplicate ? -1 : undefined}
+                        className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background"
+                        aria-label={category.categoryName}
+                      >
+                        <div className="relative aspect-[4/5] overflow-hidden border border-border bg-surface">
+                          {category.imageUrl ? (
+                            <Image
+                              src={category.imageUrl}
+                              alt={category.categoryName}
+                              fill
+                              draggable={false}
+                              sizes="(max-width: 640px) 62vw, 13.5rem"
+                              className="pointer-events-none object-cover transition-transform duration-700 group-hover:scale-[1.035] motion-reduce:transition-none"
+                            />
+                          ) : (
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_60%_26%,color-mix(in_srgb,var(--primary)_22%,transparent),transparent_30%),linear-gradient(145deg,var(--card),var(--surface))]" />
+                          )}
+                          <span className="absolute bottom-3 right-3 grid size-10 place-items-center bg-background/90 text-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground motion-reduce:transition-none sm:bottom-4 sm:right-4">
+                            <ArrowUpRight className="size-4" aria-hidden="true" />
+                          </span>
+                        </div>
+                        <div className="pt-4">
+                          <h3 className="truncate font-display text-xl font-semibold tracking-[-0.03em] text-foreground sm:text-2xl">
+                            {category.categoryName}
+                          </h3>
+                          {category.categoryDescription?.trim() ? (
+                            <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground sm:text-sm">
+                              {category.categoryDescription.trim()}
+                            </p>
+                          ) : null}
+                        </div>
+                      </Link>
+                    </article>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
