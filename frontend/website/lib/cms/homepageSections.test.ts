@@ -165,22 +165,22 @@ describe("homepage section normalization", () => {
       normalizeKawaiiHomepageTextConfig("banner", {
         edit_label: "  Kawaii fashion edit  ",
         footer_note: "   ",
-        carousel_role_description: "  carousel  ",
+        image_badge: "  The new mood  ",
         untouched: true,
       }),
     ).toEqual({
       config: {
         edit_label: "Kawaii fashion edit",
         footer_note: null,
-        carousel_role_description: "carousel",
+        image_badge: "The new mood",
         untouched: true,
       },
     });
     expect(
       normalizeKawaiiHomepageTextConfig("banner", {
-        carousel_role_description: "x".repeat(121),
+        footer_note: "x".repeat(241),
       }).error,
-    ).toMatch(/120 characters or fewer/);
+    ).toMatch(/240 characters or fewer/);
     expect(
       normalizeKawaiiHomepageTextConfig("featured", {
         product_list_label: "x".repeat(121),

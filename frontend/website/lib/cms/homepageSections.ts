@@ -127,12 +127,6 @@ export const KAWAII_HOMEPAGE_TEXT_FIELD_LIMITS: Partial<
     edit_label: 120,
     footer_note: 240,
     image_badge: 120,
-    carousel_role_description: 120,
-    carousel_announcement_template: 240,
-    pause_label: 120,
-    resume_label: 120,
-    previous_label: 120,
-    next_label: 120,
   },
   categories: {
     eyebrow: 120,

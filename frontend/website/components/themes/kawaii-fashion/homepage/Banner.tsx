@@ -20,14 +20,16 @@ interface KawaiiFashionBannerProps {
   editLabel?: string | null;
   footerNote?: string | null;
   imageBadge?: string | null;
-  carouselRoleDescription?: string | null;
-  carouselAnnouncementTemplate?: string | null;
-  pauseLabel?: string | null;
-  resumeLabel?: string | null;
-  previousLabel?: string | null;
-  nextLabel?: string | null;
   headingLevel?: "h1" | "h2";
 }
+
+const CAROUSEL_ROLE_DESCRIPTION = "carousel";
+const CAROUSEL_ANNOUNCEMENT_TEMPLATE =
+  "Slide {current} of {total}: {title}";
+const PAUSE_LABEL = "Pause slide rotation";
+const RESUME_LABEL = "Resume slide rotation";
+const PREVIOUS_LABEL = "Previous collection";
+const NEXT_LABEL = "Next collection";
 
 const ROTATION_INTERVAL = 7000;
 
@@ -49,12 +51,6 @@ export default function KawaiiFashionBanner({
   editLabel,
   footerNote,
   imageBadge,
-  carouselRoleDescription,
-  carouselAnnouncementTemplate,
-  pauseLabel,
-  resumeLabel,
-  previousLabel,
-  nextLabel,
   headingLevel = "h1",
 }: KawaiiFashionBannerProps) {
   const slides = banners.filter((banner) => banner.title?.trim());
@@ -92,17 +88,9 @@ export default function KawaiiFashionBanner({
   const normalizedEditLabel = editLabel?.trim();
   const normalizedFooterNote = footerNote?.trim();
   const normalizedImageBadge = imageBadge?.trim();
-  const normalizedCarouselRoleDescription = carouselRoleDescription?.trim();
-  const normalizedAnnouncementTemplate = carouselAnnouncementTemplate?.trim();
-  const normalizedPauseLabel = pauseLabel?.trim();
-  const normalizedResumeLabel = resumeLabel?.trim();
-  const normalizedPreviousLabel = previousLabel?.trim();
-  const normalizedNextLabel = nextLabel?.trim();
-  const hasRotationControl = Boolean(
-    normalizedPauseLabel && normalizedResumeLabel,
-  );
+  const hasRotationControl = Boolean(PAUSE_LABEL && RESUME_LABEL);
   const hasControls = Boolean(
-    hasRotationControl || normalizedPreviousLabel || normalizedNextLabel,
+    hasRotationControl || PREVIOUS_LABEL || NEXT_LABEL,
   );
   const desktopImage = active.imageUrl || active.mobileImageUrl;
   const mobileImage = active.mobileImageUrl || active.imageUrl;
@@ -122,7 +110,7 @@ export default function KawaiiFashionBanner({
   return (
     <section
       className="relative isolate overflow-hidden bg-background px-4 py-6 text-foreground sm:px-6 sm:py-8 lg:px-10 lg:py-10"
-      aria-roledescription={normalizedCarouselRoleDescription || undefined}
+      aria-roledescription={CAROUSEL_ROLE_DESCRIPTION}
       aria-labelledby={normalizedEditLabel ? labelId : undefined}
       onMouseEnter={() => setInteracting(true)}
       onMouseLeave={() => setInteracting(false)}
@@ -133,10 +121,10 @@ export default function KawaiiFashionBanner({
         }
       }}
     >
-      {normalizedAnnouncementTemplate ? (
+      {CAROUSEL_ANNOUNCEMENT_TEMPLATE ? (
         <p className="sr-only" aria-live={isPlaying ? "off" : "polite"}>
           {announcement(
-            normalizedAnnouncementTemplate,
+            CAROUSEL_ANNOUNCEMENT_TEMPLATE,
             activeIndex + 1,
             slides.length,
             title,
@@ -224,7 +212,7 @@ export default function KawaiiFashionBanner({
                   onClick={() => setPaused((current) => !current)}
                   className="grid size-11 place-items-center border border-background/70 bg-background/90 text-foreground transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none"
                   aria-label={
-                    paused ? normalizedResumeLabel : normalizedPauseLabel
+                    paused ? RESUME_LABEL : PAUSE_LABEL
                   }
                   aria-pressed={paused}
                 >
@@ -235,24 +223,24 @@ export default function KawaiiFashionBanner({
                   )}
                 </button>
               ) : null}
-              {normalizedPreviousLabel ? (
+              {PREVIOUS_LABEL ? (
                 <button
                   type="button"
                   data-preview-interactive
                   onClick={() => selectSlide(activeIndex - 1)}
                   className="grid size-11 place-items-center border border-background/70 bg-background/90 text-foreground transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none"
-                  aria-label={normalizedPreviousLabel}
+                  aria-label={PREVIOUS_LABEL}
                 >
                   <ChevronLeft className="size-4" aria-hidden="true" />
                 </button>
               ) : null}
-              {normalizedNextLabel ? (
+              {NEXT_LABEL ? (
                 <button
                   type="button"
                   data-preview-interactive
                   onClick={() => selectSlide(activeIndex + 1)}
                   className="grid size-11 place-items-center border border-background/70 bg-background/90 text-foreground transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none"
-                  aria-label={normalizedNextLabel}
+                  aria-label={NEXT_LABEL}
                 >
                   <ChevronRight className="size-4" aria-hidden="true" />
                 </button>

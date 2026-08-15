@@ -358,15 +358,6 @@ export function SectionForm({
     editLabel: strConfig(config, "edit_label"),
     footerNote: strConfig(config, "footer_note"),
     imageBadge: strConfig(config, "image_badge"),
-    carouselRoleDescription: strConfig(config, "carousel_role_description"),
-    carouselAnnouncementTemplate: strConfig(
-      config,
-      "carousel_announcement_template",
-    ),
-    pauseLabel: strConfig(config, "pause_label"),
-    resumeLabel: strConfig(config, "resume_label"),
-    previousLabel: strConfig(config, "previous_label"),
-    nextLabel: strConfig(config, "next_label"),
     productListLabel: strConfig(config, "product_list_label"),
     uncategorizedLabelTemplate: strConfig(
       config,
@@ -497,14 +488,6 @@ export function SectionForm({
       nextConfig.edit_label = kawaiiText.editLabel.trim() || null;
       nextConfig.footer_note = kawaiiText.footerNote.trim() || null;
       nextConfig.image_badge = kawaiiText.imageBadge.trim() || null;
-      nextConfig.carousel_role_description =
-        kawaiiText.carouselRoleDescription.trim() || null;
-      nextConfig.carousel_announcement_template =
-        kawaiiText.carouselAnnouncementTemplate.trim() || null;
-      nextConfig.pause_label = kawaiiText.pauseLabel.trim() || null;
-      nextConfig.resume_label = kawaiiText.resumeLabel.trim() || null;
-      nextConfig.previous_label = kawaiiText.previousLabel.trim() || null;
-      nextConfig.next_label = kawaiiText.nextLabel.trim() || null;
     }
     if (isKawaii && family === "featured") {
       nextConfig.product_list_label =
@@ -584,7 +567,7 @@ export function SectionForm({
     if (isBanner) {
       nextConfig.description =
         description.trim() || (isKawaii ? null : DEFAULT_BANNER_DESCRIPTION);
-      if (version === 1) {
+      if (version === 1 && !isKawaii) {
         nextConfig.show_marquee = showMarquee;
         nextConfig.stats = stats.map((s) => ({
           label: s.label.trim(),
@@ -689,9 +672,11 @@ export function SectionForm({
             <AdminCard
               title="Banner content"
               description={
-                version === 1
+                version === 1 && !isKawaii
                   ? "Stats bar, supporting copy, and marquee under the carousel."
-                  : FAMILY_INFO.banner
+                  : version === 1 && isKawaii
+                    ? "Supporting copy and labels for the Kawaii carousel."
+                    : FAMILY_INFO.banner
               }
             >
               <div className="space-y-5">
@@ -722,7 +707,7 @@ export function SectionForm({
                         Kawaii Fashion labels
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Optional visible and accessible carousel copy.
+                        Optional visible carousel copy.
                       </p>
                     </div>
                     <div className="grid gap-5 sm:grid-cols-2">
@@ -730,25 +715,10 @@ export function SectionForm({
                       {kawaiiField("imageBadge", "Image badge")}
                     </div>
                     {kawaiiField("footerNote", "Footer note")}
-                    {kawaiiField(
-                      "carouselRoleDescription",
-                      "Carousel role description",
-                    )}
-                    {kawaiiField(
-                      "carouselAnnouncementTemplate",
-                      "Carousel announcement template",
-                      "Use {current}, {total}, and {title} for generated values.",
-                    )}
-                    <div className="grid gap-5 sm:grid-cols-2">
-                      {kawaiiField("pauseLabel", "Pause label")}
-                      {kawaiiField("resumeLabel", "Resume label")}
-                      {kawaiiField("previousLabel", "Previous label")}
-                      {kawaiiField("nextLabel", "Next label")}
-                    </div>
                   </div>
                 ) : null}
 
-                {version === 1 ? (
+                {version === 1 && !isKawaii ? (
                   <>
                     <div className="space-y-3">
                       <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">

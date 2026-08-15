@@ -442,18 +442,6 @@ function KawaiiFashionBannerRenderer({
       editLabel={configString(section.config, "edit_label")}
       footerNote={configString(section.config, "footer_note")}
       imageBadge={configString(section.config, "image_badge")}
-      carouselRoleDescription={configString(
-        section.config,
-        "carousel_role_description",
-      )}
-      carouselAnnouncementTemplate={configString(
-        section.config,
-        "carousel_announcement_template",
-      )}
-      pauseLabel={configString(section.config, "pause_label")}
-      resumeLabel={configString(section.config, "resume_label")}
-      previousLabel={configString(section.config, "previous_label")}
-      nextLabel={configString(section.config, "next_label")}
       headingLevel={section.id === primaryBannerId ? "h1" : "h2"}
     />
   );
