@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "assets": [
+    {
+      "file": "hero-millennial-pink.webp",
+      "sourceTitle": "Millennial Pink (Unsplash)",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Millennial_Pink_(Unsplash).jpg",
+      "creator": "Pete Bellis",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "modifications": "Cropped, resized, and converted to WebP."
+    },
+    {
+      "file": "meadow-pink.webp",
+      "sourceTitle": "Woman in the meadow",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Woman_in_the_meadow.jpg",
+      "creator": "Unknown author",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "modifications": "Cropped, resized, and converted to WebP."
+    },
+    {
+      "file": "yacht-club-chic.webp",
+      "sourceTitle": "Yacht Club Chic (Unsplash)",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Yacht_Club_Chic_(Unsplash).jpg",
+      "creator": "Pete Bellis",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "modifications": "Cropped, resized, and converted to WebP."
+    },
+    {
+      "file": "lotus-style.webp",
+      "sourceTitle": "Hisu lee 2015-08-16 (Unsplash)",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Hisu_lee_2015-08-16_(Unsplash).jpg",
+      "creator": "Hisu Lee",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "modifications": "Cropped, resized, and converted to WebP."
+    },
+    {
+      "file": "denim-edit.webp",
+      "sourceTitle": "Skinny Jeans (Unsplash)",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Skinny_Jeans_(Unsplash).jpg",
+      "creator": "Pete Bellis",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "modifications": "Cropped, resized, and converted to WebP."
+    },
+    {
+      "file": "orchard-story.webp",
+      "sourceTitle": "Bride in an orchard (Unsplash)",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Bride_in_an_orchard_(Unsplash).jpg",
+      "creator": "Anne Edgar",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "modifications": "Cropped, resized, and converted to WebP."
+    },
+    {
+      "file": "braided-promo.webp",
+      "sourceTitle": "Braided Hair (Unsplash)",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Braided_Hair_(Unsplash).jpg",
+      "creator": "Pete Bellis",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "modifications": "Cropped, resized, and converted to WebP."
+    },
+    {
+      "file": "community-smile.webp",
+      "sourceTitle": "Smiling woman pink shirt (cropped)",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Smiling_woman_pink_shirt_(cropped).jpg",
+      "creator": "Joshua McKnight",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "modifications": "Cropped, resized, and converted to WebP."
+    }
+  ]
+}

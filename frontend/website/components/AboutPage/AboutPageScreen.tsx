@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, type ComponentType } from "react";
 import { sanitizeCmsHtml } from "@/lib/html/sanitize";
 import Image from "next/image";
 import Link from "next/link";
@@ -18,15 +18,23 @@ import AboutHeroV2 from "@/components/AboutPage/V2/AboutHeroV2";
 import AboutStatsV2 from "@/components/AboutPage/V2/AboutStatsV2";
 import AboutStoryV2 from "@/components/AboutPage/V2/AboutStoryV2";
 import AboutValuesV2 from "@/components/AboutPage/V2/AboutValuesV2";
+import KawaiiAboutCraft from "@/components/themes/kawaii-fashion/about/KawaiiAboutCraft";
+import KawaiiAboutCta from "@/components/themes/kawaii-fashion/about/KawaiiAboutCta";
+import KawaiiAboutHero from "@/components/themes/kawaii-fashion/about/KawaiiAboutHero";
+import KawaiiAboutStats from "@/components/themes/kawaii-fashion/about/KawaiiAboutStats";
+import KawaiiAboutStory from "@/components/themes/kawaii-fashion/about/KawaiiAboutStory";
+import type { KawaiiAboutRendererProps } from "@/components/themes/kawaii-fashion/about/types";
+import KawaiiAboutValues from "@/components/themes/kawaii-fashion/about/KawaiiAboutValues";
 import {
   getAboutSectionFamily,
   type AboutCraftItem,
-  type AboutSectionFamily,
   type AboutSectionRow,
   type AboutStatItem,
   type AboutValueItem,
 } from "@/lib/cms/aboutSections";
 import {
+  KAWAII_FASHION_ABOUT_RENDERER_PATHS,
+  createAboutRendererRegistry,
   resolveAboutRenderer,
   type AboutRendererIdMapping,
   type AboutRendererRegistry,
@@ -41,25 +49,7 @@ const CRAFT_ICONS: Record<string, LucideIcon> = {
   Award,
 };
 
-type AboutRendererTarget = {
-  family: AboutSectionFamily;
-  version: 1 | 2;
-};
-
-const ABOUT_RENDERERS = {
-  "hero-v1": { family: "hero", version: 1 },
-  "stats-v1": { family: "stats", version: 1 },
-  "story-v1": { family: "story", version: 1 },
-  "values-v1": { family: "values", version: 1 },
-  "craft-v1": { family: "craft", version: 1 },
-  "cta-v1": { family: "cta", version: 1 },
-  "hero-v2": { family: "hero", version: 2 },
-  "stats-v2": { family: "stats", version: 2 },
-  "story-v2": { family: "story", version: 2 },
-  "values-v2": { family: "values", version: 2 },
-  "craft-v2": { family: "craft", version: 2 },
-  "cta-v2": { family: "cta", version: 2 },
-} satisfies AboutRendererRegistry<AboutRendererTarget>;
+type AboutSectionRenderer = ComponentType<KawaiiAboutRendererProps>;
 
 function cfgStr(config: Record<string, unknown>, key: string, fallback = "") {
   const v = config[key];
@@ -489,6 +479,108 @@ function CtaSection({ config }: { config: Record<string, unknown> }) {
   );
 }
 
+function HeroV1Renderer({
+  config,
+  imageUrl,
+  headingLevel,
+}: KawaiiAboutRendererProps) {
+  return (
+    <HeroSection
+      config={config}
+      imageUrl={imageUrl}
+      headingLevel={headingLevel}
+    />
+  );
+}
+
+function StatsV1Renderer({ config }: KawaiiAboutRendererProps) {
+  return <StatsSection config={config} />;
+}
+
+function StoryV1Renderer({ config, imageUrl }: KawaiiAboutRendererProps) {
+  return <StorySection config={config} imageUrl={imageUrl} />;
+}
+
+function ValuesV1Renderer({ config }: KawaiiAboutRendererProps) {
+  return <ValuesSection config={config} />;
+}
+
+function CraftV1Renderer({ config, imageUrl }: KawaiiAboutRendererProps) {
+  return <CraftSection config={config} imageUrl={imageUrl} />;
+}
+
+function CtaV1Renderer({ config }: KawaiiAboutRendererProps) {
+  return <CtaSection config={config} />;
+}
+
+function HeroV2Renderer({
+  config,
+  imageUrl,
+  headingLevel,
+  preview,
+}: KawaiiAboutRendererProps) {
+  return (
+    <AboutHeroV2
+      config={config}
+      imageUrl={imageUrl}
+      headingLevel={headingLevel}
+      preview={preview}
+    />
+  );
+}
+
+function StatsV2Renderer({ config, preview }: KawaiiAboutRendererProps) {
+  return <AboutStatsV2 config={config} preview={preview} />;
+}
+
+function StoryV2Renderer({
+  config,
+  imageUrl,
+  preview,
+}: KawaiiAboutRendererProps) {
+  return <AboutStoryV2 config={config} imageUrl={imageUrl} preview={preview} />;
+}
+
+function ValuesV2Renderer({ config, preview }: KawaiiAboutRendererProps) {
+  return <AboutValuesV2 config={config} preview={preview} />;
+}
+
+function CraftV2Renderer({
+  config,
+  imageUrl,
+  preview,
+}: KawaiiAboutRendererProps) {
+  return <AboutCraftV2 config={config} imageUrl={imageUrl} preview={preview} />;
+}
+
+function CtaV2Renderer({ config, preview }: KawaiiAboutRendererProps) {
+  return <AboutCtaV2 config={config} preview={preview} />;
+}
+
+const SOURCE_ABOUT_RENDERERS = {
+  "hero-v1": HeroV1Renderer,
+  "stats-v1": StatsV1Renderer,
+  "story-v1": StoryV1Renderer,
+  "values-v1": ValuesV1Renderer,
+  "craft-v1": CraftV1Renderer,
+  "cta-v1": CtaV1Renderer,
+  "hero-v2": HeroV2Renderer,
+  "stats-v2": StatsV2Renderer,
+  "story-v2": StoryV2Renderer,
+  "values-v2": ValuesV2Renderer,
+  "craft-v2": CraftV2Renderer,
+  "cta-v2": CtaV2Renderer,
+} satisfies AboutRendererRegistry<AboutSectionRenderer>;
+
+const ABOUT_RENDERERS = createAboutRendererRegistry(SOURCE_ABOUT_RENDERERS, {
+  [KAWAII_FASHION_ABOUT_RENDERER_PATHS.hero]: KawaiiAboutHero,
+  [KAWAII_FASHION_ABOUT_RENDERER_PATHS.stats]: KawaiiAboutStats,
+  [KAWAII_FASHION_ABOUT_RENDERER_PATHS.story]: KawaiiAboutStory,
+  [KAWAII_FASHION_ABOUT_RENDERER_PATHS.values]: KawaiiAboutValues,
+  [KAWAII_FASHION_ABOUT_RENDERER_PATHS.craft]: KawaiiAboutCraft,
+  [KAWAII_FASHION_ABOUT_RENDERER_PATHS.cta]: KawaiiAboutCta,
+});
+
 function renderSection(
   section: AboutSectionRow,
   imageUrls: Partial<Record<string, string | null>>,
@@ -496,75 +588,21 @@ function renderSection(
   primaryHeroId: string | undefined,
   rendererMapping: AboutRendererIdMapping | undefined,
 ) {
-  const config = section.config ?? {};
-  const sectionImageUrl = imageUrls[section.id];
-  const renderer = resolveAboutRenderer(
+  const Renderer = resolveAboutRenderer(
     section.type,
     ABOUT_RENDERERS,
     rendererMapping,
   );
-  if (!renderer) return null;
-  const isV2 = renderer.version === 2;
+  if (!Renderer) return null;
 
-  switch (renderer.family) {
-    case "hero": {
-      const headingLevel = section.id === primaryHeroId ? "h1" : "h2";
-      return isV2 ? (
-        <AboutHeroV2
-          config={config}
-          imageUrl={sectionImageUrl}
-          headingLevel={headingLevel}
-          preview={preview}
-        />
-      ) : (
-        <HeroSection
-          config={config}
-          imageUrl={sectionImageUrl}
-          headingLevel={headingLevel}
-        />
-      );
-    }
-    case "stats":
-      return isV2 ? (
-        <AboutStatsV2 config={config} preview={preview} />
-      ) : (
-        <StatsSection config={config} />
-      );
-    case "story":
-      return isV2 ? (
-        <AboutStoryV2
-          config={config}
-          imageUrl={sectionImageUrl}
-          preview={preview}
-        />
-      ) : (
-        <StorySection config={config} imageUrl={sectionImageUrl} />
-      );
-    case "values":
-      return isV2 ? (
-        <AboutValuesV2 config={config} preview={preview} />
-      ) : (
-        <ValuesSection config={config} />
-      );
-    case "craft":
-      return isV2 ? (
-        <AboutCraftV2
-          config={config}
-          imageUrl={sectionImageUrl}
-          preview={preview}
-        />
-      ) : (
-        <CraftSection config={config} imageUrl={sectionImageUrl} />
-      );
-    case "cta":
-      return isV2 ? (
-        <AboutCtaV2 config={config} preview={preview} />
-      ) : (
-        <CtaSection config={config} />
-      );
-    default:
-      return null;
-  }
+  return (
+    <Renderer
+      config={section.config ?? {}}
+      imageUrl={imageUrls[section.id]}
+      preview={preview}
+      headingLevel={section.id === primaryHeroId ? "h1" : "h2"}
+    />
+  );
 }
 
 export default function AboutPageScreen({

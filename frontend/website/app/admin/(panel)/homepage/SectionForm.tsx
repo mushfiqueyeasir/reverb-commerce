@@ -170,6 +170,7 @@ export function SectionForm({
   banners = [],
   canWrite = false,
   initialTab = "content",
+  themeId,
 }: {
   section: HomepageSectionRow;
   promotions?: PromotionOption[];
@@ -177,6 +178,7 @@ export function SectionForm({
   banners?: BannerRow[];
   canWrite?: boolean;
   initialTab?: "content" | "slides";
+  themeId: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -203,19 +205,15 @@ export function SectionForm({
     family === "reviews" ||
     family === "richtext";
   const limitMaximum =
-    section.type === "featured_v2"
-      ? MAX_FEATURED_V2_LIMIT
-      : family === "featured"
-        ? MAX_FEATURED_LIMIT
-        : MAX_LIMIT;
-  const limitFallback =
-    family === "reviews"
-      ? 24
+    family === "featured" && themeId === "kawaii-fashion"
+      ? 8
       : section.type === "featured_v2"
         ? MAX_FEATURED_V2_LIMIT
         : family === "featured"
-          ? 5
-          : 8;
+          ? MAX_FEATURED_LIMIT
+          : MAX_LIMIT;
+  const limitFallback =
+    family === "reviews" ? 24 : family === "featured" ? limitMaximum : 8;
   const [tab, setTab] = useState<"content" | "slides">(
     initialTab === "slides" ? "slides" : "content",
   );

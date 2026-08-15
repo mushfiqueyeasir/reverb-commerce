@@ -24,7 +24,54 @@ export const FACEBOOK_URL = "https://www.facebook.com/kawaiicosmeticsbd";
 export const FACEBOOK_PROFILE_PATH = "kawaii-content/v2/facebook-profile.jpg";
 export const STORY_CLASSIC_PATH = "kawaii-content/v2/story-classic.webp";
 export const STORY_EDITORIAL_PATH = "kawaii-content/v2/story-editorial.webp";
-export const MIGRATION_KEY = "kawaii-home-about-v2";
+export const MIGRATION_KEY = "kawaii-home-about-kawaii-fashion-v1";
+export const LEGACY_MIGRATION_KEY = "kawaii-home-about-v2";
+export const THEME_KEY = "kawaii-fashion";
+export const THEME_SCHEMA_VERSION = 1;
+export const THEME_VERSION = 1;
+export const THEME_MANIFEST = { id: THEME_KEY, version: THEME_VERSION };
+export const THEME_TOKEN_OVERRIDES = {};
+export const THEME_RESOLVED_TOKENS = {
+  palette: {
+    primary: "#f9287a",
+    primaryForeground: "#050505",
+    background: "#ffffff",
+    surface: "#fff5f8",
+    card: "#ffffff",
+    foreground: "#241018",
+    mutedForeground: "#73545f",
+    border: "#f2d9e2",
+  },
+};
+export const THEME_CONTENT_REFERENCES = {
+  navbar: {
+    relation: "site_settings",
+    selector: { id: 1 },
+    path: ["socials", "_cms", "navbar"],
+  },
+  footer: {
+    relation: "site_settings",
+    selector: { id: 1 },
+    path: ["socials", "_cms", "footer"],
+  },
+  homepage: {
+    relation: "homepage_sections",
+    orderBy: ["sort", "created_at"],
+  },
+  about: {
+    relation: "site_settings",
+    selector: { id: 1 },
+    path: ["socials", "_cms", "about_sections"],
+  },
+};
+export const THEME_DESIGN_CONFIG = {
+  schemaVersion: THEME_SCHEMA_VERSION,
+  themeId: THEME_KEY,
+  themeVersion: THEME_VERSION,
+  tokenOverrides: THEME_TOKEN_OVERRIDES,
+  resolvedTokens: THEME_RESOLVED_TOKENS,
+  contentReferences: THEME_CONTENT_REFERENCES,
+};
 export const TEMPLATE_PROMOTION_ID = "70000000-0000-4000-8000-000000000001";
 export const CATEGORY_IDS = [
   "0987e8ee-906f-4602-9a00-acd4c7bf8d99",
@@ -38,9 +85,9 @@ export const HOMEPAGE_TYPES = [
   "deals",
   "new_arrivals",
   "featured",
+  "richtext",
   "reviews",
   "promo",
-  "richtext",
   "banner_v2",
   "categories_v2",
   "featured_v2",
@@ -171,7 +218,7 @@ export function buildHomepageSections() {
       2,
       {
         eyebrow: "Special savings",
-        limit: 5,
+        limit: 8,
         cta_label: "View all products",
         cta_url: "/product",
       },
@@ -185,7 +232,7 @@ export function buildHomepageSections() {
       3,
       {
         eyebrow: "Just arrived",
-        limit: 5,
+        limit: 8,
         cta_label: "View all products",
         cta_url: "/product",
       },
@@ -199,7 +246,7 @@ export function buildHomepageSections() {
       4,
       {
         eyebrow: "Selected by Kawaii",
-        limit: 5,
+        limit: 8,
         cta_label: "View all products",
         cta_url: "/product",
       },
@@ -210,7 +257,7 @@ export function buildHomepageSections() {
       "From a Kawaii Customer",
       "Published feedback from the Kawaii community",
       null,
-      5,
+      6,
       {
         eyebrow: "Customer review",
         limit: 12,
@@ -224,7 +271,7 @@ export function buildHomepageSections() {
       "Discover the Featured Collection",
       "Everyday Japanese skincare and cosmetics from Kawaii",
       null,
-      6,
+      7,
       {
         promotion_id: TEMPLATE_PROMOTION_ID,
         cta_label: "Explore the collection",
@@ -237,7 +284,7 @@ export function buildHomepageSections() {
       "Your Everyday Japanese Skincare Destination",
       "Kawaii in Dhaka",
       "<p>Kawaii is a Dhaka Facebook page and an authentic Japanese cosmetics seller serving beauty shoppers in Bangladesh. Follow the page for product updates and explore skincare for everyday routines.</p>",
-      7,
+      5,
       {
         image_path: STORY_CLASSIC_PATH,
         image_bucket: "branding",
@@ -372,7 +419,7 @@ export function buildHomepageSections() {
         ],
       },
     ),
-  ];
+  ].sort((left, right) => left.sort - right.sort);
 }
 
 export function buildBanners() {
@@ -504,9 +551,9 @@ function sharedAboutConfig(version) {
         eyebrow: version === 2 ? "Collection blueprint" : "The Kawaii focus",
         title_line1:
           version === 2 ? "Authentic beauty," : "Japanese cosmetics,",
-        title_line2: version === 2 ? "everyday routines." : "thoughtful routines.",
-        body:
-          "Kawaii focuses on authentic Japanese cosmetics and everyday skincare for beauty shoppers in Bangladesh.",
+        title_line2:
+          version === 2 ? "everyday routines." : "thoughtful routines.",
+        body: "Kawaii focuses on authentic Japanese cosmetics and everyday skincare for beauty shoppers in Bangladesh.",
         image_path: FACEBOOK_PROFILE_PATH,
         image_bucket: "branding",
         fabric_label: "Facebook page",
@@ -517,8 +564,12 @@ function sharedAboutConfig(version) {
           { icon: "Layers", label: "Skincare", sub: "Everyday routines" },
           { icon: "Award", label: "Authenticity", sub: "Core product focus" },
           { icon: "Zap", label: "Discovery", sub: "Product updates" },
-          { icon: "Shirt", label: "Community", sub: "88K+ page likes" },
-          { icon: "Scissors", label: "Location", sub: "Dhaka, Bangladesh" },
+          {
+            icon: "Sparkles",
+            label: "Community",
+            sub: "88K+ beauty followers",
+          },
+          { icon: "Layers", label: "Location", sub: "Dhaka, Bangladesh" },
         ],
       },
     ),
@@ -533,8 +584,7 @@ function sharedAboutConfig(version) {
           version === 2
             ? "Make Japanese beauty part of your routine."
             : "Explore authentic Japanese beauty.",
-        body:
-          "Browse Kawaii's cosmetics and skincare collection, or visit the public Facebook page for updates from Dhaka.",
+        body: "Browse Kawaii's cosmetics and skincare collection, or visit the public Facebook page for updates from Dhaka.",
         cta_primary_label: "Explore products",
         cta_primary_url: "/product",
         cta_secondary_label: "Visit Facebook",
@@ -570,6 +620,13 @@ export function buildDesiredState() {
     banners: buildBanners(),
     aboutSections: buildAboutSections(),
     promotion: buildPromotion(),
+    theme: {
+      themeKey: THEME_KEY,
+      schemaVersion: THEME_SCHEMA_VERSION,
+      themeVersion: THEME_VERSION,
+      manifest: structuredClone(THEME_MANIFEST),
+      designConfig: structuredClone(THEME_DESIGN_CONFIG),
+    },
     facebook: FACEBOOK_URL,
     facebookProfile: {
       bucket: "branding",
@@ -602,6 +659,28 @@ function dbBannerRows(desired) {
   return withoutTimestamps(desired.banners);
 }
 
+function dbTheme(desired) {
+  return {
+    themeKey: desired.theme.themeKey,
+    schemaVersion: desired.theme.schemaVersion,
+    manifest: desired.theme.manifest,
+    designConfig: desired.theme.designConfig,
+  };
+}
+
+function currentTheme(row) {
+  return {
+    themeKey: row?.theme_key ?? null,
+    schemaVersion:
+      row?.theme_schema_version === null ||
+      row?.theme_schema_version === undefined
+        ? null
+        : Number(row.theme_schema_version),
+    manifest: parseJson(row?.theme_manifest, null),
+    designConfig: parseJson(row?.theme_design_config, null),
+  };
+}
+
 function parseJson(value, fallback) {
   if (value === null || value === undefined) return fallback;
   if (typeof value === "string") {
@@ -620,7 +699,9 @@ function equal(left, right) {
 
 export function ledgerStatus(sourceUrl, checksum) {
   if (!sourceUrl) return "missing";
-  return sourceUrl === `${FACEBOOK_URL}#sha256=${checksum}` ? "match" : "changed";
+  return sourceUrl === `${FACEBOOK_URL}#sha256=${checksum}`
+    ? "match"
+    : "changed";
 }
 
 export function compareCurrentState(row, desired = buildDesiredState()) {
@@ -632,7 +713,8 @@ export function compareCurrentState(row, desired = buildDesiredState()) {
   const promotion = parseJson(row?.promotion, null);
   const storageNames = new Set(parseJson(row?.storage_names, []));
   const changed = [];
-  if (!equal(homepageRows, dbHomepageRows(desired))) changed.push("homepageRows");
+  if (!equal(homepageRows, dbHomepageRows(desired)))
+    changed.push("homepageRows");
   if (!equal(bannerRows, dbBannerRows(desired))) changed.push("bannerRows");
   if (!equal(aboutRows, desired.aboutSections)) changed.push("aboutRows");
   if (!equal(cmsHomepage, desired.homepageSections)) {
@@ -641,6 +723,14 @@ export function compareCurrentState(row, desired = buildDesiredState()) {
   if (!equal(cmsBanners, desired.banners)) changed.push("cmsBannerMirror");
   if (row?.facebook !== desired.facebook) changed.push("facebook");
   if (!equal(promotion, desired.promotion)) changed.push("promotion");
+  const theme = currentTheme(row);
+  if (!equal(theme, dbTheme(desired))) changed.push("theme");
+  const themeStateValid = row?.theme_state_valid === true;
+  if (!themeStateValid) changed.push("themeState");
+  const themeDraftValid =
+    Number(row?.theme_draft_count ?? 0) === 1 &&
+    row?.theme_draft_source_revision_id === row?.theme_published_revision_id;
+  if (!themeDraftValid) changed.push("themeDraft");
   const missingBannerAssets = desired.bannerAssets
     .map(({ path }) => path)
     .filter((path) => !storageNames.has(`banner-images/${path}`));
@@ -658,6 +748,18 @@ export function compareCurrentState(row, desired = buildDesiredState()) {
     profileExists,
     missingBannerAssets,
     missingStoryAssets,
+    theme: {
+      current: theme,
+      desired: dbTheme(desired),
+      matches: equal(theme, dbTheme(desired)),
+      stateValid: themeStateValid,
+      draftValid: themeDraftValid,
+      draftVersion:
+        row?.theme_draft_version === null ||
+        row?.theme_draft_version === undefined
+          ? null
+          : Number(row.theme_draft_version),
+    },
     currentCounts: {
       homepage: Number(row?.homepage_count ?? homepageRows.length),
       homepageActive: Number(row?.homepage_active_count ?? 0),
@@ -670,10 +772,14 @@ export function compareCurrentState(row, desired = buildDesiredState()) {
     },
     desiredCounts: {
       homepage: desired.homepageSections.length,
-      homepageActive: desired.homepageSections.filter((item) => item.active).length,
+      homepageActive: desired.homepageSections.filter((item) => item.active)
+        .length,
       banners: desired.banners.length,
-      bannerV1: desired.banners.filter((item) => item.section_type === "banner").length,
-      bannerV2: desired.banners.filter((item) => item.section_type === "banner_v2").length,
+      bannerV1: desired.banners.filter((item) => item.section_type === "banner")
+        .length,
+      bannerV2: desired.banners.filter(
+        (item) => item.section_type === "banner_v2",
+      ).length,
       bannersActive: desired.banners.filter((item) => item.active).length,
       about: desired.aboutSections.length,
       aboutActive: desired.aboutSections.filter((item) => item.active).length,
@@ -683,7 +789,9 @@ export function compareCurrentState(row, desired = buildDesiredState()) {
 
 export function buildStateSql() {
   const types = HOMEPAGE_TYPES.map(sqlLiteral).join(", ");
-  const bannerIds = buildBanners().map((row) => sqlLiteral(row.id)).join(", ");
+  const bannerIds = buildBanners()
+    .map((row) => sqlLiteral(row.id))
+    .join(", ");
   const storage = [
     ...BANNER_PATHS.map((path) => `banner-images/${path}`),
     `branding/${FACEBOOK_PROFILE_PATH}`,
@@ -696,6 +804,30 @@ export function buildStateSql() {
 select
   (select client_id from provisioning.store_identity where singleton = true) as client_id,
   (select source_url from provisioning.content_migrations where migration_key = ${sqlLiteral(MIGRATION_KEY)}) as ledger_source,
+  (select revision.theme_key
+   from public.theme_state state
+   join public.theme_revisions revision on revision.id = state.published_revision_id
+   where state.singleton and revision.status = 'published') as theme_key,
+  (select revision.schema_version
+   from public.theme_state state
+   join public.theme_revisions revision on revision.id = state.published_revision_id
+   where state.singleton and revision.status = 'published') as theme_schema_version,
+  (select revision.manifest
+   from public.theme_state state
+   join public.theme_revisions revision on revision.id = state.published_revision_id
+   where state.singleton and revision.status = 'published') as theme_manifest,
+  (select revision.design_config
+   from public.theme_state state
+   join public.theme_revisions revision on revision.id = state.published_revision_id
+   where state.singleton and revision.status = 'published') as theme_design_config,
+  (select published_revision_id::text from public.theme_state where singleton) as theme_published_revision_id,
+  (select count(*)::int from public.theme_revisions where status = 'draft') as theme_draft_count,
+  (select source_revision_id::text from public.theme_revisions where status = 'draft') as theme_draft_source_revision_id,
+  (select version from public.theme_revisions where status = 'draft') as theme_draft_version,
+  ((select count(*) from public.theme_state) = 1 and (select count(*)
+    from public.theme_state state
+    join public.theme_revisions revision on revision.id = state.published_revision_id
+    where state.singleton and revision.status = 'published') = 1) as theme_state_valid,
   coalesce((
     select jsonb_agg(jsonb_build_object(
       'id', id::text, 'type', type, 'title', title, 'subtitle', subtitle,
@@ -769,6 +901,11 @@ export function buildApplySql(
   const aboutJson = sqlLiteral(JSON.stringify(desired.aboutSections));
   const homepageDbJson = sqlLiteral(JSON.stringify(dbHomepageRows(desired)));
   const bannerDbJson = sqlLiteral(JSON.stringify(dbBannerRows(desired)));
+  const themeManifestJson = sqlLiteral(JSON.stringify(desired.theme.manifest));
+  const themeDesignJson = sqlLiteral(
+    JSON.stringify(desired.theme.designConfig),
+  );
+  const backupKeyPrefix = `${MIGRATION_KEY}:${checksum}`;
   const promotion = desired.promotion;
   const replaceGuard = replace
     ? `if existing_source is null or existing_source = ${sqlLiteral(desiredSource)} then
@@ -789,12 +926,15 @@ export function buildApplySql(
     .join(" or ");
   return `
 begin;
-select pg_advisory_xact_lock(hashtext('kawaii-home-about-v2'));
+select pg_advisory_xact_lock(hashtext(${sqlLiteral(MIGRATION_KEY)}));
 lock table provisioning.store_identity in share mode;
 lock table provisioning.content_migrations in share row exclusive mode;
+lock table provisioning.theme_builder_backups in share row exclusive mode;
 lock table public.homepage_sections in share row exclusive mode;
 lock table public.banners in share row exclusive mode;
 lock table public.promotions in share row exclusive mode;
+lock table public.theme_revisions in share row exclusive mode;
+lock table public.theme_state in share row exclusive mode;
 lock table public.site_settings in share row exclusive mode;
 do $$
 declare
@@ -806,6 +946,21 @@ begin
   if (select count(*) from public.site_settings where id = 1) <> 1 then
     raise exception 'Kawaii singleton settings row is unavailable';
   end if;
+  if (select count(*) from public.theme_state where singleton) <> 1
+    or (select count(*) from public.theme_state) <> 1 then
+    raise exception 'Kawaii theme state singleton is unavailable';
+  end if;
+  if (select count(*) from public.theme_revisions where status = 'draft') <> 1 then
+    raise exception 'Kawaii theme draft singleton is unavailable';
+  end if;
+  if not exists (
+    select 1
+    from public.theme_state state
+    join public.theme_revisions revision on revision.id = state.published_revision_id
+    where state.singleton and revision.status = 'published'
+  ) then
+    raise exception 'Kawaii published theme is unavailable';
+  end if;
   if (select count(*) from public.categories where id in (${CATEGORY_IDS.map((id) => `${sqlLiteral(id)}::uuid`).join(", ")})) <> ${CATEGORY_IDS.length} then
     raise exception 'Kawaii selected categories are unavailable';
   end if;
@@ -816,6 +971,54 @@ begin
   from provisioning.content_migrations
   where migration_key = ${sqlLiteral(MIGRATION_KEY)};
   ${replaceGuard}
+end;
+$$;
+insert into provisioning.theme_builder_backups (migration_name, snapshot)
+values (
+  ${sqlLiteral(`${backupKeyPrefix}:`)} || txid_current()::text,
+  jsonb_build_object(
+    'migrationKey', ${sqlLiteral(MIGRATION_KEY)},
+    'desiredChecksum', ${sqlLiteral(checksum)},
+    'homepageSections', coalesce((
+      select jsonb_agg(to_jsonb(section) order by section.sort, section.id)
+      from public.homepage_sections section
+      where section.type in (${types})
+    ), '[]'::jsonb),
+    'banners', coalesce((
+      select jsonb_agg(to_jsonb(banner) order by banner.section_type, banner.sort, banner.id)
+      from public.banners banner
+      where banner.section_type in ('banner', 'banner_v2')
+    ), '[]'::jsonb),
+    'cmsHomepage', (select socials #> '{_cms,homepage_sections}' from public.site_settings where id = 1),
+    'cmsBanners', (select socials #> '{_cms,banners}' from public.site_settings where id = 1),
+    'cmsAbout', (select socials #> '{_cms,about_sections}' from public.site_settings where id = 1),
+    'promotion', (select to_jsonb(promotion) from public.promotions promotion where promotion.id = ${sqlLiteral(TEMPLATE_PROMOTION_ID)}::uuid),
+    'contentLedger', coalesce((
+      select jsonb_agg(to_jsonb(ledger) order by ledger.migration_key)
+      from provisioning.content_migrations ledger
+      where ledger.migration_key in (${sqlLiteral(LEGACY_MIGRATION_KEY)}, ${sqlLiteral(MIGRATION_KEY)})
+    ), '[]'::jsonb),
+    'themeState', (select to_jsonb(state) from public.theme_state state where state.singleton),
+    'publishedTheme', (
+      select to_jsonb(revision)
+      from public.theme_state state
+      join public.theme_revisions revision on revision.id = state.published_revision_id
+      where state.singleton
+    ),
+    'draftTheme', (select to_jsonb(revision) from public.theme_revisions revision where revision.status = 'draft')
+  )
+);
+do $$
+begin
+  if not exists (
+    select 1
+    from provisioning.theme_builder_backups
+    where migration_name = ${sqlLiteral(`${backupKeyPrefix}:`)} || txid_current()::text
+      and snapshot ->> 'migrationKey' = ${sqlLiteral(MIGRATION_KEY)}
+      and snapshot ->> 'desiredChecksum' = ${sqlLiteral(checksum)}
+  ) then
+    raise exception 'Kawaii operation backup could not be verified';
+  end if;
 end;
 $$;
 delete from public.homepage_sections
@@ -883,6 +1086,48 @@ on conflict (migration_key) do update
 set source_url = excluded.source_url,
     applied_at = now();
 do $$
+declare
+  current_draft_version bigint;
+  published_matches boolean;
+  draft_matches boolean;
+begin
+  select
+    revision.version,
+    revision.theme_key = ${sqlLiteral(desired.theme.themeKey)}
+      and revision.schema_version = ${desired.theme.schemaVersion}
+      and revision.manifest = ${themeManifestJson}::jsonb
+      and revision.design_config = ${themeDesignJson}::jsonb
+      and revision.source_revision_id = state.published_revision_id
+  into current_draft_version, draft_matches
+  from public.theme_revisions revision
+  cross join public.theme_state state
+  where revision.status = 'draft' and state.singleton
+  for update of revision;
+  if current_draft_version is null then
+    raise exception 'Kawaii theme draft optimistic version is unavailable';
+  end if;
+  select
+    revision.theme_key = ${sqlLiteral(desired.theme.themeKey)}
+    and revision.schema_version = ${desired.theme.schemaVersion}
+    and revision.manifest = ${themeManifestJson}::jsonb
+    and revision.design_config = ${themeDesignJson}::jsonb
+  into published_matches
+  from public.theme_state state
+  join public.theme_revisions revision on revision.id = state.published_revision_id
+  where state.singleton and revision.status = 'published';
+  if not coalesce(published_matches, false)
+    or not coalesce(draft_matches, false) then
+    perform public.apply_theme(
+      current_draft_version,
+      ${sqlLiteral(desired.theme.themeKey)},
+      ${desired.theme.schemaVersion},
+      ${themeManifestJson}::jsonb,
+      ${themeDesignJson}::jsonb
+    );
+  end if;
+end;
+$$;
+do $$
 begin
   if coalesce((
     select jsonb_agg(jsonb_build_object(
@@ -916,14 +1161,41 @@ begin
   if exists (
     select 1 from public.promotions
     where id = ${sqlLiteral(promotion.id)}::uuid
-      and (image_path is not null or discount_percent is not null
-        or title <> ${sqlLiteral(promotion.title)}
-        or description <> ${sqlLiteral(promotion.description)}
-        or not active)
+      and (image_path is distinct from null
+        or discount_percent is distinct from null
+        or title is distinct from ${sqlLiteral(promotion.title)}
+        or description is distinct from ${sqlLiteral(promotion.description)}
+        or active is distinct from true
+        or starts_at is distinct from null
+        or ends_at is distinct from null
+        or cta_url is distinct from ${sqlLiteral(promotion.cta_url)}
+        or cta_label is distinct from ${sqlLiteral(promotion.cta_label)})
   ) or not exists (
     select 1 from public.promotions where id = ${sqlLiteral(promotion.id)}::uuid
   ) then
     raise exception 'Kawaii promotion assertion failed';
+  end if;
+  if (select count(*) from public.theme_state) <> 1 or not exists (
+    select 1
+    from public.theme_state state
+    join public.theme_revisions revision on revision.id = state.published_revision_id
+    where state.singleton
+      and revision.status = 'published'
+      and revision.theme_key = ${sqlLiteral(desired.theme.themeKey)}
+      and revision.schema_version = ${desired.theme.schemaVersion}
+      and revision.manifest = ${themeManifestJson}::jsonb
+      and revision.design_config = ${themeDesignJson}::jsonb
+  ) then
+    raise exception 'Kawaii published theme assertion failed';
+  end if;
+  if (select count(*) from public.theme_revisions where status = 'draft') <> 1
+    or not exists (
+      select 1
+      from public.theme_revisions draft
+      join public.theme_state state on state.published_revision_id = draft.source_revision_id
+      where draft.status = 'draft' and state.singleton
+    ) then
+    raise exception 'Kawaii theme draft assertion failed';
   end if;
 end;
 $$;
@@ -946,6 +1218,7 @@ function planFromState(row, desired, checksum, apply) {
       desired: comparison.desiredCounts,
     },
     changed: comparison.changed,
+    theme: comparison.theme,
     assets: {
       bannerAssetsExist: comparison.missingBannerAssets.length === 0,
       missingBannerAssets: comparison.missingBannerAssets,
@@ -962,7 +1235,9 @@ function validateManifest(manifest) {
     throw new Error("Client manifest does not identify Kawaii");
   }
   if (manifest.supabase?.projectRef !== KAWAII_PROJECT_REF) {
-    throw new Error("Client manifest does not reference the Kawaii Supabase project");
+    throw new Error(
+      "Client manifest does not reference the Kawaii Supabase project",
+    );
   }
   if (manifest.supabase?.url !== `https://${KAWAII_PROJECT_REF}.supabase.co`) {
     throw new Error("Client manifest has an invalid Kawaii Supabase URL");
@@ -983,8 +1258,12 @@ function validateProfileSource(value) {
 }
 
 async function createKawaiiStorageClient(managementRequest, projectRef) {
-  const keyResponse = await managementRequest(`/v1/projects/${projectRef}/api-keys`);
-  const keys = Array.isArray(keyResponse) ? keyResponse : keyResponse?.keys ?? [];
+  const keyResponse = await managementRequest(
+    `/v1/projects/${projectRef}/api-keys`,
+  );
+  const keys = Array.isArray(keyResponse)
+    ? keyResponse
+    : (keyResponse?.keys ?? []);
   const serviceRole = keys.find(
     (key) => key.type === "legacy" && key.name === "service_role",
   )?.api_key;
@@ -997,11 +1276,13 @@ async function createKawaiiStorageClient(managementRequest, projectRef) {
 }
 
 async function uploadBrandingAsset(supabase, path, content, contentType) {
-  const { error } = await supabase.storage.from("branding").upload(path, content, {
-    contentType,
-    cacheControl: "31536000",
-    upsert: false,
-  });
+  const { error } = await supabase.storage
+    .from("branding")
+    .upload(path, content, {
+      contentType,
+      cacheControl: "31536000",
+      upsert: false,
+    });
   if (error) throw new Error(`Branding asset upload failed: ${error.message}`);
 }
 
@@ -1034,7 +1315,8 @@ async function uploadFacebookProfile(supabase, sourceValue) {
 }
 
 async function uploadStoryAsset(supabase, path, sourcePath) {
-  if (!sourcePath) throw new Error(`A local source file is required for ${path}`);
+  if (!sourcePath)
+    throw new Error(`A local source file is required for ${path}`);
   const content = readFileSync(resolve(sourcePath));
   const isWebp =
     content.length >= 12 &&
@@ -1197,7 +1479,7 @@ function assertVerified(row, desired, checksum) {
   const comparison = compareCurrentState(row, desired);
   if (comparison.changed.length) {
     throw new Error(
-      `Kawaii homepage/About verification failed: ${comparison.changed.join(", ")}`,
+      `Kawaii content/theme verification failed: ${comparison.changed.join(", ")}`,
     );
   }
   if (ledgerStatus(row?.ledger_source, checksum) !== "match") {
@@ -1259,7 +1541,9 @@ export async function main(argv = process.argv.slice(2)) {
         deals: Number(state?.deal_count ?? 0),
         inStockDeals: Number(state?.in_stock_deal_count ?? 0),
       },
-      verified: apply ? equal(parseJson(state?.product_rows, []), desiredRows) : null,
+      verified: apply
+        ? equal(parseJson(state?.product_rows, []), desiredRows)
+        : null,
     };
     console.log(JSON.stringify(result, null, 2));
     return result;
@@ -1272,14 +1556,18 @@ export async function main(argv = process.argv.slice(2)) {
   }
   const plan = planFromState(current, desired, checksum, apply);
   if (replace && plan.ledger.status !== "changed") {
-    throw new Error("--replace is only valid when the desired checksum changed");
+    throw new Error(
+      "--replace is only valid when the desired checksum changed",
+    );
   }
   if (!apply) {
     console.log(JSON.stringify(plan, null, 2));
     return plan;
   }
   if (plan.ledger.status === "changed" && !replace) {
-    throw new Error("Kawaii content checksum changed; rerun with --apply --replace");
+    throw new Error(
+      "Kawaii content checksum changed; rerun with --apply --replace",
+    );
   }
   if (!plan.assets.bannerAssetsExist) {
     throw new Error("Required Kawaii banner assets are missing");
@@ -1330,6 +1618,14 @@ export async function main(argv = process.argv.slice(2)) {
       banners: verification.desiredCounts.banners,
       about: verification.desiredCounts.about,
       assets: desired.bannerAssets.length + desired.storyAssets.length + 1,
+      theme: {
+        themeKey: desired.theme.themeKey,
+        schemaVersion: desired.theme.schemaVersion,
+        themeVersion: desired.theme.themeVersion,
+        published: verification.theme.matches,
+        stateValid: verification.theme.stateValid,
+        draftValid: verification.theme.draftValid,
+      },
     },
   };
   console.log(JSON.stringify(result, null, 2));
@@ -1337,5 +1633,6 @@ export async function main(argv = process.argv.slice(2)) {
 }
 
 const isMain =
-  process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) await main();

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { HOMEPAGE_SECTION_TYPES } from "../../type/db";
 import {
+  KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS,
   LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS,
   V2_DESIGN_HOMEPAGE_RENDERER_PATHS,
   createHomepageRendererRegistry,
@@ -58,6 +59,32 @@ describe("homepage renderer registry", () => {
       "reviews-v2",
       "promo-v2",
       "richtext-v2",
+    ]);
+  });
+
+  it("provides a Kawaii Fashion dispatch path for all 14 section types", () => {
+    expect(Object.keys(KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS)).toEqual(
+      HOMEPAGE_SECTION_TYPES,
+    );
+    expect(
+      HOMEPAGE_SECTION_TYPES.map(
+        (type) => KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS[type],
+      ),
+    ).toEqual([
+      "kawaii-fashion.banner",
+      "kawaii-fashion.categories",
+      "kawaii-fashion.featured",
+      "kawaii-fashion.featured",
+      "kawaii-fashion.featured",
+      "kawaii-fashion.reviews",
+      "kawaii-fashion.promo",
+      "kawaii-fashion.story",
+      "kawaii-fashion.banner",
+      "kawaii-fashion.categories",
+      "kawaii-fashion.featured",
+      "kawaii-fashion.reviews",
+      "kawaii-fashion.promo",
+      "kawaii-fashion.story",
     ]);
   });
 

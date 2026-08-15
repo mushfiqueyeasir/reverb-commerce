@@ -1,9 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { HOMEPAGE_SECTION_TYPES } from "../../type/db";
 import { ABOUT_SECTION_TYPES } from "../cms/aboutSections";
-import { DEFAULT_PALETTE } from "./palette";
+import { KAWAII_FASHION_ABOUT_RENDERER_PATHS } from "../cms/aboutRendererRegistry";
+import { KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS } from "../cms/homepageRendererRegistry";
+import {
+  DEFAULT_PALETTE,
+  KAWAII_WHITE_PALETTE,
+  relativeLuminance,
+} from "./palette";
 import {
   AVAILABLE_STOREFRONT_THEMES,
+  KAWAII_FASHION_HOMEPAGE_SECTION_TYPES,
+  KAWAII_FASHION_THEME,
   LEGACY_CLASSIC_THEME,
   THEME_ABOUT_SECTION_TYPES,
   THEME_HOMEPAGE_SECTION_TYPES,
@@ -87,26 +95,45 @@ const V2_ABOUT_MAPPING = {
 };
 
 describe("storefront theme manifest", () => {
-  it("exposes exactly two complete version 1 theme packages", () => {
-    expect(AVAILABLE_STOREFRONT_THEMES).toHaveLength(2);
+  it("exposes exactly three complete version 1 theme packages", () => {
+    expect(AVAILABLE_STOREFRONT_THEMES).toHaveLength(3);
     expect(
       AVAILABLE_STOREFRONT_THEMES.map(({ id, version }) => ({ id, version })),
     ).toEqual([
       { id: "legacy-classic", version: 1 },
       { id: "v2-design", version: 1 },
+      { id: "kawaii-fashion", version: 1 },
     ]);
     expect(LEGACY_CLASSIC_THEME.displayName).toBe("Tee Drop Classic");
     expect(LEGACY_CLASSIC_THEME.id).toBe("legacy-classic");
+    expect(KAWAII_FASHION_THEME.displayName).toBe("Kawaii Fashion");
+    expect(KAWAII_FASHION_THEME.id).toBe("kawaii-fashion");
     expect(LEGACY_CLASSIC_THEME.defaultTokens.palette).toEqual(DEFAULT_PALETTE);
     expect(V2_DESIGN_THEME.defaultTokens.palette).toEqual(DEFAULT_PALETTE);
+    expect(KAWAII_FASHION_THEME.defaultTokens.palette).toEqual({
+      ...KAWAII_WHITE_PALETTE,
+      primaryForeground: "#050505",
+    });
     expect(LEGACY_CLASSIC_THEME.renderers.navbar).toBe("legacy-classic.navbar");
     expect(LEGACY_CLASSIC_THEME.renderers.footer).toBe("legacy-classic.footer");
     expect(V2_DESIGN_THEME.renderers.navbar).toBe("v2-design.navbar");
     expect(V2_DESIGN_THEME.renderers.footer).toBe("v2-design.footer");
+    expect(KAWAII_FASHION_THEME.renderers.navbar).toBe("kawaii-fashion.navbar");
+    expect(KAWAII_FASHION_THEME.renderers.footer).toBe("kawaii-fashion.footer");
     expect(THEME_HOMEPAGE_SECTION_TYPES).toEqual([
       "banner",
       "featured",
       "categories",
+      "richtext",
+      "reviews",
+      "promo",
+    ]);
+    expect(KAWAII_FASHION_HOMEPAGE_SECTION_TYPES).toEqual([
+      "banner",
+      "categories",
+      "deals",
+      "new_arrivals",
+      "featured",
       "richtext",
       "reviews",
       "promo",
@@ -121,12 +148,43 @@ describe("storefront theme manifest", () => {
     ]);
   });
 
+  it("uses accessible foreground text on Kawaii Fashion primary controls", () => {
+    const { primary, primaryForeground } =
+      KAWAII_FASHION_THEME.defaultTokens.palette;
+    const lighter = Math.max(
+      relativeLuminance(primary),
+      relativeLuminance(primaryForeground),
+    );
+    const darker = Math.min(
+      relativeLuminance(primary),
+      relativeLuminance(primaryForeground),
+    );
+
+    expect((lighter + 0.05) / (darker + 0.05)).toBeGreaterThanOrEqual(4.5);
+  });
+
   it.each([
-    [LEGACY_CLASSIC_THEME, LEGACY_HOMEPAGE_MAPPING, LEGACY_ABOUT_MAPPING],
-    [V2_DESIGN_THEME, V2_HOMEPAGE_MAPPING, V2_ABOUT_MAPPING],
+    [
+      LEGACY_CLASSIC_THEME,
+      LEGACY_HOMEPAGE_MAPPING,
+      LEGACY_ABOUT_MAPPING,
+      THEME_HOMEPAGE_SECTION_TYPES,
+    ],
+    [
+      V2_DESIGN_THEME,
+      V2_HOMEPAGE_MAPPING,
+      V2_ABOUT_MAPPING,
+      THEME_HOMEPAGE_SECTION_TYPES,
+    ],
+    [
+      KAWAII_FASHION_THEME,
+      KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS,
+      KAWAII_FASHION_ABOUT_RENDERER_PATHS,
+      KAWAII_FASHION_HOMEPAGE_SECTION_TYPES,
+    ],
   ])(
     "maps every homepage and About source type for $id",
-    (theme, homepage, about) => {
+    (theme, homepage, about, homepageSectionTypes) => {
       expect(HOMEPAGE_SECTION_TYPES).toHaveLength(14);
       expect(Object.keys(theme.renderers.homepageSections).sort()).toEqual(
         [...HOMEPAGE_SECTION_TYPES].sort(),
@@ -137,9 +195,7 @@ describe("storefront theme manifest", () => {
         [...ABOUT_SECTION_TYPES].sort(),
       );
       expect(theme.renderers.aboutSections).toEqual(about);
-      expect(theme.slots.homepage.sectionTypes).toEqual(
-        THEME_HOMEPAGE_SECTION_TYPES,
-      );
+      expect(theme.slots.homepage.sectionTypes).toEqual(homepageSectionTypes);
       expect(theme.slots.about.sectionTypes).toEqual(THEME_ABOUT_SECTION_TYPES);
       expect(theme.compatibility.aboutSectionVersions).toEqual([1, 2]);
     },
@@ -179,16 +235,20 @@ describe("normalizeStorefrontThemeConfig", () => {
     expect(result.errors).toContain("Theme is unknown or unavailable.");
   });
 
-  it("accepts V2 Design version 1", () => {
-    const result = normalizeStorefrontThemeConfigWithResult({
-      ...validConfig,
-      themeId: "v2-design",
-    });
+  it.each(["legacy-classic", "v2-design", "kawaii-fashion"])(
+    "accepts installed %s version 1 configuration",
+    (themeId) => {
+      const result = normalizeStorefrontThemeConfigWithResult({
+        ...validConfig,
+        themeId,
+      });
 
-    expect(result.usedFallback).toBe(false);
-    expect(result.errors).toEqual([]);
-    expect(result.config.themeId).toBe("v2-design");
-  });
+      expect(result.usedFallback).toBe(false);
+      expect(result.errors).toEqual([]);
+      expect(result.config.themeId).toBe(themeId);
+      expect(result.config.themeVersion).toBe(1);
+    },
+  );
 
   it("rejects theme versions that are not installed", () => {
     const result = normalizeStorefrontThemeConfigWithResult({
@@ -223,23 +283,26 @@ describe("normalizeStorefrontThemeConfig", () => {
     );
   });
 
-  it("always resolves non-primary tokens from the selected theme defaults", () => {
-    const config = {
-      ...createDefaultStorefrontThemeConfig(V2_DESIGN_THEME),
-      tokenOverrides: {
-        palette: {
-          primary: "#123456",
-          background: "#ffffff",
-          border: "#ffffff",
+  it.each([LEGACY_CLASSIC_THEME, V2_DESIGN_THEME, KAWAII_FASHION_THEME])(
+    "always resolves non-primary tokens from $id defaults",
+    (theme) => {
+      const config = {
+        ...createDefaultStorefrontThemeConfig(theme),
+        tokenOverrides: {
+          palette: {
+            primary: "#123456",
+            background: "#ffffff",
+            border: "#ffffff",
+          },
         },
-      },
-    } as Parameters<typeof resolveStorefrontThemeTokens>[0];
-    const palette = resolveStorefrontThemeTokens(config).palette;
+      } as Parameters<typeof resolveStorefrontThemeTokens>[0];
+      const palette = resolveStorefrontThemeTokens(config).palette;
 
-    expect(palette.primary).toBe("#123456");
-    expect(palette).toEqual({
-      ...V2_DESIGN_THEME.defaultTokens.palette,
-      primary: "#123456",
-    });
-  });
+      expect(palette.primary).toBe("#123456");
+      expect(palette).toEqual({
+        ...theme.defaultTokens.palette,
+        primary: "#123456",
+      });
+    },
+  );
 });

@@ -1,5 +1,7 @@
 import type { ComponentProps } from "react";
 import type { FooterVariant, NavbarVariant } from "@/lib/cms/siteChrome";
+import KawaiiFooter from "@/components/themes/kawaii-fashion/chrome/KawaiiFooter";
+import KawaiiHeader from "@/components/themes/kawaii-fashion/chrome/KawaiiHeader";
 import Footer from "./Footer";
 import Header from "./Header/Header";
 
@@ -21,6 +23,10 @@ export function ThemeHeader({
   settings,
   ...props
 }: HeaderProps & { rendererId: string }) {
+  if (rendererId === "kawaii-fashion.navbar") {
+    return <KawaiiHeader {...props} settings={settings} />;
+  }
+
   const variant = HEADER_RENDERERS[rendererId] ?? "classic";
   return (
     <Header
@@ -38,6 +44,10 @@ export function ThemeFooter({
   settings,
   ...props
 }: FooterProps & { rendererId: string }) {
+  if (rendererId === "kawaii-fashion.footer") {
+    return <KawaiiFooter {...props} settings={settings} />;
+  }
+
   const variant = FOOTER_RENDERERS[rendererId] ?? "classic";
   return (
     <Footer

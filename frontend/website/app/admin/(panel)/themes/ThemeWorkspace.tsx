@@ -42,6 +42,8 @@ export function ThemeWorkspace({
     resolvedPrimary.toLowerCase() !== initialPrimary.toLowerCase();
   const hasChanges = !isPublished || colorChanged;
   const previewUrl = `/admin/theme-component-preview/${themeId}?primary=${encodeURIComponent(resolvedPrimary)}`;
+  const browserAddress =
+    themeId === "kawaii-fashion" ? "kawaii.com.bd" : "teedrop.store";
 
   const applyTheme = () => {
     startTransition(async () => {
@@ -209,7 +211,7 @@ export function ThemeWorkspace({
               <span className="size-2 rounded-full bg-amber-400" />
               <span className="size-2 rounded-full bg-green-400" />
               <div className="ml-3 h-5 flex-1 border border-border bg-background/80 px-3 font-mono text-[8px] leading-5 text-muted-foreground">
-                teedrop.store
+                {browserAddress}
               </div>
             </div>
             <iframe

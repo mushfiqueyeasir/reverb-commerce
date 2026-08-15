@@ -5,6 +5,10 @@ import { CurrencyProvider } from "@/components/providers/CurrencyProvider";
 import { StoreBrandProvider } from "@/components/providers/StoreBrandProvider";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DEFAULT_CHAT_WIDGETS } from "@/lib/chatWidgets";
+import {
+  KAWAII_FASHION_PREVIEW_DATA,
+  KAWAII_FASHION_PREVIEW_SECTIONS,
+} from "@/lib/cms/kawaiiFashionThemePreviewFixture";
 import { DEFAULT_FOOTER, DEFAULT_NAVBAR } from "@/lib/cms/siteChrome";
 import {
   TEE_DROP_PREVIEW_DATA,
@@ -30,31 +34,43 @@ export function ThemeStorefrontPreview({
     config.themeVersion,
   );
   const palette = resolveStorefrontThemeTokens(config).palette;
+  const isKawaiiFashion = config.themeId === "kawaii-fashion";
+  const storeName = isKawaiiFashion ? "Kawaii" : "TeeDrop";
+  const previewData = isKawaiiFashion
+    ? KAWAII_FASHION_PREVIEW_DATA
+    : TEE_DROP_PREVIEW_DATA;
+  const previewSections = isKawaiiFashion
+    ? KAWAII_FASHION_PREVIEW_SECTIONS
+    : TEE_DROP_PREVIEW_SECTIONS;
   const settings: SiteSettings = {
     id: 1,
-    store_name: "TeeDrop",
+    store_name: storeName,
     logo_path: null,
     invoice_logo_path: null,
     favicon_path: null,
     logoUrl: null,
     invoiceLogoUrl: null,
     faviconUrl: null,
-    contact_email: "hello@teedrop.store",
-    contact_phone: "+880 1700-000000",
+    contact_email: isKawaiiFashion
+      ? "hello@kawaii.com.bd"
+      : "hello@teedrop.store",
+    contact_phone: isKawaiiFashion ? "+880 1700-111222" : "+880 1700-000000",
     address: "Dhaka, Bangladesh",
     currency: "BDT",
     currency_symbol: "৳",
     shipping_flat: 70,
-    free_shipping_threshold: 2000,
+    free_shipping_threshold: isKawaiiFashion ? 3000 : 2000,
     socials: {},
     google_analytics_id: null,
     meta_pixel_id: null,
     gtm_id: null,
     analytics_enabled: false,
     security_enabled: false,
-    announcement_text: null,
-    announcement_active: false,
-    announcement_url: null,
+    announcement_text: isKawaiiFashion
+      ? "Free delivery across Bangladesh on orders over ৳3,000"
+      : null,
+    announcement_active: isKawaiiFashion,
+    announcement_url: isKawaiiFashion ? "/product" : null,
     updated_at: new Date(0).toISOString(),
     currencies: { ...DEFAULT_CURRENCY_SETTINGS },
     deliveryCharges: { ...DEFAULT_DELIVERY_CHARGES },
@@ -63,8 +79,9 @@ export function ThemeStorefrontPreview({
     navbar: structuredClone(DEFAULT_NAVBAR),
     footer: {
       ...structuredClone(DEFAULT_FOOTER),
-      description:
-        "Premium graphic T-shirts, heavyweight cotton, and limited streetwear drops made for the road.",
+      description: isKawaiiFashion
+        ? "Playful fashion, soft color, and charming everyday pieces selected to make getting dressed feel joyful."
+        : "Premium graphic T-shirts, heavyweight cotton, and limited streetwear drops made for the road.",
     },
   };
 
@@ -75,19 +92,19 @@ export function ThemeStorefrontPreview({
       style={paletteToCssVars(palette) as CSSProperties}
       className="fixed inset-0 overflow-hidden bg-background text-foreground [&_a]:pointer-events-none [&_button]:pointer-events-none"
     >
-      <StoreBrandProvider storeName="TeeDrop">
+      <StoreBrandProvider storeName={storeName}>
         <CurrencyProvider currencies={settings.currencies}>
           <ScrollArea className="h-dvh bg-background" variant="brand">
             <ThemeHeader
               rendererId={manifest.renderers.navbar}
-              categories={TEE_DROP_PREVIEW_DATA.categories}
+              categories={previewData.categories}
               settings={settings}
               aiSearchEnabled={false}
             />
             <main className="min-h-[60vh]">
               <HomepageRenderer
-                sections={TEE_DROP_PREVIEW_SECTIONS}
-                data={TEE_DROP_PREVIEW_DATA}
+                sections={previewSections}
+                data={previewData}
                 preview
                 rendererMapping={manifest.renderers.homepageSections}
                 resolveImageUrl={(path) => path}

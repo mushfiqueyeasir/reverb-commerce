@@ -121,7 +121,13 @@ export async function saveSection(
   };
   const metadata = getHomepageSectionMetadata(current.type);
   if (metadata?.family === "featured") {
-    const maximum = metadata.version === 2 ? 6 : 5;
+    const publishedTheme = await readCurrentPublishedStorefrontTheme();
+    const maximum =
+      publishedTheme.config.themeId === "kawaii-fashion"
+        ? 8
+        : metadata.version === 2
+          ? 6
+          : 5;
     const requestedLimit = Number(config.limit);
     const normalizedLimit = Number.isFinite(requestedLimit)
       ? Math.min(maximum, Math.max(1, Math.floor(requestedLimit)))

@@ -3,6 +3,7 @@ import { requireAdminSession, canWrite } from "@/lib/admin/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader, BackLink } from "@/components/admin/PageHeader";
 import { getHomepageSectionDisplayName } from "@/lib/cms/homepageSections";
+import { readCurrentPublishedStorefrontTheme } from "@/lib/theme/store";
 import { getCategories } from "@/utility/getCategory";
 import { isBannerSectionType } from "@/type/db";
 import { SectionForm } from "../SectionForm";
@@ -24,14 +25,16 @@ export default async function EditSectionPage({
   const { tab } = await searchParams;
   const supabase = await createSupabaseServerClient();
 
-  const [sections, promotionsRes, categoryRows] = await Promise.all([
-    listSections(),
-    supabase
-      .from("promotions")
-      .select("id, title, active")
-      .order("created_at", { ascending: false }),
-    getCategories(),
-  ]);
+  const [sections, promotionsRes, categoryRows, publishedTheme] =
+    await Promise.all([
+      listSections(),
+      supabase
+        .from("promotions")
+        .select("id, title, active")
+        .order("created_at", { ascending: false }),
+      getCategories(),
+      readCurrentPublishedStorefrontTheme(),
+    ]);
 
   const section = sections.find((s) => s.id === id);
   if (!section) notFound();
@@ -74,6 +77,7 @@ export default async function EditSectionPage({
         banners={banners}
         canWrite={writable}
         initialTab={initialTab}
+        themeId={publishedTheme.config.themeId}
       />
     </div>
   );

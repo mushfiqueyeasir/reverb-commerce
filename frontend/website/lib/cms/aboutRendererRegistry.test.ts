@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ABOUT_SECTION_TYPES } from "./aboutSections";
 import {
+  KAWAII_FASHION_ABOUT_RENDERER_PATHS,
   LEGACY_CLASSIC_ABOUT_RENDERER_PATHS,
   SOURCE_VERSION_ABOUT_RENDERER_PATHS,
   V2_DESIGN_ABOUT_RENDERER_PATHS,
@@ -27,6 +28,15 @@ const V2_RENDERER_IDS = [
   "cta-v2",
 ];
 
+const KAWAII_RENDERER_IDS = [
+  "kawaii-fashion.about.hero",
+  "kawaii-fashion.about.stats",
+  "kawaii-fashion.about.story",
+  "kawaii-fashion.about.values",
+  "kawaii-fashion.about.craft",
+  "kawaii-fashion.about.cta",
+];
+
 describe("about renderer registry", () => {
   it("maps all 12 source types to Legacy V1 renderers", () => {
     expect(Object.keys(LEGACY_CLASSIC_ABOUT_RENDERER_PATHS)).toEqual(
@@ -46,6 +56,17 @@ describe("about renderer registry", () => {
     expect(
       ABOUT_SECTION_TYPES.map((type) => V2_DESIGN_ABOUT_RENDERER_PATHS[type]),
     ).toEqual([...V2_RENDERER_IDS, ...V2_RENDERER_IDS]);
+  });
+
+  it("maps all 12 source types to Kawaii Fashion renderers", () => {
+    expect(Object.keys(KAWAII_FASHION_ABOUT_RENDERER_PATHS)).toEqual(
+      ABOUT_SECTION_TYPES,
+    );
+    expect(
+      ABOUT_SECTION_TYPES.map(
+        (type) => KAWAII_FASHION_ABOUT_RENDERER_PATHS[type],
+      ),
+    ).toEqual([...KAWAII_RENDERER_IDS, ...KAWAII_RENDERER_IDS]);
   });
 
   it("falls back to a renderer matching the source version", () => {

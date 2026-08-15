@@ -41,6 +41,23 @@ export const V2_DESIGN_HOMEPAGE_RENDERER_PATHS = {
   richtext_v2: "richtext-v2",
 } as const satisfies Record<HomepageSectionType, string>;
 
+export const KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS = {
+  banner: "kawaii-fashion.banner",
+  categories: "kawaii-fashion.categories",
+  deals: "kawaii-fashion.featured",
+  new_arrivals: "kawaii-fashion.featured",
+  featured: "kawaii-fashion.featured",
+  reviews: "kawaii-fashion.reviews",
+  promo: "kawaii-fashion.promo",
+  richtext: "kawaii-fashion.story",
+  banner_v2: "kawaii-fashion.banner",
+  categories_v2: "kawaii-fashion.categories",
+  featured_v2: "kawaii-fashion.featured",
+  reviews_v2: "kawaii-fashion.reviews",
+  promo_v2: "kawaii-fashion.promo",
+  richtext_v2: "kawaii-fashion.story",
+} as const satisfies Record<HomepageSectionType, string>;
+
 export function resolveHomepageRendererId(
   type: unknown,
   mapping: HomepageRendererIdMapping = {},

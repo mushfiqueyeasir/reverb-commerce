@@ -1,15 +1,18 @@
 import type { HomepageSectionType } from "../../type/db";
 import type { AboutSectionType } from "../cms/aboutSections";
 import {
+  KAWAII_FASHION_ABOUT_RENDERER_PATHS,
   LEGACY_CLASSIC_ABOUT_RENDERER_PATHS,
   V2_DESIGN_ABOUT_RENDERER_PATHS,
 } from "../cms/aboutRendererRegistry";
 import {
+  KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS,
   LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS,
   V2_DESIGN_HOMEPAGE_RENDERER_PATHS,
 } from "../cms/homepageRendererRegistry";
 import {
   DEFAULT_PALETTE,
+  KAWAII_WHITE_PALETTE,
   normalizePalette,
   normalizePaletteOverrides,
   type ThemePalette,
@@ -103,6 +106,14 @@ const V2_ABOUT_RENDERERS: Record<AboutSectionType, string> = {
   ...V2_DESIGN_ABOUT_RENDERER_PATHS,
 };
 
+const KAWAII_FASHION_HOMEPAGE_RENDERERS: Record<HomepageSectionType, string> = {
+  ...KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS,
+};
+
+const KAWAII_FASHION_ABOUT_RENDERERS: Record<AboutSectionType, string> = {
+  ...KAWAII_FASHION_ABOUT_RENDERER_PATHS,
+};
+
 export const THEME_HOMEPAGE_SECTION_TYPES: readonly HomepageSectionType[] = [
   "banner",
   "featured",
@@ -111,6 +122,18 @@ export const THEME_HOMEPAGE_SECTION_TYPES: readonly HomepageSectionType[] = [
   "reviews",
   "promo",
 ];
+
+export const KAWAII_FASHION_HOMEPAGE_SECTION_TYPES: readonly HomepageSectionType[] =
+  [
+    "banner",
+    "categories",
+    "deals",
+    "new_arrivals",
+    "featured",
+    "richtext",
+    "reviews",
+    "promo",
+  ];
 
 export const THEME_ABOUT_SECTION_TYPES: readonly AboutSectionType[] = [
   "hero",
@@ -217,14 +240,69 @@ export const V2_DESIGN_THEME: StorefrontThemeManifest = {
   },
 };
 
+export const KAWAII_FASHION_THEME: StorefrontThemeManifest = {
+  id: "kawaii-fashion",
+  schemaVersion: STOREFRONT_THEME_SCHEMA_VERSION,
+  version: 1,
+  displayName: "Kawaii Fashion",
+  category: "Light fashion and lifestyle ecommerce",
+  description:
+    "A bright, playful storefront for kawaii fashion, accessories, and lifestyle collections.",
+  defaultTokens: {
+    palette: {
+      ...KAWAII_WHITE_PALETTE,
+      primaryForeground: "#050505",
+    },
+  },
+  renderers: {
+    navbar: "kawaii-fashion.navbar",
+    footer: "kawaii-fashion.footer",
+    homepageSections: KAWAII_FASHION_HOMEPAGE_RENDERERS,
+    aboutSections: KAWAII_FASHION_ABOUT_RENDERERS,
+  },
+  compatibility: {
+    storefrontApiVersion: 1,
+    homepageSectionVersions: [1, 2],
+    aboutSectionVersions: [1, 2],
+  },
+  slots: {
+    navbar: {
+      rendererId: "kawaii-fashion.navbar",
+      required: true,
+      accepts: ["classic", "centered"],
+    },
+    footer: {
+      rendererId: "kawaii-fashion.footer",
+      required: true,
+      accepts: ["classic", "compact"],
+    },
+    homepage: {
+      rendererId: "kawaii-fashion.homepage",
+      required: true,
+      accepts: ["homepage-section-v1", "homepage-section-v2"],
+      sectionTypes: KAWAII_FASHION_HOMEPAGE_SECTION_TYPES,
+      allowsRepeatedSections: false,
+    },
+    about: {
+      rendererId: "kawaii-fashion.about",
+      required: true,
+      accepts: ["about-section-v1", "about-section-v2"],
+      sectionTypes: THEME_ABOUT_SECTION_TYPES,
+      allowsRepeatedSections: false,
+    },
+  },
+};
+
 const INSTALLED_STOREFRONT_THEME_VERSIONS = [
   LEGACY_CLASSIC_THEME,
   V2_DESIGN_THEME,
+  KAWAII_FASHION_THEME,
 ] as const;
 
 export const AVAILABLE_STOREFRONT_THEMES = [
   LEGACY_CLASSIC_THEME,
   V2_DESIGN_THEME,
+  KAWAII_FASHION_THEME,
 ] as const;
 
 export const STOREFRONT_THEME_REGISTRY: Readonly<
