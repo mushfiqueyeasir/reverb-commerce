@@ -5,8 +5,8 @@
   "lastProvisionedDeploymentUrl": "https://store-ve-gear-b73xnk27f-mushfiqueyeasirs-projects.vercel.app",
   "supabaseProjectRef": "lznxmqehyzqwqfkfgxxh",
   "supabaseUrl": "https://lznxmqehyzqwqfkfgxxh.supabase.co",
-  "trackedAt": "2026-08-15T07:14:23.544Z",
-  "schemaVersion": "0040",
+  "trackedAt": "2026-08-15T08:16:36.339Z",
+  "schemaVersion": "0041",
   "migrationChecksums": {
     "0018_clean_baseline": "2a833e68252973e451beab7de38b573f449c67c7e79c3f4bd4958e6b38b4fdeb",
     "0019_payment_courier_concurrency.sql": "0e466df50e3fd9e70ed2ab22efb7967f46e76271df8603e3c0082d664ffb1122",
@@ -30,6 +30,7 @@
     "0037_ai_search_settings.sql": "640678fb07d205b2a5bedd98bd807fd0c4d2b6241844b5791c1364e72e88726c",
     "0038_groq_ai_search_provider.sql": "e48774847de38883d531fe132aa8f3a41b2ca4d710cf9b72cecd6626ea3558d1",
     "0039_aihubmix_ai_search_provider.sql": "3951b1bac9720c585ce935ca48f3444d06cfeafdc5811a0d056e1fbe3e955b6a",
-    "0040_theme_builder_foundation.sql": "3be12d83e328b72dda9bbaac35f4f36149d62a71d594f703307c778c0dc015aa"
+    "0040_theme_builder_foundation.sql": "3be12d83e328b72dda9bbaac35f4f36149d62a71d594f703307c778c0dc015aa",
+    "0041_atomic_theme_apply.sql": "389aacfcfb46ee4f0b7a4805c8ef841d2597ec8181ff0426551fa14bb1ab1464"
   }
 }
