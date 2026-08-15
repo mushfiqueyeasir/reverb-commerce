@@ -3,6 +3,7 @@
 import type {
   HomepageRendererData,
   HomepageSectionRendererMapping,
+  HomepageSectionRendererRegistry,
 } from "@/components/HomePage/HomepageRenderer";
 import type { HomepageSectionRow } from "@/type/db";
 import { HomepageTable } from "./HomepageTable";
@@ -13,6 +14,7 @@ export function HomepageWorkspace({
   themeId,
   themeName,
   rendererMapping,
+  renderers,
   previewData,
 }: {
   sections: HomepageSectionRow[];
@@ -20,6 +22,7 @@ export function HomepageWorkspace({
   themeId: string;
   themeName: string;
   rendererMapping: HomepageSectionRendererMapping;
+  renderers?: Partial<HomepageSectionRendererRegistry>;
   previewData: HomepageRendererData;
 }) {
   return (
@@ -34,6 +37,7 @@ export function HomepageWorkspace({
         themeId={themeId}
         themeName={themeName}
         rendererMapping={rendererMapping}
+        renderers={renderers}
         previewData={previewData}
       />
     </div>

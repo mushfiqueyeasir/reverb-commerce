@@ -1,6 +1,7 @@
 import { requireAdminSession, canWrite } from "@/lib/admin/auth";
 import { PageHeader } from "@/components/admin/PageHeader";
 import type { HomepageRendererData } from "@/components/HomePage/HomepageRenderer";
+import { getStorefrontThemePackage } from "@/components/themes/registry";
 import { selectHomepageProducts } from "@/lib/products/homepageFeatured";
 import { getStorefrontThemeManifest } from "@/lib/theme/manifest";
 import { readCurrentPublishedStorefrontTheme } from "@/lib/theme/store";
@@ -85,6 +86,7 @@ export default async function HomepagePage() {
         themeId={manifest.id}
         themeName={manifest.displayName}
         rendererMapping={manifest.renderers.homepageSections}
+        renderers={getStorefrontThemePackage(manifest.id).homepageRenderers}
         previewData={previewData}
       />
     </div>

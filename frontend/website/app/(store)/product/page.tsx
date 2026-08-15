@@ -126,8 +126,7 @@ export default async function ProductsPage({
     publishedTheme.config.themeId,
     publishedTheme.config.themeVersion,
   );
-  const productCardVariant =
-    manifest.id === "kawaii-fashion" ? "kawaii-fashion" : "default";
+  const productCardVariant = manifest.productCardVariant;
   const categoryBySlug = new Map(
     categories.map((category) => [category.categoryUrl.current, category]),
   );

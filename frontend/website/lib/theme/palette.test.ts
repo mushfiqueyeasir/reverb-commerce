@@ -47,14 +47,14 @@ describe("palette overrides", () => {
 
 describe("getPalettePresets", () => {
   it("keeps the default palette first and unchanged", () => {
-    const presets = getPalettePresets("https://kawaii.com.bd");
+    const presets = getPalettePresets("kawaii-fashion");
 
     expect(presets[0]).toEqual(PALETTE_PRESETS[0]);
     expect(presets[0].palette).toEqual(DEFAULT_PALETTE);
   });
 
   it("replaces Daylight with Kawaii White in second place for Kawaii", () => {
-    const presets = getPalettePresets("https://kawaii.com.bd");
+    const presets = getPalettePresets("kawaii-fashion");
 
     expect(presets[1]).toEqual({
       id: "kawaii-white",
@@ -67,8 +67,9 @@ describe("getPalettePresets", () => {
     expect(isLightPalette(KAWAII_WHITE_PALETTE)).toBe(true);
   });
 
-  it("keeps the global presets unchanged for other clients", () => {
-    expect(getPalettePresets("https://vegear.com.bd")).toEqual(PALETTE_PRESETS);
+  it("keeps the global presets unchanged for other themes", () => {
+    expect(getPalettePresets("legacy-classic")).toEqual(PALETTE_PRESETS);
+    expect(getPalettePresets("v2-design")).toEqual(PALETTE_PRESETS);
     expect(PALETTE_PRESETS.some((preset) => preset.id === "daylight")).toBe(
       true,
     );

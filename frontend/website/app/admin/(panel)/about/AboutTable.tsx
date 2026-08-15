@@ -22,6 +22,10 @@ import { CSS } from "@dnd-kit/utilities";
 import { Eye, GripVertical, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import AboutPageScreen from "@/components/AboutPage/AboutPageScreen";
+import type {
+  AboutSectionRenderer,
+} from "@/components/themes/types";
+import type { AboutRendererRegistry } from "@/lib/cms/aboutRendererRegistry";
 import {
   getAboutSectionDisplayName,
   getAboutSectionFamily,
@@ -100,7 +104,13 @@ function previewImage(type: AboutSectionRow["type"]): string | null {
   }
 }
 
-function PreviewDialog({ section }: { section: AboutSectionRow }) {
+function PreviewDialog({
+  section,
+  renderers,
+}: {
+  section: AboutSectionRow;
+  renderers?: Partial<AboutRendererRegistry<AboutSectionRenderer>>;
+}) {
   const displayName = getAboutSectionDisplayName(section.type) ?? section.type;
   const version = getAboutSectionVersion(section.type);
 
@@ -133,6 +143,7 @@ function PreviewDialog({ section }: { section: AboutSectionRow }) {
             sections={[section]}
             imageUrls={{ [section.id]: previewImage(section.type) }}
             preview
+            renderers={renderers}
           />
         </ScrollArea>
       </DialogContent>
@@ -143,9 +154,11 @@ function PreviewDialog({ section }: { section: AboutSectionRow }) {
 function SortableRow({
   section,
   canWrite,
+  renderers,
 }: {
   section: AboutSectionRow;
   canWrite: boolean;
+  renderers?: Partial<AboutRendererRegistry<AboutSectionRenderer>>;
 }) {
   const displayName = getAboutSectionDisplayName(section.type) ?? section.type;
   const version = getAboutSectionVersion(section.type);
@@ -199,7 +212,7 @@ function SortableRow({
       </div>
 
       <div className="flex w-full shrink-0 flex-wrap items-center justify-end gap-3 border-t border-border/60 pt-3 sm:w-auto sm:border-0 sm:pt-0">
-        <PreviewDialog section={section} />
+        <PreviewDialog section={section} renderers={renderers} />
         <ActiveToggle
           id={section.id}
           active={section.active}
@@ -219,9 +232,11 @@ function SortableRow({
 export function AboutTable({
   data,
   canWrite,
+  renderers,
 }: {
   data: AboutSectionRow[];
   canWrite: boolean;
+  renderers?: Partial<AboutRendererRegistry<AboutSectionRenderer>>;
 }) {
   const [items, setItems] = useState(data);
   const [, startTransition] = useTransition();
@@ -291,6 +306,7 @@ export function AboutTable({
                 key={section.id}
                 section={section}
                 canWrite={canWrite}
+                renderers={renderers}
               />
             ))}
           </div>

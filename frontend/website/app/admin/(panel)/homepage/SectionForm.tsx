@@ -29,6 +29,7 @@ import {
   type StoryCardIcon,
 } from "@/lib/cms/homepageStory";
 import { BUCKETS } from "@/lib/supabase/config";
+import { STOREFRONT_THEME_REGISTRY } from "@/lib/theme/manifest";
 import { AdminCard } from "@/components/admin/AdminCard";
 import {
   FormActions,
@@ -207,8 +208,10 @@ export function SectionForm({
   const version = getHomepageSectionVersion(section.type);
   const displayName =
     getHomepageSectionDisplayName(section.type) ?? section.type;
-  const isKawaii = themeId === "kawaii-fashion";
-  const maxMosaicCategories = isKawaii ? 5 : MAX_MOSAIC_CATEGORIES;
+  const admin = STOREFRONT_THEME_REGISTRY[themeId]?.admin;
+  const isKawaii = admin?.kawaiiLabels ?? false;
+  const maxMosaicCategories = admin?.maxMosaicCategories ?? MAX_MOSAIC_CATEGORIES;
+  const featuredLimit = admin?.featuredLimit ?? null;
   const bannerSectionType = isBannerSectionType(section.type)
     ? section.type
     : null;
@@ -228,13 +231,12 @@ export function SectionForm({
     family === "richtext" ||
     family === "studio_notes";
   const limitMaximum =
-    family === "featured" && themeId === "kawaii-fashion"
-      ? 10
-      : section.type === "featured_v2"
-        ? MAX_FEATURED_V2_LIMIT
-        : family === "featured"
-          ? MAX_FEATURED_LIMIT
-          : MAX_LIMIT;
+    family === "featured"
+      ? (featuredLimit ??
+        (section.type === "featured_v2"
+          ? MAX_FEATURED_V2_LIMIT
+          : MAX_FEATURED_LIMIT))
+      : MAX_LIMIT;
   const limitFallback =
     family === "reviews" ? 24 : family === "featured" ? limitMaximum : 8;
   const [tab, setTab] = useState<"content" | "slides">(
@@ -259,7 +261,7 @@ export function SectionForm({
     if (hasOptionalLimit && typeof config.limit !== "number") return "";
     const configuredLimit = numConfig(config, "limit", limitFallback);
     return String(
-      family === "featured" && themeId !== "kawaii-fashion"
+      family === "featured" && !isKawaii
         ? clampFeaturedLimit(configuredLimit, limitMaximum)
         : clampLimit(configuredLimit, limitMaximum),
     );
@@ -520,7 +522,7 @@ export function SectionForm({
           ? parsedLimit
           : limitFallback;
       nextConfig.limit =
-        family === "featured" && themeId !== "kawaii-fashion"
+        family === "featured" && !isKawaii
           ? clampFeaturedLimit(value, limitMaximum)
           : clampLimit(value, limitMaximum);
     }

@@ -52,10 +52,31 @@ export interface ThemeTokenOverrides {
   palette?: ThemePaletteOverrides;
 }
 
+export type StorefrontProductCardVariant = "default" | "kawaii-fashion";
+
 export interface ThemeSlotCompatibility {
   rendererId: string;
   required: boolean;
   accepts: readonly string[];
+}
+
+export interface StorefrontThemeAdminConfig {
+  browserAddress: string;
+  homepageSectionLabels: Partial<Record<HomepageSectionType, string>>;
+  featuredLimit: number | null;
+  maxMosaicCategories: number;
+  kawaiiLabels: boolean;
+}
+
+export interface StorefrontThemePreviewConfig {
+  fixture: "tee-drop" | "kawaii-fashion";
+  storeName: string;
+  contactEmail: string;
+  contactPhone: string;
+  freeShippingThreshold: number;
+  announcementText: string | null;
+  announcementUrl: string | null;
+  footerDescription: string;
 }
 
 export interface StorefrontThemeManifest {
@@ -66,6 +87,9 @@ export interface StorefrontThemeManifest {
   category: string;
   description: string;
   defaultTokens: ThemeSemanticTokens;
+  productCardVariant: StorefrontProductCardVariant;
+  admin: StorefrontThemeAdminConfig;
+  preview: StorefrontThemePreviewConfig;
   renderers: {
     navbar: string;
     footer: string;
@@ -148,6 +172,21 @@ export const THEME_ABOUT_SECTION_TYPES: readonly AboutSectionType[] = [
   "cta",
 ];
 
+export const KAWAII_SECTION_LABELS: Partial<Record<HomepageSectionType, string>> =
+  {
+    banner: "Kawaii Hero",
+    categories: "Beauty Categories",
+    deals: "Today’s Best Deals",
+    new_arrivals: "New Arrival Products",
+    featured: "Featured Products",
+    richtext: "Kawaii Brand Story",
+    reviews: "Customer Reviews",
+    promo: "Featured Promotion",
+    guarantees: "Shopping Guarantees",
+    studio_notes: "Studio Notes",
+    ai_search: "AI Search Promo",
+  };
+
 export const LEGACY_CLASSIC_THEME: StorefrontThemeManifest = {
   id: "legacy-classic",
   schemaVersion: STOREFRONT_THEME_SCHEMA_VERSION,
@@ -157,6 +196,25 @@ export const LEGACY_CLASSIC_THEME: StorefrontThemeManifest = {
   description:
     "A conversion-focused T-shirt storefront for graphic drops, oversized fits, and streetwear collections.",
   defaultTokens: { palette: { ...DEFAULT_PALETTE } },
+  productCardVariant: "default",
+  admin: {
+    browserAddress: "teedrop.store",
+    homepageSectionLabels: {},
+    featuredLimit: null,
+    maxMosaicCategories: 4,
+    kawaiiLabels: false,
+  },
+  preview: {
+    fixture: "tee-drop",
+    storeName: "TeeDrop",
+    contactEmail: "hello@teedrop.store",
+    contactPhone: "+880 1700-000000",
+    freeShippingThreshold: 2000,
+    announcementText: null,
+    announcementUrl: null,
+    footerDescription:
+      "Premium graphic T-shirts, heavyweight cotton, and limited streetwear drops made for the road.",
+  },
   renderers: {
     navbar: "legacy-classic.navbar",
     footer: "legacy-classic.footer",
@@ -205,6 +263,25 @@ export const V2_DESIGN_THEME: StorefrontThemeManifest = {
   description:
     "The V2 Reverb storefront package with complete homepage and About coverage.",
   defaultTokens: { palette: { ...DEFAULT_PALETTE } },
+  productCardVariant: "default",
+  admin: {
+    browserAddress: "teedrop.store",
+    homepageSectionLabels: {},
+    featuredLimit: null,
+    maxMosaicCategories: 4,
+    kawaiiLabels: false,
+  },
+  preview: {
+    fixture: "tee-drop",
+    storeName: "TeeDrop",
+    contactEmail: "hello@teedrop.store",
+    contactPhone: "+880 1700-000000",
+    freeShippingThreshold: 2000,
+    announcementText: null,
+    announcementUrl: null,
+    footerDescription:
+      "Premium graphic T-shirts, heavyweight cotton, and limited streetwear drops made for the road.",
+  },
   renderers: {
     navbar: "v2-design.navbar",
     footer: "v2-design.footer",
@@ -257,6 +334,26 @@ export const KAWAII_FASHION_THEME: StorefrontThemeManifest = {
       ...KAWAII_WHITE_PALETTE,
       primaryForeground: "#050505",
     },
+  },
+  productCardVariant: "kawaii-fashion",
+  admin: {
+    browserAddress: "kawaii.com.bd",
+    homepageSectionLabels: { ...KAWAII_SECTION_LABELS },
+    featuredLimit: 10,
+    maxMosaicCategories: 5,
+    kawaiiLabels: true,
+  },
+  preview: {
+    fixture: "kawaii-fashion",
+    storeName: "Kawaii",
+    contactEmail: "hello@kawaii.com.bd",
+    contactPhone: "+880 1700-111222",
+    freeShippingThreshold: 3000,
+    announcementText:
+      "Free delivery across Bangladesh on orders over ৳3,000",
+    announcementUrl: "/product",
+    footerDescription:
+      "Playful fashion, soft color, and charming everyday pieces selected to make getting dressed feel joyful.",
   },
   renderers: {
     navbar: "kawaii-fashion.navbar",

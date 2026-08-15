@@ -5,6 +5,7 @@ import { Check, Loader2, Palette, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { STOREFRONT_THEME_REGISTRY } from "@/lib/theme/manifest";
 import { applyStorefrontTheme } from "./actions";
 
 const PRIMARY_PRESETS = [
@@ -43,7 +44,7 @@ export function ThemeWorkspace({
   const hasChanges = !isPublished || colorChanged;
   const previewUrl = `/admin/theme-component-preview/${themeId}?primary=${encodeURIComponent(resolvedPrimary)}`;
   const browserAddress =
-    themeId === "kawaii-fashion" ? "kawaii.com.bd" : "teedrop.store";
+    STOREFRONT_THEME_REGISTRY[themeId]?.admin.browserAddress ?? "teedrop.store";
 
   const applyTheme = () => {
     startTransition(async () => {

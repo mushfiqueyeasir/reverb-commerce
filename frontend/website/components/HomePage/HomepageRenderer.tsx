@@ -12,23 +12,7 @@ import ReviewSlider from "@/components/HomePage/ReviewSlider";
 import ReviewsV2 from "@/components/HomePage/ReviewsV2";
 import RichTextSection from "@/components/HomePage/RichTextSection";
 import RichTextSectionV2 from "@/components/HomePage/RichTextSectionV2";
-import KawaiiFashionBanner from "@/components/themes/kawaii-fashion/homepage/Banner";
-import KawaiiFashionCategories from "@/components/themes/kawaii-fashion/homepage/Categories";
-import KawaiiFashionFeaturedProducts from "@/components/themes/kawaii-fashion/homepage/FeaturedProducts";
-import {
-  KawaiiFashionGuarantees,
-  KawaiiFashionStudioNotes,
-} from "@/components/themes/kawaii-fashion/homepage/HomepageSupport";
-import KawaiiFashionAiSearch from "@/components/themes/kawaii-fashion/homepage/AiSearch";
-import KawaiiFashionPromo from "@/components/themes/kawaii-fashion/homepage/Promo";
-import KawaiiFashionReviews from "@/components/themes/kawaii-fashion/homepage/Reviews";
-import KawaiiFashionStory from "@/components/themes/kawaii-fashion/homepage/Story";
-import {
-  getHomepageSectionMetadata,
-  parseKawaiiAiSearchConfig,
-  parseKawaiiGuaranteesConfig,
-  parseKawaiiStudioNotesConfig,
-} from "@/lib/cms/homepageSections";
+import { getHomepageSectionMetadata } from "@/lib/cms/homepageSections";
 import {
   createHomepageRendererRegistry,
   resolveHomepageRenderer,
@@ -98,7 +82,7 @@ export interface HomepageRendererProps {
   resolveImageUrl?: (path: string | null) => string | null;
 }
 
-function configString(
+export function configString(
   config: Record<string, unknown>,
   key: string,
 ): string | null {
@@ -106,7 +90,7 @@ function configString(
   return typeof value === "string" && value.trim() ? value : null;
 }
 
-function configLimit(
+export function configLimit(
   config: Record<string, unknown>,
   fallback: number,
   maximum = 24,
@@ -116,7 +100,7 @@ function configLimit(
   return Math.min(maximum, Math.max(1, Math.floor(value)));
 }
 
-function optionalConfigLimit(
+export function optionalConfigLimit(
   config: Record<string, unknown>,
 ): number | undefined {
   const value = config.limit;
@@ -137,7 +121,7 @@ function configStringArray(
   ];
 }
 
-function resolveSectionImage(
+export function resolveSectionImage(
   resolveImageUrl: HomepageRendererProps["resolveImageUrl"],
   path: string | null,
   fallback: string,
@@ -428,211 +412,6 @@ function RichTextV2Renderer(props: HomepageSectionRendererProps) {
   return renderRichText(props, 2);
 }
 
-function KawaiiFashionBannerRenderer({
-  section,
-  data,
-  primaryBannerId,
-}: HomepageSectionRendererProps) {
-  const banners = selectHomepageBannerData(section.type, data);
-  if (banners.length === 0) return null;
-  return (
-    <KawaiiFashionBanner
-      banners={banners}
-      description={configString(section.config, "description")}
-      editLabel={configString(section.config, "edit_label")}
-      footerNote={configString(section.config, "footer_note")}
-      imageBadge={configString(section.config, "image_badge")}
-      headingLevel={section.id === primaryBannerId ? "h1" : "h2"}
-    />
-  );
-}
-
-function KawaiiFashionCategoriesRenderer({
-  section,
-  data,
-  preview,
-  useLiveBindingsInPreview,
-}: HomepageSectionRendererProps) {
-  if (data.categories.length === 0) return null;
-  const config = section.config;
-  return (
-    <KawaiiFashionCategories
-      categories={data.categories}
-      title={section.title}
-      subtitle={section.subtitle}
-      eyebrow={configString(config, "eyebrow")}
-      ctaLabel={configString(config, "cta_label")}
-      ctaHref={configString(config, "cta_url") ?? "/product"}
-      categoryIds={selectHomepageCategoryIds(
-        config,
-        preview,
-        useLiveBindingsInPreview,
-      )}
-      limit={optionalConfigLimit(config)}
-    />
-  );
-}
-
-function KawaiiFashionFeaturedRenderer({
-  section,
-  data,
-}: HomepageSectionRendererProps) {
-  const config = section.config;
-  const products = selectHomepageProducts(
-    data.products,
-    configLimit(config, 10, 10),
-    10,
-    getHomepageSectionMetadata(section.type)?.productSelection,
-  );
-  if (products.length === 0) return null;
-  return (
-    <KawaiiFashionFeaturedProducts
-      products={products}
-      title={section.title}
-      subtitle={section.subtitle}
-      eyebrow={configString(config, "eyebrow")}
-      ctaLabel={configString(config, "cta_label")}
-      ctaHref={configString(config, "cta_url") ?? "/product"}
-      listLabel={configString(config, "product_list_label")}
-      uncategorizedLabelTemplate={configString(
-        config,
-        "uncategorized_label_template",
-      )}
-    />
-  );
-}
-
-function KawaiiFashionReviewsRenderer({
-  section,
-  data,
-}: HomepageSectionRendererProps) {
-  const config = section.config;
-  const reviews = data.reviews.slice(0, configLimit(config, 8, 12));
-  if (reviews.length === 0) return null;
-  return (
-    <KawaiiFashionReviews
-      reviews={reviews}
-      title={section.title}
-      subtitle={section.subtitle}
-      eyebrow={configString(config, "eyebrow")}
-      ctaLabel={configString(config, "cta_label")}
-      ctaHref={configString(config, "cta_url") ?? "/reviews"}
-      customerFallback={configString(config, "customer_fallback")}
-      bodyFallback={configString(config, "body_fallback")}
-      itemLabelTemplate={configString(config, "item_label_template")}
-      verifiedLabel={configString(config, "verified_label")}
-      ratingAriaTemplate={configString(config, "rating_aria_template")}
-    />
-  );
-}
-
-function KawaiiFashionPromoRenderer({
-  section,
-  data,
-}: HomepageSectionRendererProps) {
-  const config = section.config;
-  const promotionId = configString(config, "promotion_id");
-  const promotion =
-    data.promotions.find((candidate) => candidate._id === promotionId) ??
-    data.promotions[0] ??
-    null;
-  if (!promotion) return null;
-  return (
-    <KawaiiFashionPromo
-      promotion={promotion}
-      title={section.title}
-      subtitle={section.subtitle}
-      ctaHref={
-        configString(config, "cta_url") || promotion.ctaUrl || "/product"
-      }
-      ctaLabel={configString(config, "cta_label")}
-      kicker={configString(config, "kicker")}
-      limitedLabel={configString(config, "limited_label")}
-      discountSuffix={configString(config, "discount_suffix")}
-      imageEyebrow={configString(config, "image_eyebrow")}
-      imageTitle={configString(config, "image_title")}
-      ctaFallbackLabel={configString(config, "cta_fallback_label")}
-    />
-  );
-}
-
-function KawaiiFashionStoryRenderer({
-  section,
-  resolveImageUrl,
-}: HomepageSectionRendererProps) {
-  const config = section.config;
-  const imageUrl =
-    resolveImageUrl?.(configString(config, "image_path")) ??
-    (config.variant === "fabric" ? "/images/lovable/fabric-texture.jpg" : null);
-  return (
-    <KawaiiFashionStory
-      title={section.title}
-      subtitle={section.subtitle}
-      body={section.body ? sanitizeCmsHtml(section.body) : null}
-      eyebrow={configString(config, "eyebrow")}
-      ctaLabel={configString(config, "cta_label")}
-      ctaHref={configString(config, "cta_url")}
-      config={config}
-      imageUrl={imageUrl}
-    />
-  );
-}
-
-function KawaiiFashionGuaranteesRenderer({
-  section,
-}: HomepageSectionRendererProps) {
-  const config = parseKawaiiGuaranteesConfig(section.config);
-  return config ? <KawaiiFashionGuarantees {...config} /> : null;
-}
-
-function KawaiiFashionStudioNotesRenderer({
-  section,
-}: HomepageSectionRendererProps) {
-  const config = parseKawaiiStudioNotesConfig(section.config);
-  const title = section.title?.trim();
-  const body = section.subtitle?.trim();
-  if (!config || !title || !body) return null;
-  return (
-    <KawaiiFashionStudioNotes
-      eyebrow={config.eyebrow}
-      title={title}
-      body={body}
-      ctaLabel={config.ctaLabel}
-      ctaHref={config.ctaUrl}
-    />
-  );
-}
-
-const KAWAII_AI_SEARCH_FALLBACK_IMAGE = "/images/lovable/ai-search-hero.jpg";
-
-function KawaiiFashionAiSearchRenderer({
-  section,
-  resolveImageUrl,
-  data,
-}: HomepageSectionRendererProps) {
-  const config = parseKawaiiAiSearchConfig(section.config);
-  const title = section.title?.trim();
-  const body = section.subtitle?.trim();
-  if (!config || !title) return null;
-  const imageUrl = resolveSectionImage(
-    resolveImageUrl,
-    config.imagePath,
-    KAWAII_AI_SEARCH_FALLBACK_IMAGE,
-  );
-  return (
-    <KawaiiFashionAiSearch
-      eyebrow={config.eyebrow}
-      title={title}
-      body={body}
-      ctaLabel={config.ctaLabel}
-      pillLabel={config.pillLabel}
-      imageUrl={imageUrl}
-      imageAlt={config.imageAlt}
-      aiSearchEnabled={data.aiSearchEnabled}
-    />
-  );
-}
-
 export const LEGACY_CLASSIC_HOMEPAGE_RENDERERS: HomepageSectionRendererRegistry =
   {
     "banner-classic": BannerClassicRenderer,
@@ -647,19 +426,6 @@ export const LEGACY_CLASSIC_HOMEPAGE_RENDERERS: HomepageSectionRendererRegistry 
     "reviews-v2": ReviewsV2Renderer,
     "promo-v2": PromotionV2Renderer,
     "richtext-v2": RichTextV2Renderer,
-  } satisfies HomepageSectionRendererRegistry;
-
-export const KAWAII_FASHION_HOMEPAGE_RENDERERS: HomepageSectionRendererRegistry =
-  {
-    "kawaii-fashion.banner": KawaiiFashionBannerRenderer,
-    "kawaii-fashion.categories": KawaiiFashionCategoriesRenderer,
-    "kawaii-fashion.featured": KawaiiFashionFeaturedRenderer,
-    "kawaii-fashion.reviews": KawaiiFashionReviewsRenderer,
-    "kawaii-fashion.promo": KawaiiFashionPromoRenderer,
-    "kawaii-fashion.story": KawaiiFashionStoryRenderer,
-    "kawaii-fashion.guarantees": KawaiiFashionGuaranteesRenderer,
-    "kawaii-fashion.studio-notes": KawaiiFashionStudioNotesRenderer,
-    "kawaii-fashion.ai-search": KawaiiFashionAiSearchRenderer,
   } satisfies HomepageSectionRendererRegistry;
 
 export function getPrimaryHomepageBannerId(
@@ -679,10 +445,7 @@ export function renderHomepageSection(
 ): ReactNode {
   const { rendererMapping, renderers, ...rendererProps } = props;
   const registry = createHomepageRendererRegistry(
-    {
-      ...LEGACY_CLASSIC_HOMEPAGE_RENDERERS,
-      ...KAWAII_FASHION_HOMEPAGE_RENDERERS,
-    },
+    LEGACY_CLASSIC_HOMEPAGE_RENDERERS,
     renderers,
   );
   const renderer = resolveHomepageRenderer(

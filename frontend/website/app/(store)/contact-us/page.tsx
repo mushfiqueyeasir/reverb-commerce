@@ -19,7 +19,7 @@ export default async function ContactUsPage() {
     publishedTheme.config.themeId,
     publishedTheme.config.themeVersion,
   );
-  const variant = manifest.id === "kawaii-fashion" ? "kawaii-fashion" : "default";
+  const variant = manifest.productCardVariant;
 
   return <ContactPageScreen variant={variant} />;
 }

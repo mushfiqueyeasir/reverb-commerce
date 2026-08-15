@@ -103,16 +103,8 @@ export const PALETTE_PRESETS: PalettePreset[] = [
   },
 ];
 
-export function getPalettePresets(siteUrl: string): PalettePreset[] {
-  let hostname = "";
-  try {
-    hostname = new URL(siteUrl).hostname.toLowerCase();
-  } catch {
-    return PALETTE_PRESETS;
-  }
-  if (hostname !== "kawaii.com.bd" && hostname !== "www.kawaii.com.bd") {
-    return PALETTE_PRESETS;
-  }
+export function getPalettePresets(themeId: string): PalettePreset[] {
+  if (themeId !== "kawaii-fashion") return PALETTE_PRESETS;
   return [
     PALETTE_PRESETS[0],
     {

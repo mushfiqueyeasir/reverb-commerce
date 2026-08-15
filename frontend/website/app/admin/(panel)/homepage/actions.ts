@@ -126,7 +126,11 @@ export async function saveSection(
   };
   const metadata = getHomepageSectionMetadata(current.type);
   const publishedTheme = await readCurrentPublishedStorefrontTheme();
-  const isKawaii = publishedTheme.config.themeId === "kawaii-fashion";
+  const manifest = getStorefrontThemeManifest(
+    publishedTheme.config.themeId,
+    publishedTheme.config.themeVersion,
+  );
+  const isKawaii = manifest.admin.kawaiiLabels;
   let normalizedTitle = input.title;
   let normalizedSubtitle = input.subtitle;
   if (isKawaii && metadata) {
@@ -199,7 +203,8 @@ export async function saveSection(
     config.image_alt = ai.imageAlt;
   }
   if (metadata?.family === "featured") {
-    const maximum = isKawaii ? 10 : metadata.version === 2 ? 6 : 5;
+    const maximum =
+      manifest.admin.featuredLimit ?? (metadata.version === 2 ? 6 : 5);
     const requestedLimit = Number(config.limit);
     const normalizedLimit = Number.isFinite(requestedLimit)
       ? Math.min(maximum, Math.max(1, Math.floor(requestedLimit)))
@@ -218,7 +223,7 @@ export async function saveSection(
     if (!Array.isArray(config.category_ids)) {
       return { error: "Mosaic categories must be an ordered list." };
     }
-    const maximum = isKawaii ? 5 : 4;
+    const maximum = manifest.admin.maxMosaicCategories;
     const categoryIds = config.category_ids.filter(
       (categoryId): categoryId is string => typeof categoryId === "string",
     );

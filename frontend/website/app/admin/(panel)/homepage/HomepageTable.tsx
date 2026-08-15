@@ -25,8 +25,9 @@ import {
   HomepageSectionView,
   type HomepageRendererData,
   type HomepageSectionRendererMapping,
+  type HomepageSectionRendererRegistry,
 } from "@/components/HomePage/HomepageRenderer";
-import type { HomepageSectionRow, HomepageSectionType } from "@/type/db";
+import type { HomepageSectionRow } from "@/type/db";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,6 +47,7 @@ import {
   getHomepageSectionDisplayName,
   getHomepageSectionVersion,
 } from "@/lib/cms/homepageSections";
+import { STOREFRONT_THEME_REGISTRY } from "@/lib/theme/manifest";
 import { cn } from "@/lib/utils";
 import { toggleSection, reorderSections } from "./actions";
 
@@ -94,33 +96,25 @@ function ActiveToggle({
   );
 }
 
-const KAWAII_SECTION_LABELS: Partial<Record<HomepageSectionType, string>> = {
-  banner: "Kawaii Hero",
-  categories: "Beauty Categories",
-  deals: "Today’s Best Deals",
-  new_arrivals: "New Arrival Products",
-  featured: "Featured Products",
-  richtext: "Kawaii Brand Story",
-  reviews: "Customer Reviews",
-  promo: "Featured Promotion",
-  guarantees: "Shopping Guarantees",
-  studio_notes: "Studio Notes",
-  ai_search: "AI Search Promo",
-};
-
 function sectionDisplayName(section: HomepageSectionRow, themeId: string) {
-  return themeId === "kawaii-fashion"
-    ? (KAWAII_SECTION_LABELS[section.type] ?? section.title ?? section.type)
-    : (getHomepageSectionDisplayName(section.type) ?? section.type);
+  const admin = STOREFRONT_THEME_REGISTRY[themeId]?.admin;
+  if (admin?.kawaiiLabels) {
+    return (
+      admin.homepageSectionLabels[section.type] ?? section.title ?? section.type
+    );
+  }
+  return getHomepageSectionDisplayName(section.type) ?? section.type;
 }
 
 function SectionPreview({
   section,
   rendererMapping,
+  renderers,
   previewData,
 }: {
   section: HomepageSectionRow;
   rendererMapping: HomepageSectionRendererMapping;
+  renderers?: Partial<HomepageSectionRendererRegistry>;
   previewData: HomepageRendererData;
 }) {
   const { storageBaseUrl } = useAdmin();
@@ -133,6 +127,7 @@ function SectionPreview({
       useLiveBindingsInPreview
       primaryBannerId={section.id}
       rendererMapping={rendererMapping}
+      renderers={renderers}
       resolveImageUrl={(path) =>
         buildStoragePublicUrl(storageBaseUrl, BUCKETS.branding, path)
       }
@@ -145,12 +140,14 @@ function PreviewDialog({
   themeId,
   themeName,
   rendererMapping,
+  renderers,
   previewData,
 }: {
   section: HomepageSectionRow;
   themeId: string;
   themeName: string;
   rendererMapping: HomepageSectionRendererMapping;
+  renderers?: Partial<HomepageSectionRendererRegistry>;
   previewData: HomepageRendererData;
 }) {
   const displayName = sectionDisplayName(section, themeId);
@@ -184,6 +181,7 @@ function PreviewDialog({
           <SectionPreview
             section={section}
             rendererMapping={rendererMapping}
+            renderers={renderers}
             previewData={previewData}
           />
         </ScrollArea>
@@ -198,6 +196,7 @@ function SortableRow({
   themeId,
   themeName,
   rendererMapping,
+  renderers,
   previewData,
 }: {
   section: HomepageSectionRow;
@@ -205,6 +204,7 @@ function SortableRow({
   themeId: string;
   themeName: string;
   rendererMapping: HomepageSectionRendererMapping;
+  renderers?: Partial<HomepageSectionRendererRegistry>;
   previewData: HomepageRendererData;
 }) {
   const displayName = sectionDisplayName(section, themeId);
@@ -266,6 +266,7 @@ function SortableRow({
           themeId={themeId}
           themeName={themeName}
           rendererMapping={rendererMapping}
+          renderers={renderers}
           previewData={previewData}
         />
         <ActiveToggle
@@ -290,6 +291,7 @@ export function HomepageTable({
   themeId,
   themeName,
   rendererMapping,
+  renderers,
   previewData,
 }: {
   data: HomepageSectionRow[];
@@ -297,6 +299,7 @@ export function HomepageTable({
   themeId: string;
   themeName: string;
   rendererMapping: HomepageSectionRendererMapping;
+  renderers?: Partial<HomepageSectionRendererRegistry>;
   previewData: HomepageRendererData;
 }) {
   const [items, setItems] = useState(data);
@@ -365,6 +368,7 @@ export function HomepageTable({
                 themeId={themeId}
                 themeName={themeName}
                 rendererMapping={rendererMapping}
+                renderers={renderers}
                 previewData={previewData}
               />
             ))}

@@ -19,8 +19,7 @@ export default async function WishlistPage() {
     publishedTheme.config.themeId,
     publishedTheme.config.themeVersion,
   );
-  const productCardVariant =
-    manifest.id === "kawaii-fashion" ? "kawaii-fashion" : "default";
+  const productCardVariant = manifest.productCardVariant;
 
   return <WishlistPageScreen productCardVariant={productCardVariant} />;
 }

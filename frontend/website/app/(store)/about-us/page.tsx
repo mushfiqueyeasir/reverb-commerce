@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import AboutPageScreen from "@/components/AboutPage/AboutPageScreen";
+import { getStorefrontThemePackage } from "@/components/themes/registry";
 import { getStorefrontThemeManifest } from "@/lib/theme/manifest";
 import { readCurrentPublishedStorefrontTheme } from "@/lib/theme/store";
 import { generateMetadata as generateSeoMetadata } from "@/utility/generateMetadata";
@@ -44,6 +45,7 @@ export default async function AboutUsPage() {
       sections={themeSections}
       imageUrls={imageUrls}
       rendererMapping={manifest.renderers.aboutSections}
+      renderers={getStorefrontThemePackage(manifest.id).aboutRenderers}
     />
   );
 }

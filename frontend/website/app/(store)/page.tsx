@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import HomepageRenderer from "@/components/HomePage/HomepageRenderer";
+import { getStorefrontThemePackage } from "@/components/themes/registry";
 import { getStorefrontThemeManifest } from "@/lib/theme/manifest";
 import { readCurrentPublishedStorefrontTheme } from "@/lib/theme/store";
 import { getStorefrontCategories } from "@/utility/getCategory";
@@ -65,6 +66,7 @@ export default async function HomePage() {
         aiSearchEnabled: aiSearch.enabled,
       }}
       rendererMapping={manifest.renderers.homepageSections}
+      renderers={getStorefrontThemePackage(manifest.id).homepageRenderers}
       resolveImageUrl={brandingImageUrl}
     />
   );

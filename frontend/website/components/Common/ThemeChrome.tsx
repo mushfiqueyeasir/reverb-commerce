@@ -1,61 +1,25 @@
-import type { ComponentProps } from "react";
-import type { FooterVariant, NavbarVariant } from "@/lib/cms/siteChrome";
-import KawaiiFooter from "@/components/themes/kawaii-fashion/chrome/KawaiiFooter";
-import KawaiiHeader from "@/components/themes/kawaii-fashion/chrome/KawaiiHeader";
-import Footer from "./Footer";
-import Header from "./Header/Header";
-
-type HeaderProps = ComponentProps<typeof Header>;
-type FooterProps = ComponentProps<typeof Footer>;
-
-const HEADER_RENDERERS: Readonly<Record<string, NavbarVariant>> = {
-  "legacy-classic.navbar": "classic",
-  "v2-design.navbar": "centered",
-};
-
-const FOOTER_RENDERERS: Readonly<Record<string, FooterVariant>> = {
-  "legacy-classic.footer": "classic",
-  "v2-design.footer": "compact",
-};
+import { getStorefrontThemePackage } from "@/components/themes/registry";
+import type {
+  ThemeChromeFooterProps,
+  ThemeChromeHeaderProps,
+} from "@/components/themes/types";
 
 export function ThemeHeader({
   rendererId,
-  settings,
   ...props
-}: HeaderProps & { rendererId: string }) {
-  if (rendererId === "kawaii-fashion.navbar") {
-    return <KawaiiHeader {...props} settings={settings} />;
-  }
-
-  const variant = HEADER_RENDERERS[rendererId] ?? "classic";
-  return (
-    <Header
-      {...props}
-      settings={{
-        ...settings,
-        navbar: { ...settings.navbar, variant },
-      }}
-    />
-  );
+}: ThemeChromeHeaderProps & { rendererId: string }) {
+  const themeId = rendererId.split(".")[0];
+  const { chrome } = getStorefrontThemePackage(themeId);
+  const Header = chrome.Header;
+  return <Header {...props} />;
 }
 
 export function ThemeFooter({
   rendererId,
-  settings,
   ...props
-}: FooterProps & { rendererId: string }) {
-  if (rendererId === "kawaii-fashion.footer") {
-    return <KawaiiFooter {...props} settings={settings} />;
-  }
-
-  const variant = FOOTER_RENDERERS[rendererId] ?? "classic";
-  return (
-    <Footer
-      {...props}
-      settings={{
-        ...settings,
-        footer: { ...settings.footer, variant },
-      }}
-    />
-  );
+}: ThemeChromeFooterProps & { rendererId: string }) {
+  const themeId = rendererId.split(".")[0];
+  const { chrome } = getStorefrontThemePackage(themeId);
+  const Footer = chrome.Footer;
+  return <Footer {...props} />;
 }
