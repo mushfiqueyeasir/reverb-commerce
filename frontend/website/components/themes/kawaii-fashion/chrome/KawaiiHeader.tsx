@@ -27,7 +27,7 @@ export default function KawaiiHeader({
   return (
     <Suspense
       fallback={
-        <div className="sticky inset-x-0 top-0 z-50 h-16 md:h-20 md:border-b md:border-border md:bg-background" />
+        <div className="relative z-50 h-16 md:sticky md:inset-x-0 md:top-0 md:h-20 md:border-b md:border-border md:bg-background" />
       }
     >
       <KawaiiNavbar

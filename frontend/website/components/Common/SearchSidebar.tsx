@@ -18,12 +18,14 @@ interface SearchSidebarProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   aiSearchEnabled: boolean;
+  initialTab?: "search" | "advisor";
 }
 
 export default function SearchSidebar({
   open,
   onOpenChange,
   aiSearchEnabled,
+  initialTab = "search",
 }: SearchSidebarProps) {
   const [searchQuery, setLocalSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("search");
@@ -37,8 +39,10 @@ export default function SearchSidebar({
       setLocalSearchQuery("");
       setSearchResults([]);
       setSearchError(null);
+      return;
     }
-  }, [open]);
+    setActiveTab(initialTab);
+  }, [open, initialTab]);
 
   useEffect(() => {
     const query = searchQuery.trim();

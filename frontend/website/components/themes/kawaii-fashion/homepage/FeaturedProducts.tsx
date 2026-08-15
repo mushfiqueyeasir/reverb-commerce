@@ -41,11 +41,10 @@ export default function KawaiiFashionFeaturedProducts({
   const {
     trackRef,
     handlePointerDown,
-    handlePointerMove,
-    endDrag,
+    handleClickCapture,
     onMouseEnter,
     onMouseLeave,
-  } = useMarqueeCarousel();
+  } = useMarqueeCarousel(2);
 
   const normalizedListLabel = listLabel?.trim();
   const normalizedUncategorizedTemplate = uncategorizedLabelTemplate?.trim();
@@ -70,13 +69,11 @@ export default function KawaiiFashionFeaturedProducts({
           ref={trackRef}
           role="list"
           aria-label={normalizedListLabel || undefined}
-          className="scrollbar-hide touch-pan-y select-none overflow-x-auto px-4 sm:px-6 lg:px-10"
+          className="scrollbar-hide touch-pan-y select-none cursor-grab overflow-x-auto px-4 active:cursor-grabbing sm:px-6 lg:px-10"
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
           onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={endDrag}
-          onPointerCancel={endDrag}
+          onClickCapture={handleClickCapture}
         >
           <div className="flex w-max gap-3 pe-3 sm:gap-5 sm:pe-5">
             {[false, true].map((duplicate) => (
@@ -135,6 +132,7 @@ function ProductCard({
           <Link
             href={product.href}
             tabIndex={duplicate ? -1 : undefined}
+            draggable={false}
             className="block h-full w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
           >
             {image ? (
@@ -204,6 +202,7 @@ function ProductCard({
         <Link
           href={product.href}
           tabIndex={duplicate ? -1 : undefined}
+          draggable={false}
           className="block pt-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
         >
           {category || uncategorizedLabel ? (

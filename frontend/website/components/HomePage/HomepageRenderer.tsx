@@ -19,11 +19,13 @@ import {
   KawaiiFashionGuarantees,
   KawaiiFashionStudioNotes,
 } from "@/components/themes/kawaii-fashion/homepage/HomepageSupport";
+import KawaiiFashionAiSearch from "@/components/themes/kawaii-fashion/homepage/AiSearch";
 import KawaiiFashionPromo from "@/components/themes/kawaii-fashion/homepage/Promo";
 import KawaiiFashionReviews from "@/components/themes/kawaii-fashion/homepage/Reviews";
 import KawaiiFashionStory from "@/components/themes/kawaii-fashion/homepage/Story";
 import {
   getHomepageSectionMetadata,
+  parseKawaiiAiSearchConfig,
   parseKawaiiGuaranteesConfig,
   parseKawaiiStudioNotesConfig,
 } from "@/lib/cms/homepageSections";
@@ -64,6 +66,7 @@ export interface HomepageRendererData {
   products: TransformedProduct[];
   reviews: TransformedReview[];
   promotions: Promotion[];
+  aiSearchEnabled?: boolean;
 }
 
 export interface HomepageSectionRendererProps {
@@ -132,6 +135,18 @@ function configStringArray(
       value.filter((item): item is string => typeof item === "string"),
     ),
   ];
+}
+
+function resolveSectionImage(
+  resolveImageUrl: HomepageRendererProps["resolveImageUrl"],
+  path: string | null,
+  fallback: string,
+): string {
+  const resolved = resolveImageUrl?.(path);
+  if (resolved && (/^https?:\/\//i.test(resolved) || resolved.startsWith("/"))) {
+    return resolved;
+  }
+  return fallback;
 }
 
 export function selectHomepageCategoryIds(
@@ -600,6 +615,36 @@ function KawaiiFashionStudioNotesRenderer({
   );
 }
 
+const KAWAII_AI_SEARCH_FALLBACK_IMAGE = "/images/lovable/ai-search-hero.jpg";
+
+function KawaiiFashionAiSearchRenderer({
+  section,
+  resolveImageUrl,
+  data,
+}: HomepageSectionRendererProps) {
+  const config = parseKawaiiAiSearchConfig(section.config);
+  const title = section.title?.trim();
+  const body = section.subtitle?.trim();
+  if (!config || !title) return null;
+  const imageUrl = resolveSectionImage(
+    resolveImageUrl,
+    config.imagePath,
+    KAWAII_AI_SEARCH_FALLBACK_IMAGE,
+  );
+  return (
+    <KawaiiFashionAiSearch
+      eyebrow={config.eyebrow}
+      title={title}
+      body={body}
+      ctaLabel={config.ctaLabel}
+      pillLabel={config.pillLabel}
+      imageUrl={imageUrl}
+      imageAlt={config.imageAlt}
+      aiSearchEnabled={data.aiSearchEnabled}
+    />
+  );
+}
+
 export const LEGACY_CLASSIC_HOMEPAGE_RENDERERS: HomepageSectionRendererRegistry =
   {
     "banner-classic": BannerClassicRenderer,
@@ -626,6 +671,7 @@ export const KAWAII_FASHION_HOMEPAGE_RENDERERS: HomepageSectionRendererRegistry 
     "kawaii-fashion.story": KawaiiFashionStoryRenderer,
     "kawaii-fashion.guarantees": KawaiiFashionGuaranteesRenderer,
     "kawaii-fashion.studio-notes": KawaiiFashionStudioNotesRenderer,
+    "kawaii-fashion.ai-search": KawaiiFashionAiSearchRenderer,
   } satisfies HomepageSectionRendererRegistry;
 
 export function getPrimaryHomepageBannerId(

@@ -54,7 +54,7 @@ describe("homepage renderer registry", () => {
     ]);
   });
 
-  it("provides a Kawaii Fashion dispatch path for all 16 section types", () => {
+  it("provides a Kawaii Fashion dispatch path for all 17 section types", () => {
     expect(Object.keys(KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS)).toEqual(
       HOMEPAGE_SECTION_TYPES,
     );
@@ -79,6 +79,7 @@ describe("homepage renderer registry", () => {
       "kawaii-fashion.story",
       "kawaii-fashion.guarantees",
       "kawaii-fashion.studio-notes",
+      "kawaii-fashion.ai-search",
     ]);
   });
 

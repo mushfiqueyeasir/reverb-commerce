@@ -9,7 +9,9 @@ import {
 
 export type HomepageProductSelection = "featured" | "deals" | "new-arrivals";
 export type HomepageSectionFamily =
-  HomepageSectionV1Type | HomepageSupportSectionType;
+  | HomepageSectionV1Type
+  | HomepageSupportSectionType
+  | "ai_search";
 
 export interface HomepageSectionMetadata {
   family: HomepageSectionFamily;
@@ -94,6 +96,11 @@ export const HOMEPAGE_SECTION_METADATA: Record<
     version: 1,
     displayName: "Studio Notes",
   },
+  ai_search: {
+    family: "ai_search",
+    version: 1,
+    displayName: "AI Search - Promo",
+  },
 };
 
 export interface KawaiiGuaranteeItem {
@@ -173,6 +180,13 @@ export const KAWAII_HOMEPAGE_TEXT_FIELD_LIMITS: Partial<
     copy_label: 160,
     cards_label: 160,
   },
+  ai_search: {
+    eyebrow: 120,
+    pill_label: 120,
+    cta_label: 120,
+    image_path: 500,
+    image_alt: 500,
+  },
 };
 
 export function normalizeKawaiiHomepageTextConfig(
@@ -242,6 +256,26 @@ export function parseKawaiiStudioNotesConfig(
   const ctaLabel = requiredConfigString(config.cta_label, 120);
   const ctaUrl = requiredConfigString(config.cta_url, 500);
   return eyebrow && ctaLabel && ctaUrl ? { eyebrow, ctaLabel, ctaUrl } : null;
+}
+
+export interface KawaiiAiSearchConfig {
+  eyebrow: string;
+  pillLabel: string | null;
+  ctaLabel: string;
+  imagePath: string | null;
+  imageAlt: string | null;
+}
+
+export function parseKawaiiAiSearchConfig(
+  config: Record<string, unknown>,
+): KawaiiAiSearchConfig | null {
+  const eyebrow = requiredConfigString(config.eyebrow, 120);
+  const ctaLabel = requiredConfigString(config.cta_label, 120);
+  if (!eyebrow || !ctaLabel) return null;
+  const pillLabel = requiredConfigString(config.pill_label, 120);
+  const imagePath = requiredConfigString(config.image_path, 500);
+  const imageAlt = requiredConfigString(config.image_alt, 500);
+  return { eyebrow, pillLabel, ctaLabel, imagePath, imageAlt };
 }
 
 export interface NormalizeHomepageSectionsOptions {

@@ -58,6 +58,7 @@ export const KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS = {
   richtext_v2: "kawaii-fashion.story",
   guarantees: "kawaii-fashion.guarantees",
   studio_notes: "kawaii-fashion.studio-notes",
+  ai_search: "kawaii-fashion.ai-search",
 } as const satisfies HomepageRendererIdMapping;
 
 export function resolveHomepageRendererId(

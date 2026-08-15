@@ -105,6 +105,7 @@ const KAWAII_SECTION_LABELS: Partial<Record<HomepageSectionType, string>> = {
   promo: "Featured Promotion",
   guarantees: "Shopping Guarantees",
   studio_notes: "Studio Notes",
+  ai_search: "AI Search Promo",
 };
 
 function sectionDisplayName(section: HomepageSectionRow, themeId: string) {

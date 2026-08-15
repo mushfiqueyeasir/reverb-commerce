@@ -36,7 +36,7 @@ describe("homepage section normalization", () => {
 
     const normalized = normalizeHomepageSections(existing);
 
-    expect(normalized).toHaveLength(16);
+    expect(normalized).toHaveLength(17);
     expect(normalized.find((row) => row.type === "categories")).toEqual(
       existing[1],
     );
@@ -51,9 +51,10 @@ describe("homepage section normalization", () => {
       "new_arrivals",
       "guarantees",
       "studio_notes",
+      "ai_search",
     ]);
     expect(normalized.slice(6).every((row) => !row.active)).toBe(true);
-    expect(new Set(normalized.map((row) => row.type)).size).toBe(16);
+    expect(new Set(normalized.map((row) => row.type)).size).toBe(17);
     expect(normalized[6].sort).toBe(21);
   });
 
@@ -104,7 +105,7 @@ describe("homepage section normalization", () => {
   });
 
   it("exposes family, version, and display metadata for every fixed type", () => {
-    expect(HOMEPAGE_SECTION_TYPES).toHaveLength(16);
+    expect(HOMEPAGE_SECTION_TYPES).toHaveLength(17);
     expect(
       HOMEPAGE_SECTION_TYPES.every(
         (type) => getHomepageSectionMetadata(type) !== null,

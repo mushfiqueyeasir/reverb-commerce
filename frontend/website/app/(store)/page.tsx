@@ -8,6 +8,7 @@ import { getReviews, transformReview } from "@/utility/getReview";
 import { getBanners } from "@/utility/getBanners";
 import { getHomepageSections } from "@/utility/getHomepageSections";
 import { getPromotions } from "@/utility/getPromotion";
+import { getAiSearchSettings } from "@/lib/aiSearchSettings";
 import { brandingImageUrl } from "@/utility/imageUrl";
 import { generateMetadata as generateSeoMetadata } from "@/utility/generateMetadata";
 import { getBaseSeoItem } from "@/utility/getSeoSettings";
@@ -30,6 +31,7 @@ export default async function HomePage() {
     products,
     reviews,
     promotions,
+    aiSearch,
     publishedTheme,
   ] = await Promise.all([
     getBanners("banner"),
@@ -39,6 +41,7 @@ export default async function HomePage() {
     getProducts(),
     getReviews(),
     getPromotions(),
+    getAiSearchSettings(),
     readCurrentPublishedStorefrontTheme(),
   ]);
   const manifest = getStorefrontThemeManifest(
@@ -59,6 +62,7 @@ export default async function HomePage() {
         products: products.map(transformProduct),
         reviews: reviews.map(transformReview),
         promotions,
+        aiSearchEnabled: aiSearch.enabled,
       }}
       rendererMapping={manifest.renderers.homepageSections}
       resolveImageUrl={brandingImageUrl}

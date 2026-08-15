@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { CategoryMegaMenu } from "@/components/Common/Header/Navbar";
 import SearchSidebar from "@/components/Common/SearchSidebar";
+import { OPEN_AI_SEARCH_EVENT } from "@/components/Common/searchUi";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +62,7 @@ export default function KawaiiNavbar({
   const itemCount = useCartStore((state) => state.getItemCount());
   const wishlistCount = useWishlistStore((state) => state.getItemCount());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchTab, setSearchTab] = useState<"search" | "advisor">("search");
   const activeCategory = searchParams.get("category")?.trim() || null;
   const menus = menuData.filter((menu): menu is MenuType & { href: string } =>
     Boolean(menu.href && isSafeChromeHref(menu.href)),
@@ -69,6 +71,20 @@ export default function KawaiiNavbar({
     announcementActive && announcementText?.trim(),
   );
 
+  useEffect(() => {
+    const openAiSearch = () => {
+      setSearchTab("advisor");
+      setIsSearchOpen(true);
+    };
+    window.addEventListener(OPEN_AI_SEARCH_EVENT, openAiSearch);
+    return () => window.removeEventListener(OPEN_AI_SEARCH_EVENT, openAiSearch);
+  }, []);
+
+  const openSearch = () => {
+    setSearchTab("search");
+    setIsSearchOpen(true);
+  };
+
   return (
     <>
       <header
@@ -76,7 +92,7 @@ export default function KawaiiNavbar({
           "z-50 text-foreground md:border-b md:border-border md:bg-background",
           preview
             ? "relative overflow-hidden md:border [&_a]:pointer-events-none [&_button]:pointer-events-none"
-            : "sticky inset-x-0 top-0",
+            : "relative md:sticky md:inset-x-0 md:top-0",
         )}
       >
         {showAnnouncement ? (
@@ -118,7 +134,7 @@ export default function KawaiiNavbar({
             <div className="flex items-center justify-end gap-1">
               <ActionButton
                 label={copy.desktopSearchAriaLabel}
-                onClick={() => setIsSearchOpen(true)}
+                onClick={openSearch}
               >
                 <Search className="size-[1.125rem]" />
               </ActionButton>
@@ -156,13 +172,14 @@ export default function KawaiiNavbar({
             pathname={pathname}
             itemCount={itemCount}
             wishlistCount={wishlistCount}
-            onSearchOpen={() => setIsSearchOpen(true)}
+            onSearchOpen={openSearch}
             copy={copy}
           />
           <SearchSidebar
             open={isSearchOpen}
             onOpenChange={setIsSearchOpen}
             aiSearchEnabled={aiSearchEnabled}
+            initialTab={searchTab}
           />
         </>
       ) : null}

@@ -10,6 +10,7 @@ import {
   normalizeHomepageSections,
   normalizeHomepageSectionType,
   normalizeKawaiiHomepageTextConfig,
+  parseKawaiiAiSearchConfig,
   parseKawaiiGuaranteesConfig,
   parseKawaiiStudioNotesConfig,
 } from "@/lib/cms/homepageSections";
@@ -178,6 +179,24 @@ export async function saveSection(
     config.eyebrow = studio.eyebrow;
     config.cta_label = studio.ctaLabel;
     config.cta_url = studio.ctaUrl;
+  }
+  if (current.type === "ai_search") {
+    const ai = parseKawaiiAiSearchConfig(config);
+    normalizedTitle = input.title?.trim() || null;
+    normalizedSubtitle = input.subtitle?.trim() || null;
+    if (
+      !ai ||
+      !normalizedTitle ||
+      normalizedTitle.length > 200 ||
+      (normalizedSubtitle?.length ?? 0) > 500
+    ) {
+      return { error: "Complete every AI Search content field." };
+    }
+    config.eyebrow = ai.eyebrow;
+    config.pill_label = ai.pillLabel;
+    config.cta_label = ai.ctaLabel;
+    config.image_path = ai.imagePath;
+    config.image_alt = ai.imageAlt;
   }
   if (metadata?.family === "featured") {
     const maximum = isKawaii ? 10 : metadata.version === 2 ? 6 : 5;

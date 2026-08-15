@@ -322,7 +322,8 @@ export type HomepageSectionType =
   | HomepageSectionV1Type
   | HomepageSectionV2Type
   | HomepageProductSectionType
-  | HomepageSupportSectionType;
+  | HomepageSupportSectionType
+  | "ai_search";
 
 export const HOMEPAGE_SECTION_TYPES: HomepageSectionType[] = [
   "banner",
@@ -341,6 +342,7 @@ export const HOMEPAGE_SECTION_TYPES: HomepageSectionType[] = [
   "richtext_v2",
   "guarantees",
   "studio_notes",
+  "ai_search",
 ];
 
 export interface BannerStatItem {
@@ -402,6 +404,12 @@ const DEFAULT_KAWAII_PROMO_LABELS = {
   image_eyebrow: "This week’s pick",
   image_title: "Wear it your way",
   cta_fallback_label: "Shop the edit",
+};
+
+const DEFAULT_KAWAII_AI_SEARCH_LABELS = {
+  eyebrow: "New · AI shopping advisor",
+  pill_label: "New",
+  cta_label: "Ask the AI advisor",
 };
 
 export interface HomepageSectionRow {
@@ -654,6 +662,23 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
       eyebrow: "Notes from the studio",
       cta_label: "Join our list",
       cta_url: "/contact-us",
+    },
+    created_at: new Date(0).toISOString(),
+    updated_at: new Date(0).toISOString(),
+  },
+  {
+    id: "60000000-0000-4000-8000-000000000017",
+    type: "ai_search",
+    title: "Find your next favourite, faster.",
+    subtitle:
+      "Describe the kind of piece you are looking for and the AI shopping advisor will suggest the right match from the active collection.",
+    body: null,
+    sort: 16,
+    active: false,
+    config: {
+      ...DEFAULT_KAWAII_AI_SEARCH_LABELS,
+      image_path: null,
+      image_alt: "AI shopping advisor",
     },
     created_at: new Date(0).toISOString(),
     updated_at: new Date(0).toISOString(),

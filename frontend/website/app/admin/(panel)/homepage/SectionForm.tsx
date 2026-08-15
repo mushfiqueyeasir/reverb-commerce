@@ -69,6 +69,8 @@ const FAMILY_INFO: Record<HomepageSectionFamily, string> = {
   richtext: "Custom rich-text block for brand story or notes.",
   guarantees: "Three shopping reassurance cards shown by Kawaii Fashion.",
   studio_notes: "Kawaii Fashion studio note and contact call to action.",
+  ai_search:
+    "Kawaii Fashion promo introducing the AI shopping advisor and opening the advisor directly.",
 };
 
 const MIN_LIMIT = 1;
@@ -321,6 +323,21 @@ export function SectionForm({
   const [storyCardsLabel, setStoryCardsLabel] = useState(
     storyConfig.cardsLabel ?? "",
   );
+  const [pillLabel, setPillLabel] = useState(strConfig(config, "pill_label"));
+  const [aiSearchImage, setAiSearchImage] = useState<UploadedImage[]>(() =>
+    strConfig(config, "image_path")
+      ? [
+          {
+            path: strConfig(config, "image_path"),
+            alt: strConfig(config, "image_alt") || null,
+          },
+        ]
+      : [],
+  );
+  const [aiSearchImageAlt, setAiSearchImageAlt] = useState(
+    strConfig(config, "image_alt"),
+  );
+  const [aiSearchImageBusy, setAiSearchImageBusy] = useState(false);
   const [storyCards, setStoryCards] = useState<HomepageStoryCard[]>(
     storyConfig.cards,
   );
@@ -539,6 +556,13 @@ export function SectionForm({
         body: item.body.trim(),
       }));
     }
+    if (section.type === "ai_search") {
+      nextConfig.eyebrow = eyebrow.trim() || null;
+      nextConfig.pill_label = pillLabel.trim() || null;
+      nextConfig.cta_label = ctaLabel.trim() || null;
+      nextConfig.image_path = aiSearchImage[0]?.path ?? null;
+      nextConfig.image_alt = aiSearchImageAlt.trim() || null;
+    }
     if (family === "richtext") {
       nextConfig.layout =
         section.type === "richtext_v2" ? "feature" : storyLayout;
@@ -623,7 +647,7 @@ export function SectionForm({
       </Button>
       <Button
         onClick={submit}
-        disabled={pending || storyImageBusy}
+        disabled={pending || storyImageBusy || aiSearchImageBusy}
         className="rounded-full px-6"
       >
         {pending ? (
@@ -988,6 +1012,93 @@ export function SectionForm({
                 />
               </FormField>
             </div>
+            {activeToggle}
+          </div>
+        </AdminCard>
+        {formActions}
+      </div>
+    );
+  }
+
+  if (section.type === "ai_search") {
+    return (
+      <div className="mx-auto max-w-3xl space-y-8">
+        <AdminCard title="AI search" description={FAMILY_INFO.ai_search}>
+          <div className="space-y-5">
+            <div className="grid gap-5 sm:grid-cols-2">
+              <FormField label="Eyebrow" htmlFor="eyebrow">
+                <Input
+                  id="eyebrow"
+                  value={eyebrow}
+                  onChange={(event) => setEyebrow(event.target.value)}
+                  className={adminInputClass}
+                />
+              </FormField>
+              <FormField
+                label="Pill label"
+                htmlFor="pill_label"
+                hint="Small badge shown above the heading."
+              >
+                <Input
+                  id="pill_label"
+                  value={pillLabel}
+                  onChange={(event) => setPillLabel(event.target.value)}
+                  className={adminInputClass}
+                />
+              </FormField>
+            </div>
+            <FormField label="Heading" htmlFor="title">
+              <Input
+                id="title"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                className={adminInputClass}
+              />
+            </FormField>
+            <FormField label="Body" htmlFor="subtitle">
+              <Textarea
+                id="subtitle"
+                value={subtitle}
+                onChange={(event) => setSubtitle(event.target.value)}
+                rows={3}
+                className={adminTextareaClass}
+              />
+            </FormField>
+            <FormField label="Button label" htmlFor="cta_label">
+              <Input
+                id="cta_label"
+                value={ctaLabel}
+                onChange={(event) => setCtaLabel(event.target.value)}
+                className={adminInputClass}
+              />
+            </FormField>
+            <FormField
+              label="Image"
+              hint="Shown beside the copy. The button opens the AI shopping advisor."
+            >
+              <ImageUploader
+                bucket={BUCKETS.branding}
+                value={aiSearchImage}
+                onChange={setAiSearchImage}
+                maxFiles={1}
+                maxFileSizeMb={4}
+                optimizeToWebp
+                fileNamePrefix={`${section.type}-hero`}
+                onBusyChange={setAiSearchImageBusy}
+                disabled={pending || aiSearchImageBusy}
+                label="Upload AI search image"
+                preview="cover"
+              />
+            </FormField>
+            <FormField label="Image alt text" htmlFor="ai-search-image-alt">
+              <Input
+                id="ai-search-image-alt"
+                value={aiSearchImageAlt}
+                onChange={(event) => setAiSearchImageAlt(event.target.value)}
+                placeholder="Describe the image"
+                className={adminInputClass}
+              />
+            </FormField>
             {activeToggle}
           </div>
         </AdminCard>

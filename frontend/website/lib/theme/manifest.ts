@@ -136,6 +136,7 @@ export const KAWAII_FASHION_HOMEPAGE_SECTION_TYPES: readonly HomepageSectionType
     "promo",
     "guarantees",
     "studio_notes",
+    "ai_search",
   ];
 
 export const THEME_ABOUT_SECTION_TYPES: readonly AboutSectionType[] = [

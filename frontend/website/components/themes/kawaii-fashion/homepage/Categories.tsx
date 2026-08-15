@@ -38,11 +38,10 @@ export default function KawaiiFashionCategories({
   const {
     trackRef,
     handlePointerDown,
-    handlePointerMove,
-    endDrag,
+    handleClickCapture,
     onMouseEnter,
     onMouseLeave,
-  } = useMarqueeCarousel();
+  } = useMarqueeCarousel(3);
 
   const eligible = categories.filter(
     (category) => category.isDefault || !category.parentId,
@@ -77,27 +76,26 @@ export default function KawaiiFashionCategories({
           ref={trackRef}
           role="list"
           aria-label={title || "Categories"}
-          className="scrollbar-hide touch-pan-y select-none overflow-x-auto px-4 sm:px-6 lg:px-10"
+          className="scrollbar-hide touch-pan-y select-none cursor-grab overflow-x-auto px-4 active:cursor-grabbing sm:px-6 lg:px-10"
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
           onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={endDrag}
-          onPointerCancel={endDrag}
+          onClickCapture={handleClickCapture}
         >
           <div className="flex w-max gap-3 pe-3 sm:gap-5 sm:pe-5">
-            {[false, true].map((duplicate) => (
+            {[0, 1, 2].map((copy) => (
               <div
-                key={duplicate ? "duplicate" : "original"}
+                key={copy}
                 className="flex gap-3 pe-3 sm:gap-5 sm:pe-5"
-                aria-hidden={duplicate || undefined}
+                aria-hidden={copy > 0 || undefined}
               >
                 {visible.map((category) => (
-                  <div key={`${category._id}-${duplicate ? "duplicate" : "original"}`} className="w-[min(62vw,13.5rem)] shrink-0">
+                  <div key={`${category._id}-${copy}`} className="w-[min(62vw,13.5rem)] shrink-0">
                     <article className="group">
                       <Link
                         href={categoryHref(category)}
-                        tabIndex={duplicate ? -1 : undefined}
+                        tabIndex={copy > 0 ? -1 : undefined}
+                        draggable={false}
                         className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background"
                         aria-label={category.categoryName}
                       >
