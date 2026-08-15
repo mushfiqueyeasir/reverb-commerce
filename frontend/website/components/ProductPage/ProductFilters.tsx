@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Check,
-  ChevronDown,
   CircleDollarSign,
   PackageCheck,
+  Search,
   SlidersHorizontal,
   Tags,
   X,
@@ -15,10 +15,15 @@ import { CategoryMultiSelectPanel } from "@/components/Common/CategoryMultiSelec
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   Select,
   SelectContent,
@@ -28,6 +33,8 @@ import {
 } from "@/components/ui/select";
 import type { Category } from "@/type/categoryType";
 import type { StorefrontProductSort } from "@/utility/getProducts";
+import type { ProductCardVariant } from "@/components/Common/ProductCard";
+import ProductGridSkeleton from "./ProductGridSkeleton";
 
 export interface StorefrontFilterState {
   categories: string[];
@@ -45,6 +52,8 @@ interface ProductFiltersProps {
   firstResult: number;
   lastResult: number;
   total: number;
+  children?: ReactNode;
+  productCardVariant?: ProductCardVariant;
 }
 
 const SORT_OPTIONS: { value: StorefrontProductSort; label: string }[] = [
@@ -62,6 +71,8 @@ export default function ProductFilters({
   firstResult,
   lastResult,
   total,
+  children,
+  productCardVariant = "default",
 }: ProductFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -73,26 +84,44 @@ export default function ProductFilters({
   const [priceTo, setPriceTo] = useState(
     filters.maxPrice === null ? "" : String(filters.maxPrice),
   );
+  const [searchDraft, setSearchDraft] = useState(filters.search);
+
+  const navigate = useCallback(
+    (updates: Record<string, string>) => {
+      const next = new URLSearchParams(searchParams.toString());
+      for (const [name, value] of Object.entries(updates)) {
+        if (value) next.set(name, value);
+        else next.delete(name);
+      }
+      next.delete("page");
+      const query = next.toString();
+      startTransition(() =>
+        router.push(`${pathname}${query ? `?${query}` : ""}`, {
+          scroll: false,
+        }),
+      );
+    },
+    [router, pathname, searchParams, startTransition],
+  );
 
   useEffect(() => {
     setPriceFrom(filters.minPrice === null ? "" : String(filters.minPrice));
     setPriceTo(filters.maxPrice === null ? "" : String(filters.maxPrice));
   }, [filters.minPrice, filters.maxPrice]);
 
-  const navigate = (updates: Record<string, string>) => {
-    const next = new URLSearchParams(searchParams.toString());
-    for (const [name, value] of Object.entries(updates)) {
-      if (value) next.set(name, value);
-      else next.delete(name);
-    }
-    next.delete("page");
-    const query = next.toString();
-    startTransition(() =>
-      router.push(`${pathname}${query ? `?${query}` : ""}`, {
-        scroll: false,
-      }),
-    );
-  };
+  const searchAppliedRef = useRef(filters.search);
+  useEffect(() => {
+    if (searchAppliedRef.current === filters.search) return;
+    searchAppliedRef.current = filters.search;
+    setSearchDraft(filters.search);
+  }, [filters.search]);
+
+  useEffect(() => {
+    const trimmed = searchDraft.trim();
+    if (trimmed === filters.search) return;
+    const timeout = setTimeout(() => navigate({ search: trimmed }), 350);
+    return () => clearTimeout(timeout);
+  }, [searchDraft, filters.search, navigate]);
   const toggleListValue = (
     name: "category" | "availability",
     current: string[],
@@ -145,290 +174,353 @@ export default function ProductFilters({
     filters.availability.length +
     (hasPrice ? 1 : 0) +
     (filters.search ? 1 : 0);
-  const categoryLabel = filters.categories.length
-    ? `${filters.categories.length} ${filters.categories.length === 1 ? "category" : "categories"}`
-    : "Categories";
-  const availabilityLabel = filters.availability.length
-    ? filters.availability.length === 2
-      ? "All stock"
-      : filters.availability[0] === "in-stock"
-        ? "In stock"
-        : "Out of stock"
-    : "Availability";
   const priceLabel = hasPrice
     ? `৳${(filters.minPrice ?? 0).toLocaleString()} – ৳${(
         filters.maxPrice ?? maxCatalogPrice
       ).toLocaleString()}`
     : "Price";
 
-  return (
-    <div className="mb-7 space-y-3 sm:mb-9">
-      <div className="rounded-2xl border border-border bg-card/70 p-3 shadow-sm sm:p-4">
-        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto pb-1 scrollbar-hide xl:flex-wrap xl:overflow-visible xl:pb-0">
-            <div className="mr-1 hidden items-center gap-2 text-sm font-medium text-foreground lg:flex">
-              <span className="flex size-9 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <SlidersHorizontal className="size-4" />
-              </span>
-              Filters
-              <span
-                aria-hidden={activeCount === 0}
-                className={`min-w-6 rounded-full bg-primary px-2 py-0.5 text-center text-xs text-primary-foreground ${activeCount === 0 ? "invisible" : ""}`}
-              >
-                {activeCount || 0}
-              </span>
-            </div>
+  const sectionLabel = (icon: ReactNode, label: string, count = 0) => (
+    <div className="mb-3 flex items-center gap-2">
+      <span className="flex size-7 items-center justify-center rounded-full bg-primary/10 text-primary">
+        {icon}
+      </span>
+      <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-foreground">
+        {label}
+      </span>
+      {count ? (
+        <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground">
+          {count}
+        </span>
+      ) : null}
+    </div>
+  );
 
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  disabled={isPending}
-                  className={`h-11 shrink-0 rounded-full px-4 ${filters.categories.length ? "border-primary/40 bg-primary/5 text-primary" : ""}`}
-                >
-                  <Tags className="size-4" />
-                  {categoryLabel}
-                  <ChevronDown className="size-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                align="start"
-                sideOffset={8}
-                collisionPadding={16}
-                className="w-[calc(100vw-2rem)] sm:w-[25rem]"
-              >
-                <CategoryMultiSelectPanel
-                  options={categoryOptions}
-                  selected={filters.categories}
-                  variant="brand"
-                  onToggle={(slug) =>
-                    toggleListValue("category", filters.categories, slug)
-                  }
-                  onClear={() => navigate({ category: "" })}
-                />
-              </PopoverContent>
-            </Popover>
+  const categoriesPanel = (
+    <div>
+      {sectionLabel(<Tags className="size-3.5" />, "Categories", filters.categories.length)}
+      <CategoryMultiSelectPanel
+        options={categoryOptions}
+        selected={filters.categories}
+        variant="brand"
+        onToggle={(slug) =>
+          toggleListValue("category", filters.categories, slug)
+        }
+        onClear={() => navigate({ category: "" })}
+      />
+    </div>
+  );
 
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  disabled={isPending}
-                  className={`h-11 shrink-0 rounded-full px-4 ${filters.availability.length ? "border-primary/40 bg-primary/5 text-primary" : ""}`}
-                >
-                  <PackageCheck className="size-4" />
-                  {availabilityLabel}
-                  <ChevronDown className="size-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="start" className="w-64">
-                <div className="border-b border-border px-4 py-3">
-                  <p className="text-sm font-semibold">Availability</p>
-                  <p className="text-xs text-muted-foreground">
-                    Choose one or both options
-                  </p>
-                </div>
-                <div className="space-y-1 p-2">
-                  {[
-                    ["in-stock", "In stock"],
-                    ["out-of-stock", "Out of stock"],
-                  ].map(([value, label]) => {
-                    const checked = filters.availability.includes(
-                      value as "in-stock" | "out-of-stock",
-                    );
-                    return (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() =>
-                          toggleListValue(
-                            "availability",
-                            filters.availability,
-                            value,
-                          )
-                        }
-                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition hover:bg-muted"
-                      >
-                        <span
-                          className={`flex size-4 items-center justify-center rounded border ${checked ? "border-primary bg-primary text-primary-foreground" : "border-input"}`}
-                        >
-                          {checked ? <Check className="size-3" /> : null}
-                        </span>
-                        {label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  disabled={isPending}
-                  className={`h-11 shrink-0 rounded-full px-4 ${hasPrice ? "border-primary/40 bg-primary/5 text-primary" : ""}`}
-                >
-                  <CircleDollarSign className="size-4" />
-                  {priceLabel}
-                  <ChevronDown className="size-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="start" className="w-80 p-4">
-                <div className="mb-4 flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold">Price range</p>
-                    <p className="text-xs text-muted-foreground">
-                      Up to ৳{maxCatalogPrice.toLocaleString()}
-                    </p>
-                  </div>
-                  {hasPrice ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigate({ minPrice: "", maxPrice: "" })}
-                    >
-                      Clear
-                    </Button>
-                  ) : null}
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="space-y-1.5 text-xs text-muted-foreground">
-                    Minimum
-                    <Input
-                      type="number"
-                      min={0}
-                      inputMode="numeric"
-                      value={priceFrom}
-                      onChange={(event) => setPriceFrom(event.target.value)}
-                      placeholder="৳0"
-                      className="h-11"
-                    />
-                  </label>
-                  <label className="space-y-1.5 text-xs text-muted-foreground">
-                    Maximum
-                    <Input
-                      type="number"
-                      min={0}
-                      inputMode="numeric"
-                      value={priceTo}
-                      onChange={(event) => setPriceTo(event.target.value)}
-                      placeholder={`৳${maxCatalogPrice}`}
-                      className="h-11"
-                    />
-                  </label>
-                </div>
-                <Button
-                  type="button"
-                  className="mt-4 h-11 w-full rounded-full"
-                  onClick={applyPrice}
-                >
-                  Apply price
-                </Button>
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <Select
-            value={filters.sort}
-            onValueChange={(value) =>
-              navigate({
-                sort: value === "featured" ? "" : value,
-              })
-            }
-            disabled={isPending}
-          >
-            <SelectTrigger className="h-11 w-full rounded-full bg-background px-4 sm:w-56">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {SORT_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {activeCount ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Active
-          </span>
-          {filters.search ? (
-            <button
-              type="button"
-              onClick={() => navigate({ search: "" })}
-              className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs transition hover:bg-muted/80"
-            >
-              Search: {filters.search} <X className="size-3" />
-            </button>
-          ) : null}
-          {filters.categories.map((slug) => (
-            <button
-              key={slug}
-              type="button"
-              onClick={() =>
-                navigate({
-                  category: filters.categories
-                    .filter((value) => value !== slug)
-                    .join(","),
-                })
-              }
-              className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs transition hover:bg-muted/80"
-            >
-              {categoryBySlug.get(slug)?.categoryName ?? slug}
-              <X className="size-3" />
-            </button>
-          ))}
-          {filters.availability.map((value) => (
+  const availabilityPanel = (
+    <div>
+      {sectionLabel(
+        <PackageCheck className="size-3.5" />,
+        "Availability",
+        filters.availability.length,
+      )}
+      <div className="space-y-1">
+        {[
+          ["in-stock", "In stock"],
+          ["out-of-stock", "Out of stock"],
+        ].map(([value, label]) => {
+          const checked = filters.availability.includes(
+            value as "in-stock" | "out-of-stock",
+          );
+          return (
             <button
               key={value}
               type="button"
               onClick={() =>
-                navigate({
-                  availability: filters.availability
-                    .filter((item) => item !== value)
-                    .join(","),
-                })
+                toggleListValue(
+                  "availability",
+                  filters.availability,
+                  value,
+                )
               }
-              className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs transition hover:bg-muted/80"
+              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
+                checked
+                  ? "bg-primary/5 text-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
             >
-              {value === "in-stock" ? "In stock" : "Out of stock"}
-              <X className="size-3" />
+              <span
+                className={`flex size-4 shrink-0 items-center justify-center rounded border ${checked ? "border-primary bg-primary text-primary-foreground" : "border-input bg-background"}`}
+              >
+                {checked ? <Check className="size-3" /> : null}
+              </span>
+              {label}
             </button>
-          ))}
-          {hasPrice ? (
-            <button
-              type="button"
-              onClick={() => navigate({ minPrice: "", maxPrice: "" })}
-              className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs transition hover:bg-muted/80"
-            >
-              {priceLabel} <X className="size-3" />
-            </button>
-          ) : null}
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            disabled={isPending}
-            onClick={() => startTransition(() => router.push(pathname))}
-          >
-            Clear all
-          </Button>
-        </div>
-      ) : null}
+          );
+        })}
+      </div>
+    </div>
+  );
 
-      <div className="flex items-center justify-between gap-3 px-1">
-        <p className="text-sm text-muted-foreground">
-          Showing {firstResult.toLocaleString()}–{lastResult.toLocaleString()}{" "}
-          of {total.toLocaleString()} products
-        </p>
-        {isPending ? (
-          <span className="text-xs text-primary">Updating…</span>
+  const pricePanel = (
+    <div>
+      {sectionLabel(
+        <CircleDollarSign className="size-3.5" />,
+        "Price",
+        hasPrice ? 1 : 0,
+      )}
+      <p className="mb-3 text-xs text-muted-foreground">
+        Up to ৳{maxCatalogPrice.toLocaleString()}
+      </p>
+      <div className="grid grid-cols-2 gap-3">
+        <label className="space-y-1.5 text-xs text-muted-foreground">
+          Minimum
+          <Input
+            type="number"
+            min={0}
+            inputMode="numeric"
+            value={priceFrom}
+            onChange={(event) => setPriceFrom(event.target.value)}
+            placeholder="৳0"
+            className="h-10 rounded-xl"
+          />
+        </label>
+        <label className="space-y-1.5 text-xs text-muted-foreground">
+          Maximum
+          <Input
+            type="number"
+            min={0}
+            inputMode="numeric"
+            value={priceTo}
+            onChange={(event) => setPriceTo(event.target.value)}
+            placeholder={`৳${maxCatalogPrice}`}
+            className="h-10 rounded-xl"
+          />
+        </label>
+      </div>
+      <Button
+        type="button"
+        className="mt-3 h-10 w-full rounded-full"
+        onClick={applyPrice}
+      >
+        Apply price
+      </Button>
+    </div>
+  );
+
+  const searchPanel = (
+    <div className="relative">
+      <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          type="search"
+          value={searchDraft}
+          onChange={(event) => setSearchDraft(event.target.value)}
+          placeholder="Search products"
+          className="h-10 rounded-full pl-10 pr-9"
+          aria-label="Search products"
+        />
+        {searchDraft ? (
+          <button
+            type="button"
+            aria-label="Clear search"
+            onClick={() => setSearchDraft("")}
+            className="absolute right-3 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          >
+            <X className="size-3.5" />
+          </button>
         ) : null}
+    </div>
+  );
+
+  const sortPanel = (
+    <div className="relative">
+      <Select
+        value={filters.sort}
+        onValueChange={(value) =>
+          navigate({
+            sort: value === "featured" ? "" : value,
+          })
+        }
+        disabled={isPending}
+      >
+        <SelectTrigger className="h-11 w-full rounded-full bg-background px-4">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {SORT_OPTIONS.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
+  const filterSections = (
+    <div className="space-y-7">
+      {categoriesPanel}
+      {availabilityPanel}
+      {pricePanel}
+    </div>
+  );
+
+  const sidebar = (
+    <aside className="hidden lg:block">
+      <div className="sticky top-32 space-y-7 rounded-2xl border border-border bg-card/60 p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <span className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <SlidersHorizontal className="size-4" />
+            </span>
+            Filters
+            {activeCount ? (
+              <span className="min-w-6 rounded-full bg-primary px-2 py-0.5 text-center text-xs font-semibold text-primary-foreground">
+                {activeCount}
+              </span>
+            ) : null}
+          </div>
+          {activeCount ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 rounded-full text-xs"
+              onClick={() => startTransition(() => router.push(pathname))}
+            >
+              Clear all
+            </Button>
+          ) : null}
+        </div>
+        {filterSections}
+      </div>
+    </aside>
+  );
+
+  const mobileDrawer = (
+    <div className="lg:hidden">
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button
+            variant="outline"
+            disabled={isPending}
+            className="relative h-11 w-full rounded-full px-4"
+          >
+            <SlidersHorizontal className="size-4" />
+            Filters
+            {activeCount ? (
+              <span className="ml-1 flex min-w-6 items-center justify-center rounded-full bg-primary px-2 py-0.5 text-center text-xs font-semibold text-primary-foreground">
+                {activeCount}
+              </span>
+            ) : null}
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="flex flex-col overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Filter products</SheetTitle>
+            <SheetDescription>
+              Narrow down the collection to find what you love.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex-1 py-4">{filterSections}</div>
+          <SheetFooter className="gap-2">
+            {activeCount ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => startTransition(() => router.push(pathname))}
+              >
+                Clear all
+              </Button>
+            ) : null}
+            <SheetClose asChild>
+              <Button>Show {total.toLocaleString()} products</Button>
+            </SheetClose>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+    </div>
+  );
+
+  return (
+    <div className="mb-7 gap-8 lg:mb-12 lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
+      <div className="hidden lg:block">{sidebar}</div>
+      <div className="min-w-0">
+        <div className="mb-4 grid grid-cols-2 gap-3 sm:hidden">
+          {mobileDrawer}
+          {sortPanel}
+        </div>
+        <div className="mb-4 hidden sm:block lg:hidden">{mobileDrawer}</div>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 flex-1 sm:max-w-md">{searchPanel}</div>
+          <div className="hidden w-64 sm:block">{sortPanel}</div>
+        </div>
+        {activeCount ? (
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Active
+            </span>
+            {filters.search ? (
+              <button
+                type="button"
+                onClick={() => navigate({ search: "" })}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs transition hover:border-primary/50 hover:bg-primary/5"
+              >
+                Search: {filters.search} <X className="size-3" />
+              </button>
+            ) : null}
+            {filters.categories.map((slug) => (
+              <button
+                key={slug}
+                type="button"
+                onClick={() =>
+                  navigate({
+                    category: filters.categories
+                      .filter((value) => value !== slug)
+                      .join(","),
+                  })
+                }
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs transition hover:border-primary/50 hover:bg-primary/5"
+              >
+                {categoryBySlug.get(slug)?.categoryName ?? slug}
+                <X className="size-3" />
+              </button>
+            ))}
+            {filters.availability.map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() =>
+                  navigate({
+                    availability: filters.availability
+                      .filter((item) => item !== value)
+                      .join(","),
+                  })
+                }
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs transition hover:border-primary/50 hover:bg-primary/5"
+              >
+                {value === "in-stock" ? "In stock" : "Out of stock"}
+                <X className="size-3" />
+              </button>
+            ))}
+            {hasPrice ? (
+              <button
+                type="button"
+                onClick={() => navigate({ minPrice: "", maxPrice: "" })}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs transition hover:border-primary/50 hover:bg-primary/5"
+              >
+                {priceLabel} <X className="size-3" />
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+
+        <div className="mb-6 flex items-center justify-between gap-3 px-1">
+          <p className="text-sm text-muted-foreground">
+            Showing {firstResult.toLocaleString()}–{lastResult.toLocaleString()}{" "}
+            of {total.toLocaleString()} products
+          </p>
+        </div>
+
+        {isPending ? (
+          <ProductGridSkeleton variant={productCardVariant} />
+        ) : (
+          children
+        )}
       </div>
     </div>
   );

@@ -36,14 +36,14 @@ export default function MobileBottomNav({
           aria-label="Shop"
           aria-current={shopActive ? "page" : undefined}
           className={cn(
-            "absolute left-1/2 top-1 z-20 grid size-14 -translate-x-1/2 place-items-center rounded-full",
+            "absolute left-1/2 top-1 z-20 grid size-16 -translate-x-1/2 place-items-center rounded-full",
             "bg-primary text-primary-foreground",
             "border-[5px] border-white/20",
             "shadow-[0_10px_28px_rgb(var(--primary-rgb)/0.45)]",
             "transition duration-200 hover:scale-[1.04] active:scale-95",
           )}
         >
-          <Shirt className="size-6" strokeWidth={2} />
+          <Shirt className="size-7" strokeWidth={2} />
         </Link>
 
         <div
@@ -52,7 +52,7 @@ export default function MobileBottomNav({
             "shadow-[0_-12px_40px_rgb(0_0_0/0.35)]",
             "pb-[env(safe-area-inset-bottom)]",
             // Hole under the FAB — page content shows through
-            "[mask-image:radial-gradient(circle_34px_at_50%_0px,transparent_33px,#000_34.5px)]",
+            "[mask-image:radial-gradient(circle_38px_at_50%_0px,transparent_37px,#000_38.5px)]",
           )}
         >
           <div className="grid h-16 grid-cols-5 items-center px-1">
