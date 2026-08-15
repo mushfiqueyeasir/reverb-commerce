@@ -16,11 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
@@ -409,28 +405,22 @@ export default function ProductFilters({
             ) : null}
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="flex flex-col overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Filter products</SheetTitle>
-            <SheetDescription>
-              Narrow down the collection to find what you love.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="flex-1 py-4">{filterSections}</div>
-          <SheetFooter className="gap-2">
+        <SheetContent side="left" className="flex flex-col overflow-hidden">
+          <div className="flex min-h-11 items-center justify-end pr-12">
+            <SheetTitle className="sr-only">Filters</SheetTitle>
             {activeCount ? (
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
+                size="sm"
+                className="h-8 rounded-full text-xs"
                 onClick={() => startTransition(() => router.push(pathname))}
               >
                 Clear all
               </Button>
             ) : null}
-            <SheetClose asChild>
-              <Button>Show {total.toLocaleString()} products</Button>
-            </SheetClose>
-          </SheetFooter>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto py-4">{filterSections}</div>
         </SheetContent>
       </Sheet>
     </div>

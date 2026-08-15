@@ -28,9 +28,14 @@ export default function KawaiiFashionFeaturedProducts({
   const {
     trackRef,
     handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    handlePointerCancel,
     handleClickCapture,
-    onMouseEnter,
-    onMouseLeave,
+    onPointerEnter,
+    onPointerLeave,
+    onFocusCapture,
+    onBlurCapture,
   } = useMarqueeCarousel(2);
 
   const normalizedListLabel = listLabel?.trim();
@@ -56,9 +61,14 @@ export default function KawaiiFashionFeaturedProducts({
           role="list"
           aria-label={normalizedListLabel || undefined}
           className="scrollbar-hide touch-pan-y select-none cursor-grab overflow-x-auto px-4 active:cursor-grabbing sm:px-6 lg:px-10"
-          onMouseEnter={onMouseEnter}
-          onMouseLeave={onMouseLeave}
+          onPointerEnter={onPointerEnter}
+          onPointerLeave={onPointerLeave}
           onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerCancel}
+          onFocusCapture={onFocusCapture}
+          onBlurCapture={onBlurCapture}
           onClickCapture={handleClickCapture}
         >
           <div className="flex w-max gap-3 pe-3 sm:gap-5 sm:pe-5">

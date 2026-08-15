@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import { Quote, Star } from "lucide-react";
 import SectionHeading from "./SectionHeading";
+import { useMarqueeCarousel } from "./useMarqueeCarousel";
 import type { TransformedReview } from "@/type/reviewType";
 
 interface KawaiiFashionReviewsProps {
@@ -30,6 +33,19 @@ export default function KawaiiFashionReviews({
   verifiedLabel,
   ratingAriaTemplate,
 }: KawaiiFashionReviewsProps) {
+  const {
+    trackRef,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    handlePointerCancel,
+    handleClickCapture,
+    onPointerEnter,
+    onPointerLeave,
+    onFocusCapture,
+    onBlurCapture,
+  } = useMarqueeCarousel(2, 36);
+
   if (reviews.length === 0) return null;
 
   return (
@@ -45,16 +61,30 @@ export default function KawaiiFashionReviews({
         />
       </div>
       <div className="relative mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
-        <div className="relative overflow-hidden motion-reduce:overflow-x-auto motion-reduce:pb-3">
-          <div
-            className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-surface to-transparent sm:w-16"
-            aria-hidden="true"
-          />
-          <div
-            className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-surface to-transparent sm:w-16"
-            aria-hidden="true"
-          />
-          <div className="flex w-max animate-marquee-reviews hover:[animation-play-state:paused] focus-within:[animation-play-state:paused] motion-reduce:animate-none">
+        <div
+          className="pointer-events-none absolute inset-y-0 left-4 z-10 w-8 bg-gradient-to-r from-surface to-transparent sm:left-6 sm:w-16 lg:left-10"
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute inset-y-0 right-4 z-10 w-8 bg-gradient-to-l from-surface to-transparent sm:right-6 sm:w-16 lg:right-10"
+          aria-hidden="true"
+        />
+        <div
+          ref={trackRef}
+          role="list"
+          aria-label={title || "Customer reviews"}
+          className="scrollbar-hide touch-pan-y select-none cursor-grab overflow-x-auto active:cursor-grabbing"
+          onPointerEnter={onPointerEnter}
+          onPointerLeave={onPointerLeave}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerCancel}
+          onFocusCapture={onFocusCapture}
+          onBlurCapture={onBlurCapture}
+          onClickCapture={handleClickCapture}
+        >
+          <div className="flex w-max">
             {[false, true].map((duplicate) => (
               <div
                 key={duplicate ? "duplicate" : "original"}
@@ -124,6 +154,7 @@ function ReviewCard({
 
   return (
     <figure
+      role="listitem"
       tabIndex={duplicate ? -1 : 0}
       className="flex h-[21rem] w-[min(82vw,21rem)] shrink-0 flex-col overflow-hidden border border-border bg-card p-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface sm:h-[22rem] sm:w-[23rem] sm:p-7 xl:w-[calc((min(100vw,1600px)-11rem)/5)] xl:p-5 2xl:p-6"
     >
