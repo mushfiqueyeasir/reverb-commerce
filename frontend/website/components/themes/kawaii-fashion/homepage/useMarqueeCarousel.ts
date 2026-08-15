@@ -42,26 +42,36 @@ export function useMarqueeCarousel(
   } | null>(null);
   const suppressClickRef = useRef(false);
   const momentumFrameRef = useRef(0);
+  const nativeTouchRef = useRef(false);
+  const touchContactRef = useRef(false);
+  const touchStartXRef = useRef(0);
+  const touchResumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const [hovering, setHovering] = useState(false);
   const [focusWithin, setFocusWithin] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [settling, setSettling] = useState(false);
+  const [nativeTouching, setNativeTouching] = useState(false);
   const reduceMotion = Boolean(useReducedMotion());
-  const autoScroll = !hovering && !focusWithin && !dragging && !settling;
+  const autoScroll =
+    !hovering && !focusWithin && !dragging && !settling && !nativeTouching;
 
   useEffect(() => {
     const el = trackRef.current;
     if (!el || !autoScroll) return;
     let frame = 0;
     let last = performance.now();
+    let position = el.scrollLeft;
     const step = (now: number) => {
       const stepWidth = el.scrollWidth / copies;
       if (stepWidth > el.clientWidth) {
         const elapsed = Math.min(0.05, (now - last) / 1000);
-        el.scrollLeft = normalizePosition(
-          el.scrollLeft + autoScrollSpeed * elapsed,
+        position = normalizePosition(
+          position + autoScrollSpeed * elapsed,
           stepWidth,
         );
+        el.scrollLeft = position;
       }
       last = now;
       frame = requestAnimationFrame(step);
@@ -71,7 +81,13 @@ export function useMarqueeCarousel(
   }, [autoScroll, autoScrollSpeed, copies]);
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!event.isPrimary || event.button !== 0) return;
+    if (
+      event.pointerType === "touch" ||
+      !event.isPrimary ||
+      event.button !== 0
+    ) {
+      return;
+    }
     const el = trackRef.current;
     if (!el) return;
     cancelAnimationFrame(momentumFrameRef.current);
@@ -150,6 +166,47 @@ export function useMarqueeCarousel(
   const handlePointerCancel = (event: React.PointerEvent<HTMLDivElement>) =>
     finishDrag(event, false);
 
+  const scheduleNativeTouchResume = () => {
+    if (touchResumeTimeoutRef.current) {
+      clearTimeout(touchResumeTimeoutRef.current);
+    }
+    touchResumeTimeoutRef.current = setTimeout(() => {
+      nativeTouchRef.current = false;
+      setNativeTouching(false);
+    }, 180);
+  };
+
+  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (touchResumeTimeoutRef.current) {
+      clearTimeout(touchResumeTimeoutRef.current);
+    }
+    nativeTouchRef.current = true;
+    touchContactRef.current = true;
+    touchStartXRef.current = event.touches[0]?.clientX ?? 0;
+    suppressClickRef.current = false;
+    setNativeTouching(true);
+  };
+
+  const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    const touch = event.touches[0];
+    if (
+      touch &&
+      Math.abs(touch.clientX - touchStartXRef.current) > DRAG_THRESHOLD
+    ) {
+      suppressClickRef.current = true;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    touchContactRef.current = false;
+    scheduleNativeTouchResume();
+  };
+  const handleScroll = () => {
+    if (nativeTouchRef.current && !touchContactRef.current) {
+      scheduleNativeTouchResume();
+    }
+  };
+
   const handleClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {
     if (suppressClickRef.current) {
       event.preventDefault();
@@ -158,7 +215,15 @@ export function useMarqueeCarousel(
     }
   };
 
-  useEffect(() => () => cancelAnimationFrame(momentumFrameRef.current), []);
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(momentumFrameRef.current);
+      if (touchResumeTimeoutRef.current) {
+        clearTimeout(touchResumeTimeoutRef.current);
+      }
+    },
+    [],
+  );
 
   return {
     trackRef,
@@ -166,6 +231,10 @@ export function useMarqueeCarousel(
     handlePointerMove,
     handlePointerUp,
     handlePointerCancel,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+    handleScroll,
     handleClickCapture,
     onPointerEnter: (event: React.PointerEvent<HTMLDivElement>) => {
       if (event.pointerType === "mouse") setHovering(true);

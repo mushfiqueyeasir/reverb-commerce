@@ -466,7 +466,7 @@ function KawaiiMobileBottomNav({
           active={isActivePath(pathname, "/product")}
           countOverflowLabel={copy.countOverflowLabel}
           featured
-          icon={<Store className="size-5" />}
+          icon={<Store className="size-7" />}
         />
         <MobileTab
           href="/cart"
@@ -523,7 +523,7 @@ function MobileTab({
         className={cn(
           "relative grid place-items-center",
           featured &&
-            "-mt-5 size-12 rounded-full border-4 border-background bg-primary text-primary-foreground shadow-sm",
+            "-mt-7 size-16 rounded-full border-4 border-background bg-primary text-primary-foreground shadow-md",
         )}
       >
         {icon}

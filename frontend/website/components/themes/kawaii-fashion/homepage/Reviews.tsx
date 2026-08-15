@@ -39,6 +39,10 @@ export default function KawaiiFashionReviews({
     handlePointerMove,
     handlePointerUp,
     handlePointerCancel,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+    handleScroll,
     handleClickCapture,
     onPointerEnter,
     onPointerLeave,
@@ -73,13 +77,18 @@ export default function KawaiiFashionReviews({
           ref={trackRef}
           role="list"
           aria-label={title || "Customer reviews"}
-          className="scrollbar-hide touch-pan-y select-none cursor-grab overflow-x-auto active:cursor-grabbing"
+          className="scrollbar-hide touch-auto select-none cursor-grab overflow-x-auto overscroll-x-contain active:cursor-grabbing"
           onPointerEnter={onPointerEnter}
           onPointerLeave={onPointerLeave}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerCancel}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
+          onScroll={handleScroll}
           onFocusCapture={onFocusCapture}
           onBlurCapture={onBlurCapture}
           onClickCapture={handleClickCapture}

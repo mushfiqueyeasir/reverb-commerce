@@ -41,6 +41,10 @@ export default function KawaiiFashionCategories({
     handlePointerMove,
     handlePointerUp,
     handlePointerCancel,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+    handleScroll,
     handleClickCapture,
     onPointerEnter,
     onPointerLeave,
@@ -81,13 +85,18 @@ export default function KawaiiFashionCategories({
           ref={trackRef}
           role="list"
           aria-label={title || "Categories"}
-          className="scrollbar-hide touch-pan-y select-none cursor-grab overflow-x-auto px-4 active:cursor-grabbing sm:px-6 lg:px-10"
+          className="scrollbar-hide touch-auto select-none cursor-grab overflow-x-auto overscroll-x-contain px-4 active:cursor-grabbing sm:px-6 lg:px-10"
           onPointerEnter={onPointerEnter}
           onPointerLeave={onPointerLeave}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerCancel}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
+          onScroll={handleScroll}
           onFocusCapture={onFocusCapture}
           onBlurCapture={onBlurCapture}
           onClickCapture={handleClickCapture}

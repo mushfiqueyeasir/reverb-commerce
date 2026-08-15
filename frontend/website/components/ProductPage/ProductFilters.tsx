@@ -235,14 +235,14 @@ export default function ProductFilters({
               }
               className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
                 checked
-                  ? "bg-primary/5 text-foreground"
+                  ? "bg-primary/10 text-foreground"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
               <span
-                className={`flex size-4 shrink-0 items-center justify-center rounded border ${checked ? "border-primary bg-primary text-primary-foreground" : "border-input bg-background"}`}
+                className={`flex size-5 shrink-0 items-center justify-center rounded-md border-2 ${checked ? "border-primary bg-primary/20 text-foreground" : "border-foreground/40 bg-background"}`}
               >
-                {checked ? <Check className="size-3" /> : null}
+                {checked ? <Check className="size-3.5" strokeWidth={3} /> : null}
               </span>
               {label}
             </button>
@@ -405,7 +405,10 @@ export default function ProductFilters({
             ) : null}
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="flex flex-col overflow-hidden">
+        <SheetContent
+          side="left"
+          className="flex flex-col gap-0 overflow-hidden p-4"
+        >
           <div className="flex min-h-11 items-center justify-end pr-12">
             <SheetTitle className="sr-only">Filters</SheetTitle>
             {activeCount ? (
@@ -420,7 +423,9 @@ export default function ProductFilters({
               </Button>
             ) : null}
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto py-4">{filterSections}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto pb-4 pt-1">
+            {filterSections}
+          </div>
         </SheetContent>
       </Sheet>
     </div>
