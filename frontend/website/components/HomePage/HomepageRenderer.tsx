@@ -15,11 +15,18 @@ import RichTextSectionV2 from "@/components/HomePage/RichTextSectionV2";
 import KawaiiFashionBanner from "@/components/themes/kawaii-fashion/homepage/Banner";
 import KawaiiFashionCategories from "@/components/themes/kawaii-fashion/homepage/Categories";
 import KawaiiFashionFeaturedProducts from "@/components/themes/kawaii-fashion/homepage/FeaturedProducts";
-import KawaiiFashionHomepageSupport from "@/components/themes/kawaii-fashion/homepage/HomepageSupport";
+import {
+  KawaiiFashionGuarantees,
+  KawaiiFashionStudioNotes,
+} from "@/components/themes/kawaii-fashion/homepage/HomepageSupport";
 import KawaiiFashionPromo from "@/components/themes/kawaii-fashion/homepage/Promo";
 import KawaiiFashionReviews from "@/components/themes/kawaii-fashion/homepage/Reviews";
 import KawaiiFashionStory from "@/components/themes/kawaii-fashion/homepage/Story";
-import { getHomepageSectionMetadata } from "@/lib/cms/homepageSections";
+import {
+  getHomepageSectionMetadata,
+  parseKawaiiGuaranteesConfig,
+  parseKawaiiStudioNotesConfig,
+} from "@/lib/cms/homepageSections";
 import {
   createHomepageRendererRegistry,
   resolveHomepageRenderer,
@@ -416,10 +423,22 @@ function KawaiiFashionBannerRenderer({
   return (
     <KawaiiFashionBanner
       banners={banners}
-      description={
-        configString(section.config, "description") ??
-        DEFAULT_BANNER_DESCRIPTION
-      }
+      description={configString(section.config, "description")}
+      editLabel={configString(section.config, "edit_label")}
+      footerNote={configString(section.config, "footer_note")}
+      imageBadge={configString(section.config, "image_badge")}
+      carouselRoleDescription={configString(
+        section.config,
+        "carousel_role_description",
+      )}
+      carouselAnnouncementTemplate={configString(
+        section.config,
+        "carousel_announcement_template",
+      )}
+      pauseLabel={configString(section.config, "pause_label")}
+      resumeLabel={configString(section.config, "resume_label")}
+      previousLabel={configString(section.config, "previous_label")}
+      nextLabel={configString(section.config, "next_label")}
       headingLevel={section.id === primaryBannerId ? "h1" : "h2"}
     />
   );
@@ -458,8 +477,8 @@ function KawaiiFashionFeaturedRenderer({
   const config = section.config;
   const products = selectHomepageProducts(
     data.products,
-    configLimit(config, 8, 8),
-    8,
+    configLimit(config, 10, 10),
+    10,
     getHomepageSectionMetadata(section.type)?.productSelection,
   );
   if (products.length === 0) return null;
@@ -469,8 +488,16 @@ function KawaiiFashionFeaturedRenderer({
       title={section.title}
       subtitle={section.subtitle}
       eyebrow={configString(config, "eyebrow")}
-      ctaLabel={configString(config, "cta_label") ?? "View all products"}
+      ctaLabel={configString(config, "cta_label")}
       ctaHref={configString(config, "cta_url") ?? "/product"}
+      soldOutBadge={configString(config, "sold_out_badge")}
+      specialPriceBadge={configString(config, "special_price_badge")}
+      defaultBadge={configString(config, "default_badge")}
+      listLabel={configString(config, "product_list_label")}
+      uncategorizedLabelTemplate={configString(
+        config,
+        "uncategorized_label_template",
+      )}
     />
   );
 }
@@ -490,6 +517,11 @@ function KawaiiFashionReviewsRenderer({
       eyebrow={configString(config, "eyebrow")}
       ctaLabel={configString(config, "cta_label")}
       ctaHref={configString(config, "cta_url") ?? "/reviews"}
+      customerFallback={configString(config, "customer_fallback")}
+      bodyFallback={configString(config, "body_fallback")}
+      itemLabelTemplate={configString(config, "item_label_template")}
+      verifiedLabel={configString(config, "verified_label")}
+      ratingAriaTemplate={configString(config, "rating_aria_template")}
     />
   );
 }
@@ -513,11 +545,13 @@ function KawaiiFashionPromoRenderer({
       ctaHref={
         configString(config, "cta_url") || promotion.ctaUrl || "/product"
       }
-      ctaLabel={
-        configString(config, "cta_label") ||
-        promotion.ctaLabel ||
-        "Shop the edit"
-      }
+      ctaLabel={configString(config, "cta_label")}
+      kicker={configString(config, "kicker")}
+      limitedLabel={configString(config, "limited_label")}
+      discountSuffix={configString(config, "discount_suffix")}
+      imageEyebrow={configString(config, "image_eyebrow")}
+      imageTitle={configString(config, "image_title")}
+      ctaFallbackLabel={configString(config, "cta_fallback_label")}
     />
   );
 }
@@ -540,6 +574,31 @@ function KawaiiFashionStoryRenderer({
       ctaHref={configString(config, "cta_url")}
       config={config}
       imageUrl={imageUrl}
+    />
+  );
+}
+
+function KawaiiFashionGuaranteesRenderer({
+  section,
+}: HomepageSectionRendererProps) {
+  const config = parseKawaiiGuaranteesConfig(section.config);
+  return config ? <KawaiiFashionGuarantees {...config} /> : null;
+}
+
+function KawaiiFashionStudioNotesRenderer({
+  section,
+}: HomepageSectionRendererProps) {
+  const config = parseKawaiiStudioNotesConfig(section.config);
+  const title = section.title?.trim();
+  const body = section.subtitle?.trim();
+  if (!config || !title || !body) return null;
+  return (
+    <KawaiiFashionStudioNotes
+      eyebrow={config.eyebrow}
+      title={title}
+      body={body}
+      ctaLabel={config.ctaLabel}
+      ctaHref={config.ctaUrl}
     />
   );
 }
@@ -568,6 +627,8 @@ export const KAWAII_FASHION_HOMEPAGE_RENDERERS: HomepageSectionRendererRegistry 
     "kawaii-fashion.reviews": KawaiiFashionReviewsRenderer,
     "kawaii-fashion.promo": KawaiiFashionPromoRenderer,
     "kawaii-fashion.story": KawaiiFashionStoryRenderer,
+    "kawaii-fashion.guarantees": KawaiiFashionGuaranteesRenderer,
+    "kawaii-fashion.studio-notes": KawaiiFashionStudioNotesRenderer,
   } satisfies HomepageSectionRendererRegistry;
 
 export function getPrimaryHomepageBannerId(
@@ -622,9 +683,6 @@ export default function HomepageRenderer({
 }: HomepageRendererProps) {
   const headingBannerId =
     primaryBannerId ?? getPrimaryHomepageBannerId(sections, data);
-  const isKawaiiFashionHomepage = Object.values(rendererMapping ?? {}).some(
-    (rendererId) => rendererId?.startsWith("kawaii-fashion."),
-  );
   const rendered: { id: string; node: ReactNode }[] = [];
 
   for (const section of sections) {
@@ -646,7 +704,6 @@ export default function HomepageRenderer({
       {rendered.map(({ id, node }) => (
         <div key={id}>{node}</div>
       ))}
-      {isKawaiiFashionHomepage ? <KawaiiFashionHomepageSupport /> : null}
     </div>
   );
 }

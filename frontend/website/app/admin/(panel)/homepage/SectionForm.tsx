@@ -13,12 +13,14 @@ import {
   type BannerRow,
   type BannerStatItem,
   type HomepageSectionRow,
-  type HomepageSectionV1Type,
 } from "@/type/db";
 import {
   getHomepageSectionDisplayName,
   getHomepageSectionFamily,
   getHomepageSectionVersion,
+  parseKawaiiGuaranteesConfig,
+  type HomepageSectionFamily,
+  type KawaiiGuaranteeItem,
 } from "@/lib/cms/homepageSections";
 import {
   parseHomepageStoryConfig,
@@ -57,7 +59,7 @@ import {
 import { BannersTable } from "../banners/BannersTable";
 import { saveSection } from "./actions";
 
-const FAMILY_INFO: Record<HomepageSectionV1Type, string> = {
+const FAMILY_INFO: Record<HomepageSectionFamily, string> = {
   banner:
     "Banner carousel with independently managed slides and supporting copy.",
   categories: "Category grid from your Catalog → Categories.",
@@ -65,6 +67,8 @@ const FAMILY_INFO: Record<HomepageSectionV1Type, string> = {
   reviews: "Review photos and quotes from Content → Reviews.",
   promo: "Promotion block driven by a selected promotion.",
   richtext: "Custom rich-text block for brand story or notes.",
+  guarantees: "Three shopping reassurance cards shown by Kawaii Fashion.",
+  studio_notes: "Kawaii Fashion studio note and contact call to action.",
 };
 
 const MIN_LIMIT = 1;
@@ -163,6 +167,18 @@ function parseMarqueeItems(config: Record<string, unknown>): string[] {
   return [...DEFAULT_BANNER_MARQUEE];
 }
 
+function emptyGuaranteeItems(): [
+  KawaiiGuaranteeItem,
+  KawaiiGuaranteeItem,
+  KawaiiGuaranteeItem,
+] {
+  return [
+    { title: "", body: "" },
+    { title: "", body: "" },
+    { title: "", body: "" },
+  ];
+}
+
 export function SectionForm({
   section,
   promotions = [],
@@ -184,10 +200,13 @@ export function SectionForm({
   const [pending, startTransition] = useTransition();
   const config = section.config ?? {};
   const storyConfig = parseHomepageStoryConfig(config);
+  const guaranteesConfig = parseKawaiiGuaranteesConfig(config);
   const family = getHomepageSectionFamily(section.type);
   const version = getHomepageSectionVersion(section.type);
   const displayName =
     getHomepageSectionDisplayName(section.type) ?? section.type;
+  const isKawaii = themeId === "kawaii-fashion";
+  const maxMosaicCategories = isKawaii ? 5 : MAX_MOSAIC_CATEGORIES;
   const bannerSectionType = isBannerSectionType(section.type)
     ? section.type
     : null;
@@ -198,15 +217,17 @@ export function SectionForm({
     family === "categories" ||
     family === "featured" ||
     family === "reviews" ||
-    family === "richtext";
+    family === "richtext" ||
+    family === "studio_notes";
   const showsCta =
     family === "categories" ||
     family === "featured" ||
     family === "reviews" ||
-    family === "richtext";
+    family === "richtext" ||
+    family === "studio_notes";
   const limitMaximum =
     family === "featured" && themeId === "kawaii-fashion"
-      ? 8
+      ? 10
       : section.type === "featured_v2"
         ? MAX_FEATURED_V2_LIMIT
         : family === "featured"
@@ -222,13 +243,21 @@ export function SectionForm({
   const [subtitle, setSubtitle] = useState(section.subtitle ?? "");
   const [body, setBody] = useState(section.body ?? "");
   const [active, setActive] = useState(section.active ?? true);
+  const [guaranteesLabel, setGuaranteesLabel] = useState(
+    guaranteesConfig?.accessibleLabel ?? "",
+  );
+  const [guaranteeItems, setGuaranteeItems] = useState(() =>
+    guaranteesConfig
+      ? guaranteesConfig.items.map((item) => ({ ...item }))
+      : emptyGuaranteeItems(),
+  );
 
   const [eyebrow, setEyebrow] = useState(strConfig(config, "eyebrow"));
   const [limit, setLimit] = useState(() => {
     if (hasOptionalLimit && typeof config.limit !== "number") return "";
     const configuredLimit = numConfig(config, "limit", limitFallback);
     return String(
-      family === "featured"
+      family === "featured" && themeId !== "kawaii-fashion"
         ? clampFeaturedLimit(configuredLimit, limitMaximum)
         : clampLimit(configuredLimit, limitMaximum),
     );
@@ -237,29 +266,35 @@ export function SectionForm({
     strConfig(
       config,
       "cta_label",
-      family === "promo"
-        ? "Shop the drop"
-        : family === "featured"
-          ? "View all products"
-          : "",
+      isKawaii
+        ? ""
+        : family === "promo"
+          ? "Shop the drop"
+          : family === "featured"
+            ? "View all products"
+            : "",
     ),
   );
   const [ctaUrl, setCtaUrl] = useState(
     strConfig(
       config,
       "cta_url",
-      family === "reviews" ? "/reviews" : "/product",
+      family === "reviews"
+        ? "/reviews"
+        : family === "studio_notes"
+          ? ""
+          : "/product",
     ),
   );
   const [categoryIds, setCategoryIds] = useState(() => {
     const configured = stringArrayConfig(config, "category_ids");
     const initial =
       configured ??
-      categories.slice(0, MAX_MOSAIC_CATEGORIES).map((category) => category.id);
+      categories.slice(0, maxMosaicCategories).map((category) => category.id);
     const available = new Set(categories.map((category) => category.id));
     return initial
       .filter((categoryId) => available.has(categoryId))
-      .slice(0, MAX_MOSAIC_CATEGORIES);
+      .slice(0, maxMosaicCategories);
   });
   const [storyLayout, setStoryLayout] = useState(storyConfig.layout);
   const [storyImages, setStoryImages] = useState<UploadedImage[]>(
@@ -296,8 +331,45 @@ export function SectionForm({
     strConfig(config, "promotion_id") || "__latest__",
   );
   const [description, setDescription] = useState(
-    strConfig(config, "description", DEFAULT_BANNER_DESCRIPTION),
+    strConfig(
+      config,
+      "description",
+      isKawaii ? "" : DEFAULT_BANNER_DESCRIPTION,
+    ),
   );
+  const [kawaiiText, setKawaiiText] = useState(() => ({
+    editLabel: strConfig(config, "edit_label"),
+    footerNote: strConfig(config, "footer_note"),
+    imageBadge: strConfig(config, "image_badge"),
+    carouselRoleDescription: strConfig(config, "carousel_role_description"),
+    carouselAnnouncementTemplate: strConfig(
+      config,
+      "carousel_announcement_template",
+    ),
+    pauseLabel: strConfig(config, "pause_label"),
+    resumeLabel: strConfig(config, "resume_label"),
+    previousLabel: strConfig(config, "previous_label"),
+    nextLabel: strConfig(config, "next_label"),
+    soldOutBadge: strConfig(config, "sold_out_badge"),
+    specialPriceBadge: strConfig(config, "special_price_badge"),
+    defaultBadge: strConfig(config, "default_badge"),
+    productListLabel: strConfig(config, "product_list_label"),
+    uncategorizedLabelTemplate: strConfig(
+      config,
+      "uncategorized_label_template",
+    ),
+    customerFallback: strConfig(config, "customer_fallback"),
+    bodyFallback: strConfig(config, "body_fallback"),
+    itemLabelTemplate: strConfig(config, "item_label_template"),
+    verifiedLabel: strConfig(config, "verified_label"),
+    ratingAriaTemplate: strConfig(config, "rating_aria_template"),
+    kicker: strConfig(config, "kicker"),
+    limitedLabel: strConfig(config, "limited_label"),
+    discountSuffix: strConfig(config, "discount_suffix"),
+    imageEyebrow: strConfig(config, "image_eyebrow"),
+    imageTitle: strConfig(config, "image_title"),
+    ctaFallbackLabel: strConfig(config, "cta_fallback_label"),
+  }));
   const [stats, setStats] = useState<BannerStatItem[]>(() =>
     parseStats(config),
   );
@@ -314,6 +386,22 @@ export function SectionForm({
   const availableCategories = categories.filter(
     (category) => !categoryIds.includes(category.id),
   );
+
+  const updateKawaiiText = (key: keyof typeof kawaiiText, value: string) => {
+    setKawaiiText((current) => ({ ...current, [key]: value }));
+  };
+
+  const updateGuaranteeItem = (
+    index: number,
+    key: keyof KawaiiGuaranteeItem,
+    value: string,
+  ) => {
+    setGuaranteeItems((current) =>
+      current.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, [key]: value } : item,
+      ),
+    );
+  };
 
   const updateStat = (
     index: number,
@@ -391,6 +479,47 @@ export function SectionForm({
       nextConfig.cta_label = ctaLabel.trim() || null;
       nextConfig.cta_url = ctaUrl.trim() || null;
     }
+    if (isKawaii && family === "banner") {
+      nextConfig.edit_label = kawaiiText.editLabel.trim() || null;
+      nextConfig.footer_note = kawaiiText.footerNote.trim() || null;
+      nextConfig.image_badge = kawaiiText.imageBadge.trim() || null;
+      nextConfig.carousel_role_description =
+        kawaiiText.carouselRoleDescription.trim() || null;
+      nextConfig.carousel_announcement_template =
+        kawaiiText.carouselAnnouncementTemplate.trim() || null;
+      nextConfig.pause_label = kawaiiText.pauseLabel.trim() || null;
+      nextConfig.resume_label = kawaiiText.resumeLabel.trim() || null;
+      nextConfig.previous_label = kawaiiText.previousLabel.trim() || null;
+      nextConfig.next_label = kawaiiText.nextLabel.trim() || null;
+    }
+    if (isKawaii && family === "featured") {
+      nextConfig.sold_out_badge = kawaiiText.soldOutBadge.trim() || null;
+      nextConfig.special_price_badge =
+        kawaiiText.specialPriceBadge.trim() || null;
+      nextConfig.default_badge = kawaiiText.defaultBadge.trim() || null;
+      nextConfig.product_list_label =
+        kawaiiText.productListLabel.trim() || null;
+      nextConfig.uncategorized_label_template =
+        kawaiiText.uncategorizedLabelTemplate.trim() || null;
+    }
+    if (isKawaii && family === "reviews") {
+      nextConfig.customer_fallback = kawaiiText.customerFallback.trim() || null;
+      nextConfig.body_fallback = kawaiiText.bodyFallback.trim() || null;
+      nextConfig.item_label_template =
+        kawaiiText.itemLabelTemplate.trim() || null;
+      nextConfig.verified_label = kawaiiText.verifiedLabel.trim() || null;
+      nextConfig.rating_aria_template =
+        kawaiiText.ratingAriaTemplate.trim() || null;
+    }
+    if (isKawaii && family === "promo") {
+      nextConfig.kicker = kawaiiText.kicker.trim() || null;
+      nextConfig.limited_label = kawaiiText.limitedLabel.trim() || null;
+      nextConfig.discount_suffix = kawaiiText.discountSuffix.trim() || null;
+      nextConfig.image_eyebrow = kawaiiText.imageEyebrow.trim() || null;
+      nextConfig.image_title = kawaiiText.imageTitle.trim() || null;
+      nextConfig.cta_fallback_label =
+        kawaiiText.ctaFallbackLabel.trim() || null;
+    }
     if (hasRequiredLimit) {
       const parsedLimit = Number(limit);
       const value =
@@ -398,7 +527,7 @@ export function SectionForm({
           ? parsedLimit
           : limitFallback;
       nextConfig.limit =
-        family === "featured"
+        family === "featured" && themeId !== "kawaii-fashion"
           ? clampFeaturedLimit(value, limitMaximum)
           : clampLimit(value, limitMaximum);
     }
@@ -408,7 +537,14 @@ export function SectionForm({
         limit.trim() && Number.isFinite(value) ? clampLimit(value) : null;
     }
     if (section.type === "categories") {
-      nextConfig.category_ids = categoryIds.slice(0, MAX_MOSAIC_CATEGORIES);
+      nextConfig.category_ids = categoryIds.slice(0, maxMosaicCategories);
+    }
+    if (section.type === "guarantees") {
+      nextConfig.accessible_label = guaranteesLabel.trim();
+      nextConfig.items = guaranteeItems.map((item) => ({
+        title: item.title.trim(),
+        body: item.body.trim(),
+      }));
     }
     if (family === "richtext") {
       nextConfig.layout =
@@ -429,7 +565,8 @@ export function SectionForm({
       }));
     }
     if (isBanner) {
-      nextConfig.description = description.trim() || DEFAULT_BANNER_DESCRIPTION;
+      nextConfig.description =
+        description.trim() || (isKawaii ? null : DEFAULT_BANNER_DESCRIPTION);
       if (version === 1) {
         nextConfig.show_marquee = showMarquee;
         nextConfig.stats = stats.map((s) => ({
@@ -465,6 +602,21 @@ export function SectionForm({
       router.refresh();
     });
   };
+
+  const kawaiiField = (
+    key: keyof typeof kawaiiText,
+    label: string,
+    hint?: string,
+  ) => (
+    <FormField label={label} htmlFor={`kawaii-${key}`} hint={hint}>
+      <Input
+        id={`kawaii-${key}`}
+        value={kawaiiText[key]}
+        onChange={(event) => updateKawaiiText(key, event.target.value)}
+        className={adminInputClass}
+      />
+    </FormField>
+  );
 
   const formActions = (
     <FormActions>
@@ -545,6 +697,39 @@ export function SectionForm({
                     className={adminTextareaClass}
                   />
                 </FormField>
+
+                {isKawaii ? (
+                  <div className="space-y-5 rounded-xl border border-border bg-background/50 p-4">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        Kawaii Fashion labels
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Optional visible and accessible carousel copy.
+                      </p>
+                    </div>
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      {kawaiiField("editLabel", "Edit label")}
+                      {kawaiiField("imageBadge", "Image badge")}
+                    </div>
+                    {kawaiiField("footerNote", "Footer note")}
+                    {kawaiiField(
+                      "carouselRoleDescription",
+                      "Carousel role description",
+                    )}
+                    {kawaiiField(
+                      "carouselAnnouncementTemplate",
+                      "Carousel announcement template",
+                      "Use {current}, {total}, and {title} for generated values.",
+                    )}
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      {kawaiiField("pauseLabel", "Pause label")}
+                      {kawaiiField("resumeLabel", "Resume label")}
+                      {kawaiiField("previousLabel", "Previous label")}
+                      {kawaiiField("nextLabel", "Next label")}
+                    </div>
+                  </div>
+                ) : null}
 
                 {version === 1 ? (
                   <>
@@ -698,6 +883,126 @@ export function SectionForm({
     );
   }
 
+  if (section.type === "guarantees") {
+    return (
+      <div className="mx-auto max-w-3xl space-y-8">
+        <AdminCard
+          title="Shopping guarantees"
+          description={FAMILY_INFO.guarantees}
+        >
+          <div className="space-y-5">
+            <FormField
+              label="Accessible label"
+              htmlFor="accessible_label"
+              hint="Describes this group to screen readers."
+            >
+              <Input
+                id="accessible_label"
+                value={guaranteesLabel}
+                onChange={(event) => setGuaranteesLabel(event.target.value)}
+                className={adminInputClass}
+              />
+            </FormField>
+            <div className="space-y-4">
+              {guaranteeItems.map((item, index) => (
+                <div
+                  key={index}
+                  className="grid gap-4 rounded-xl border border-border bg-background/50 p-4 sm:grid-cols-2"
+                >
+                  <FormField
+                    label={`Item ${index + 1} title`}
+                    htmlFor={`guarantee-title-${index}`}
+                  >
+                    <Input
+                      id={`guarantee-title-${index}`}
+                      value={item.title}
+                      onChange={(event) =>
+                        updateGuaranteeItem(index, "title", event.target.value)
+                      }
+                      className={adminInputClass}
+                    />
+                  </FormField>
+                  <FormField
+                    label={`Item ${index + 1} body`}
+                    htmlFor={`guarantee-body-${index}`}
+                  >
+                    <Textarea
+                      id={`guarantee-body-${index}`}
+                      value={item.body}
+                      onChange={(event) =>
+                        updateGuaranteeItem(index, "body", event.target.value)
+                      }
+                      rows={3}
+                      className={adminTextareaClass}
+                    />
+                  </FormField>
+                </div>
+              ))}
+            </div>
+            {activeToggle}
+          </div>
+        </AdminCard>
+        {formActions}
+      </div>
+    );
+  }
+
+  if (section.type === "studio_notes") {
+    return (
+      <div className="mx-auto max-w-3xl space-y-8">
+        <AdminCard title="Studio notes" description={FAMILY_INFO.studio_notes}>
+          <div className="space-y-5">
+            <FormField label="Eyebrow" htmlFor="eyebrow">
+              <Input
+                id="eyebrow"
+                value={eyebrow}
+                onChange={(event) => setEyebrow(event.target.value)}
+                className={adminInputClass}
+              />
+            </FormField>
+            <FormField label="Heading" htmlFor="title">
+              <Input
+                id="title"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                className={adminInputClass}
+              />
+            </FormField>
+            <FormField label="Body" htmlFor="subtitle">
+              <Textarea
+                id="subtitle"
+                value={subtitle}
+                onChange={(event) => setSubtitle(event.target.value)}
+                rows={3}
+                className={adminTextareaClass}
+              />
+            </FormField>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <FormField label="Button label" htmlFor="cta_label">
+                <Input
+                  id="cta_label"
+                  value={ctaLabel}
+                  onChange={(event) => setCtaLabel(event.target.value)}
+                  className={adminInputClass}
+                />
+              </FormField>
+              <FormField label="Button link" htmlFor="cta_url">
+                <Input
+                  id="cta_url"
+                  value={ctaUrl}
+                  onChange={(event) => setCtaUrl(event.target.value)}
+                  className={adminInputClass}
+                />
+              </FormField>
+            </div>
+            {activeToggle}
+          </div>
+        </AdminCard>
+        {formActions}
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <AdminCard
@@ -752,6 +1057,92 @@ export function SectionForm({
               className={adminInputClass}
             />
           </FormField>
+
+          {isKawaii && family === "featured" ? (
+            <div className="space-y-5 rounded-xl border border-border bg-background/50 p-4">
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  Kawaii Fashion product labels
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Leave any label blank to hide it.
+                </p>
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2">
+                {kawaiiField("soldOutBadge", "Sold-out badge")}
+                {kawaiiField("specialPriceBadge", "Special-price badge")}
+                {kawaiiField("defaultBadge", "Default badge")}
+                {kawaiiField("productListLabel", "Product list label")}
+              </div>
+              {kawaiiField(
+                "uncategorizedLabelTemplate",
+                "Uncategorized label template",
+                "Use {number} for the generated item number.",
+              )}
+            </div>
+          ) : null}
+
+          {isKawaii && family === "reviews" ? (
+            <div className="space-y-5 rounded-xl border border-border bg-background/50 p-4">
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  Kawaii Fashion review labels
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Fallback content is used only when a review field is empty.
+                </p>
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2">
+                {kawaiiField("customerFallback", "Customer fallback")}
+                {kawaiiField("verifiedLabel", "Verified label")}
+                {kawaiiField(
+                  "itemLabelTemplate",
+                  "Item label template",
+                  "Use {number} for the generated review number.",
+                )}
+                {kawaiiField(
+                  "ratingAriaTemplate",
+                  "Rating accessibility template",
+                  "Use {rating} and {maximum} for generated values.",
+                )}
+              </div>
+              <FormField
+                label="Review body fallback"
+                htmlFor="kawaii-bodyFallback"
+              >
+                <Textarea
+                  id="kawaii-bodyFallback"
+                  value={kawaiiText.bodyFallback}
+                  onChange={(event) =>
+                    updateKawaiiText("bodyFallback", event.target.value)
+                  }
+                  rows={3}
+                  className={adminTextareaClass}
+                />
+              </FormField>
+            </div>
+          ) : null}
+
+          {isKawaii && family === "promo" ? (
+            <div className="space-y-5 rounded-xl border border-border bg-background/50 p-4">
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  Kawaii Fashion promotion labels
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Leave any decorative label blank to hide it.
+                </p>
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2">
+                {kawaiiField("kicker", "Kicker")}
+                {kawaiiField("limitedLabel", "Limited label")}
+                {kawaiiField("discountSuffix", "Discount suffix")}
+                {kawaiiField("ctaFallbackLabel", "Button fallback label")}
+                {kawaiiField("imageEyebrow", "Image eyebrow")}
+                {kawaiiField("imageTitle", "Image title")}
+              </div>
+            </div>
+          ) : null}
 
           {hasRequiredLimit || hasOptionalLimit ? (
             <FormField
@@ -1086,24 +1477,21 @@ export function SectionForm({
                     Mosaic categories
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Choose up to four categories and drag them into display
-                    order.
+                    Choose up to {maxMosaicCategories} categories and drag them
+                    into display order.
                   </p>
                 </div>
                 <div className="w-full sm:w-64">
                   <Select
                     value="__add__"
                     disabled={
-                      categoryIds.length >= MAX_MOSAIC_CATEGORIES ||
+                      categoryIds.length >= maxMosaicCategories ||
                       availableCategories.length === 0
                     }
                     onValueChange={(categoryId) => {
                       if (categoryId === "__add__") return;
                       setCategoryIds((current) =>
-                        [...current, categoryId].slice(
-                          0,
-                          MAX_MOSAIC_CATEGORIES,
-                        ),
+                        [...current, categoryId].slice(0, maxMosaicCategories),
                       );
                     }}
                   >

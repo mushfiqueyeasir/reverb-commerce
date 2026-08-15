@@ -54,9 +54,21 @@ export default async function SettingsPage() {
     ]);
 
   const row = (data as SiteSettingsRow | null) ?? DEFAULTS;
+  const useCmsAnnouncement =
+    row.announcement_text === undefined ||
+    row.announcement_active === undefined;
   const settings: SiteSettingsRow = {
     ...row,
     favicon_path: row.favicon_path ?? cms.favicon_path ?? null,
+    announcement_text: useCmsAnnouncement
+      ? cms.announcement.text
+      : row.announcement_text,
+    announcement_active: useCmsAnnouncement
+      ? cms.announcement.active
+      : row.announcement_active,
+    announcement_url: useCmsAnnouncement
+      ? cms.announcement.url
+      : row.announcement_url,
   };
 
   return (

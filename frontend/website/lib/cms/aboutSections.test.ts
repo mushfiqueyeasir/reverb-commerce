@@ -51,6 +51,21 @@ describe("about section normalization", () => {
     expect(normalized[6].sort).toBe(21);
   });
 
+  it("provides accessibility copy for About previews", () => {
+    expect(
+      DEFAULT_ABOUT_SECTIONS.every((section) =>
+        String(section.config.accessible_label ?? "").trim(),
+      ),
+    ).toBe(true);
+    expect(
+      DEFAULT_ABOUT_SECTIONS.filter((section) =>
+        ["hero", "story", "craft"].includes(
+          getAboutSectionFamily(section.type) ?? "",
+        ),
+      ).every((section) => String(section.config.image_alt ?? "").trim()),
+    ).toBe(true);
+  });
+
   it("supports persisted seed rows without timestamps", () => {
     const seeded = {
       id: "seed-hero",

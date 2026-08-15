@@ -11,6 +11,43 @@ import type { Banner } from "@/utility/getBanners";
 const imagePath = (file: string) =>
   `/images/themes/kawaii-fashion/${file}.webp`;
 
+const bannerLabels = {
+  edit_label: "Kawaii fashion edit",
+  footer_note: "Thoughtfully selected · Easy everyday styling",
+  image_badge: "The new mood",
+  carousel_role_description: "carousel",
+  carousel_announcement_template: "Slide {current} of {total}: {title}",
+  pause_label: "Pause slide rotation",
+  resume_label: "Resume slide rotation",
+  previous_label: "Previous collection",
+  next_label: "Next collection",
+};
+
+const productLabels = {
+  sold_out_badge: "Sold out",
+  special_price_badge: "Special price",
+  default_badge: "New favorite",
+  product_list_label: "Featured products",
+  uncategorized_label_template: "Look {number}",
+};
+
+const reviewLabels = {
+  customer_fallback: "Verified customer",
+  body_fallback: "A lovely piece that feels just right.",
+  item_label_template: "Note {number}",
+  verified_label: "Verified review",
+  rating_aria_template: "{rating} out of {maximum} stars",
+};
+
+const promoLabels = {
+  kicker: "A special little something",
+  limited_label: "Limited edit",
+  discount_suffix: "off",
+  image_eyebrow: "This week’s pick",
+  image_title: "Wear it your way",
+  cta_fallback_label: "Shop the edit",
+};
+
 const banners: Banner[] = [
   {
     id: "kawaii-preview-banner",
@@ -43,6 +80,11 @@ const categoryDetails = [
     name: "Everyday Denim",
     description: "Easy blues made for mixing and matching.",
     image: "denim-edit",
+  },
+  {
+    name: "Sweet Accessories",
+    description: "Playful finishing touches for every look.",
+    image: "braided-promo",
   },
 ] as const;
 
@@ -115,6 +157,20 @@ const productDetails = [
     currentPrice: 1890,
     categoryIndex: 3,
   },
+  {
+    title: "Blossom Braided Headband",
+    image: "braided-promo",
+    originalPrice: 1490,
+    currentPrice: 1190,
+    categoryIndex: 4,
+  },
+  {
+    title: "Orchard Petal Hair Clip",
+    image: "orchard-story",
+    originalPrice: 1290,
+    currentPrice: 990,
+    categoryIndex: 4,
+  },
 ] as const;
 
 const products: TransformedProduct[] = productDetails.map((product, index) => {
@@ -185,6 +241,13 @@ const reviews: TransformedReview[] = [
     body: "The details are delicate without being fussy. I have already worn it twice this week.",
     rating: 5,
   },
+  {
+    id: "kawaii-preview-review-5",
+    image: imagePath("denim-edit"),
+    customerName: "Maliha Noor",
+    body: "Everything arrived beautifully packed, and the colors feel just as cheerful as the photos.",
+    rating: 5,
+  },
 ];
 
 const promotion: Promotion = {
@@ -208,19 +271,20 @@ export const KAWAII_FASHION_PREVIEW_SECTIONS: HomepageRendererSection[] = [
     config: {
       description:
         "Light layers, joyful color, and charming details selected for bright everyday dressing.",
+      ...bannerLabels,
     },
   },
   {
     id: "kawaii-preview-categories-section",
     type: "categories",
     title: "Dress for your favorite mood",
-    subtitle: "Four light-hearted edits for days that deserve a little color.",
+    subtitle: "Five light-hearted edits for days that deserve a little color.",
     body: null,
     config: {
       eyebrow: "Shop the collections",
       cta_label: "Browse every style",
       category_ids: categories.map((category) => category._id),
-      limit: 4,
+      limit: 5,
     },
   },
   {
@@ -230,9 +294,10 @@ export const KAWAII_FASHION_PREVIEW_SECTIONS: HomepageRendererSection[] = [
     subtitle: "Lovely prices on the pieces currently at the top of our list.",
     body: null,
     config: {
-      limit: 8,
+      limit: 10,
       eyebrow: "Sweet offers",
       cta_label: "Shop all deals",
+      ...productLabels,
     },
   },
   {
@@ -242,9 +307,10 @@ export const KAWAII_FASHION_PREVIEW_SECTIONS: HomepageRendererSection[] = [
     subtitle: "The newest colors, layers, and silhouettes to reach Kawaii.",
     body: null,
     config: {
-      limit: 8,
+      limit: 10,
       eyebrow: "Just landed",
       cta_label: "View new arrivals",
+      ...productLabels,
     },
   },
   {
@@ -254,9 +320,10 @@ export const KAWAII_FASHION_PREVIEW_SECTIONS: HomepageRendererSection[] = [
     subtitle: "Fresh silhouettes in pink, pearl, coastal blue, and easy denim.",
     body: null,
     config: {
-      limit: 8,
+      limit: 10,
       eyebrow: "Kawaii favorites",
       cta_label: "View featured products",
+      ...productLabels,
     },
   },
   {
@@ -306,6 +373,7 @@ export const KAWAII_FASHION_PREVIEW_SECTIONS: HomepageRendererSection[] = [
       eyebrow: "Loved in real life",
       limit: 4,
       cta_label: "Read all reviews",
+      ...reviewLabels,
     },
   },
   {
@@ -318,6 +386,44 @@ export const KAWAII_FASHION_PREVIEW_SECTIONS: HomepageRendererSection[] = [
       promotion_id: promotion._id,
       cta_label: "Shop the special edit",
       cta_url: "/product",
+      ...promoLabels,
+    },
+  },
+  {
+    id: "kawaii-preview-guarantees-section",
+    type: "guarantees",
+    title: null,
+    subtitle: null,
+    body: null,
+    config: {
+      accessible_label: "Shopping guarantees",
+      items: [
+        {
+          title: "Carefully packed",
+          body: "Prepared with attention, from us to you.",
+        },
+        {
+          title: "Secure checkout",
+          body: "A simple and protected shopping experience.",
+        },
+        {
+          title: "Here to help",
+          body: "Friendly support before and after your order.",
+        },
+      ],
+    },
+  },
+  {
+    id: "kawaii-preview-studio-notes-section",
+    type: "studio_notes",
+    title: "New edits, style stories, and lovely little surprises.",
+    subtitle:
+      "Join our list to hear about fresh arrivals and special collections.",
+    body: null,
+    config: {
+      eyebrow: "Notes from the studio",
+      cta_label: "Join our list",
+      cta_url: "/contact-us",
     },
   },
 ];

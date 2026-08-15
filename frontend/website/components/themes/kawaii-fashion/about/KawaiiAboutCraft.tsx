@@ -33,12 +33,16 @@ export default function KawaiiAboutCraft({
   const firstLine = configString(config, "title_line1");
   const secondLine = configString(config, "title_line2");
   const body = configString(config, "body");
+  const accessibleLabel = configString(config, "accessible_label");
+  const imageAlt = configString(config, "image_alt");
   const fabricLabel = configString(config, "fabric_label");
   const fabricValue = configString(config, "fabric_value");
   const fabricTag = configString(config, "fabric_tag");
   const items = parseCraft(config);
-  const imageAlt =
-    fabricValue || [firstLine, secondLine].filter(Boolean).join(" ");
+  const headingText =
+    [firstLine, secondLine].filter(Boolean).join(" ") ||
+    accessibleLabel ||
+    eyebrow;
 
   if (
     !eyebrow &&
@@ -57,7 +61,7 @@ export default function KawaiiAboutCraft({
   return (
     <section
       className="bg-background py-20 text-foreground sm:py-28 lg:py-36"
-      aria-labelledby={headingId}
+      aria-labelledby={headingText ? headingId : undefined}
     >
       <div className="mx-auto grid max-w-[1500px] gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:items-center lg:gap-16 lg:px-12">
         <div>
@@ -79,11 +83,11 @@ export default function KawaiiAboutCraft({
                 </span>
               ) : null}
             </h2>
-          ) : (
+          ) : headingText ? (
             <h2 id={headingId} className="sr-only">
-              {eyebrow || "Our craft"}
+              {headingText}
             </h2>
-          )}
+          ) : null}
           {body ? (
             <p className="mt-7 max-w-xl text-base leading-8 text-muted-foreground">
               {body}
@@ -100,9 +104,18 @@ export default function KawaiiAboutCraft({
                     className="min-h-40 bg-card p-5 transition-colors hover:bg-surface sm:p-6"
                   >
                     <Icon className="size-5 text-primary" aria-hidden="true" />
-                    <h3 className="mt-7 font-display text-lg font-semibold leading-tight">
-                      {item.label || `Detail ${index + 1}`}
-                    </h3>
+                    {item.label ? (
+                      <h3 className="mt-7 font-display text-lg font-semibold leading-tight">
+                        {item.label}
+                      </h3>
+                    ) : (
+                      <span
+                        className="mt-7 block font-display text-lg font-semibold leading-tight"
+                        aria-hidden="true"
+                      >
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                    )}
                     {item.sub ? (
                       <p className="mt-2 text-xs leading-5 text-muted-foreground">
                         {item.sub}
@@ -119,7 +132,7 @@ export default function KawaiiAboutCraft({
           {imageUrl ? (
             <Image
               src={imageUrl}
-              alt={imageAlt || "Product detail"}
+              alt={imageAlt || ""}
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover"

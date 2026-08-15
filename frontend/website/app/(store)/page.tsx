@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import HomepageRenderer from "@/components/HomePage/HomepageRenderer";
 import { getStorefrontThemeManifest } from "@/lib/theme/manifest";
 import { readCurrentPublishedStorefrontTheme } from "@/lib/theme/store";
-import { getCategories } from "@/utility/getCategory";
+import { getStorefrontCategories } from "@/utility/getCategory";
 import { getProducts, transformProduct } from "@/utility/getProducts";
 import { getReviews, transformReview } from "@/utility/getReview";
 import { getBanners } from "@/utility/getBanners";
@@ -35,7 +35,7 @@ export default async function HomePage() {
     getBanners("banner"),
     getBanners("banner_v2"),
     getHomepageSections(),
-    getCategories(),
+    getStorefrontCategories(),
     getProducts(),
     getReviews(),
     getPromotions(),

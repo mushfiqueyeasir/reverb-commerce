@@ -23,7 +23,10 @@ const PAGE_MAPPINGS = [
 ];
 const FIXED_ASSETS = [
   ["https://kawaii.com.bd/wp-content/uploads/Kawaii-Logo.webp", "logo.webp"],
-  ["https://kawaii.com.bd/wp-content/uploads/Kawaii-Logo.webp", "invoice-logo.webp"],
+  [
+    "https://kawaii.com.bd/wp-content/uploads/Kawaii-Logo.webp",
+    "invoice-logo.webp",
+  ],
   [
     "https://kawaii.com.bd/wp-content/uploads/cropped-Kawaii-Logo-1-192x192.webp",
     "favicon.webp",
@@ -34,6 +37,46 @@ const BANNER_ASSETS = [
   ["https://kawaii.com.bd/wp-content/uploads/Banner-2-2.webp", "banner-2.webp"],
   ["https://kawaii.com.bd/wp-content/uploads/Banner-3-4.webp", "banner-3.webp"],
 ];
+const KAWAII_NAVBAR_COPY = {
+  primaryNavigationAriaLabel: "Primary navigation",
+  desktopSearchAriaLabel: "Search products",
+  desktopFavoritesAriaLabel: "Favorites",
+  desktopBagAriaLabel: "Shopping bag",
+  homeLinkAriaLabelTemplate: "{storeName} home",
+  shopAllTemplate: "Shop all {label}",
+  collectionsCountTemplate: "{count} collections",
+  mobileNavigationAriaLabel: "Mobile shopping navigation",
+  mobileHomeLabel: "Home",
+  mobileSavedLabel: "Saved",
+  mobileShopLabel: "Shop",
+  mobileBagLabel: "Bag",
+  mobileSearchLabel: "Search",
+  mobileSearchAriaLabel: "Search products",
+  countOverflowLabel: "9+",
+  collectionsLabel: "Collections",
+  shopByCategoryLabel: "Shop by category",
+  primaryCategoryLabel: "Primary category",
+  exploreLabel: "Explore",
+  emptyCollectionLabel: "Explore all products in this collection.",
+  compactMenuTitle: "Shop categories",
+  compactMenuDescription: "Find your collection.",
+};
+const KAWAII_PRODUCT_CARD_COPY = {
+  addFavoriteAriaLabel: "Add to favorites",
+  removeFavoriteAriaLabel: "Remove from favorites",
+  favoriteSavedToast: "Saved to favorites",
+  favoriteRemovedToast: "Removed from favorites",
+  soldOutButtonLabel: "Sold Out",
+  quickAddButtonLabel: "Quick Add",
+};
+const KAWAII_FOOTER_COPY = {
+  homeLinkAriaLabelTemplate: "{storeName} home",
+  copyrightTemplate: "© {year} {storeName}",
+  facebookAriaLabel: "Facebook",
+  instagramAriaLabel: "Instagram",
+  twitterAriaLabel: "X",
+  youtubeAriaLabel: "YouTube",
+};
 
 function required(name) {
   const value = process.env[name]?.trim();
@@ -137,7 +180,8 @@ async function fetchSource(url) {
     headers: { "User-Agent": "ReverbCommerceKawaiiMigration/1.0" },
     signal: AbortSignal.timeout(60_000),
   });
-  if (!response.ok) throw new Error(`Source request failed ${response.status}: ${url}`);
+  if (!response.ok)
+    throw new Error(`Source request failed ${response.status}: ${url}`);
   return response;
 }
 
@@ -245,8 +289,7 @@ function buildAboutSections(aboutHtml, bannerPath, now) {
         eyebrow: "Our promise",
         title_line1: "Japanese quality,",
         title_line2: "delivered with care.",
-        body:
-          "Kawaii focuses on genuine Japanese beauty and personal-care products, careful sourcing, and dependable service throughout Bangladesh.",
+        body: "Kawaii focuses on genuine Japanese beauty and personal-care products, careful sourcing, and dependable service throughout Bangladesh.",
         image_path: "kawaii-content/v1/logo.webp",
         image_bucket: "branding",
         fabric_label: "Source",
@@ -273,8 +316,7 @@ function buildAboutSections(aboutHtml, bannerPath, now) {
       config: {
         eyebrow: "Kawaii community",
         title: "Discover Japanese beauty with confidence.",
-        body:
-          "Explore authentic skincare, cosmetics, hair care, and personal-care products selected for customers across Bangladesh.",
+        body: "Explore authentic skincare, cosmetics, hair care, and personal-care products selected for customers across Bangladesh.",
         cta_primary_label: "Explore products",
         cta_primary_url: "/product",
         cta_secondary_label: "Contact Kawaii",
@@ -332,14 +374,18 @@ async function main() {
       ),
     )[0];
     if (completed) {
-      throw new Error("Kawaii content is already migrated; use --force to replace it");
+      throw new Error(
+        "Kawaii content is already migrated; use --force to replace it",
+      );
     }
   }
 
   const keyResponse = await managementRequest(
     `/v1/projects/${projectRef}/api-keys`,
   );
-  const keys = Array.isArray(keyResponse) ? keyResponse : keyResponse?.keys ?? [];
+  const keys = Array.isArray(keyResponse)
+    ? keyResponse
+    : (keyResponse?.keys ?? []);
   const anonKey = keys.find(
     (key) => key.type === "legacy" && key.name === "anon",
   )?.api_key;
@@ -366,7 +412,8 @@ async function main() {
 
   async function upload(url, bucket, path) {
     const response = await fetchSource(url);
-    const contentType = response.headers.get("content-type")?.split(";")[0] || "";
+    const contentType =
+      response.headers.get("content-type")?.split(";")[0] || "";
     if (!contentType.startsWith("image/")) {
       throw new Error(`Expected an image from ${url}, received ${contentType}`);
     }
@@ -374,12 +421,15 @@ async function main() {
     if (content.length > 10 * 1024 * 1024) {
       throw new Error(`Asset exceeds 10 MB: ${url}`);
     }
-    const { error } = await supabase.storage.from(bucket).upload(path, content, {
-      contentType,
-      cacheControl: "31536000",
-      upsert: true,
-    });
-    if (error) throw new Error(`Failed to upload ${bucket}/${path}: ${error.message}`);
+    const { error } = await supabase.storage
+      .from(bucket)
+      .upload(path, content, {
+        contentType,
+        cacheControl: "31536000",
+        upsert: true,
+      });
+    if (error)
+      throw new Error(`Failed to upload ${bucket}/${path}: ${error.message}`);
     return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
   }
 
@@ -395,20 +445,27 @@ async function main() {
     for (const url of sourceAssetUrls(page.content?.rendered)) {
       if (assetMap.has(url)) continue;
       const response = await fetchSource(url);
-      const contentType = response.headers.get("content-type")?.split(";")[0] || "";
+      const contentType =
+        response.headers.get("content-type")?.split(";")[0] || "";
       const extension = safeExtension(url, contentType);
       const hash = createHash("sha256").update(url).digest("hex").slice(0, 16);
       const path = `kawaii-content/v1/pages/${hash}.${extension}`;
       const content = Buffer.from(await response.arrayBuffer());
-      if (!contentType.startsWith("image/") || content.length > 10 * 1024 * 1024) {
+      if (
+        !contentType.startsWith("image/") ||
+        content.length > 10 * 1024 * 1024
+      ) {
         throw new Error(`Invalid page asset: ${url}`);
       }
-      const { error } = await supabase.storage.from("branding").upload(path, content, {
-        contentType,
-        cacheControl: "31536000",
-        upsert: true,
-      });
-      if (error) throw new Error(`Failed to upload branding/${path}: ${error.message}`);
+      const { error } = await supabase.storage
+        .from("branding")
+        .upload(path, content, {
+          contentType,
+          cacheControl: "31536000",
+          upsert: true,
+        });
+      if (error)
+        throw new Error(`Failed to upload branding/${path}: ${error.message}`);
       assetMap.set(
         url,
         supabase.storage.from("branding").getPublicUrl(path).data.publicUrl,
@@ -419,7 +476,8 @@ async function main() {
   const now = new Date().toISOString();
   const pages = selectedPages.map(({ targetSlug, page }) => {
     let html = sanitizeImportedHtml(page.content?.rendered ?? "");
-    for (const [source, target] of assetMap) html = html.split(source).join(target);
+    for (const [source, target] of assetMap)
+      html = html.split(source).join(target);
     return {
       slug: targetSlug,
       title: decodeHtml(page.title?.rendered),
@@ -448,7 +506,10 @@ async function main() {
       : {};
   const bannerPath = "kawaii-content/v1/banner-1.webp";
   const fixedPages = Object.fromEntries(
-    ["about", "terms", "privacy", "refund"].map((slug) => [slug, bySlug.get(slug)]),
+    ["about", "terms", "privacy", "refund"].map((slug) => [
+      slug,
+      bySlug.get(slug),
+    ]),
   );
   const homePage = sourcePages.get("home");
   const homeDescription =
@@ -466,40 +527,46 @@ async function main() {
     about: {
       title: about.seo.title || "About Kawaii | Japanese Cosmetics BD",
       description:
-        about.seo.description || "Learn about Kawaii and our authentic Japanese beauty products.",
+        about.seo.description ||
+        "Learn about Kawaii and our authentic Japanese beauty products.",
       keywords: "Kawaii, About Kawaii, Japanese cosmetics Bangladesh",
       og_image_path: bannerPath,
     },
     product: {
       title: "Shop Japanese Cosmetics | Kawaii",
       description: homeDescription,
-      keywords: "Japanese skincare, cosmetics, hair care, beauty products Bangladesh",
+      keywords:
+        "Japanese skincare, cosmetics, hair care, beauty products Bangladesh",
       og_image_path: bannerPath,
     },
     contact: {
       title: "Contact Kawaii",
-      description: "Contact Kawaii for Japanese cosmetics support and product inquiries.",
+      description:
+        "Contact Kawaii for Japanese cosmetics support and product inquiries.",
       keywords: "Kawaii contact, cosmetics support Bangladesh",
       og_image_path: null,
     },
     privacy: {
       title: bySlug.get("privacy")?.seo.title || "Privacy Policy | Kawaii",
       description:
-        bySlug.get("privacy")?.seo.description || "Read the Kawaii privacy policy.",
+        bySlug.get("privacy")?.seo.description ||
+        "Read the Kawaii privacy policy.",
       keywords: "Kawaii privacy policy",
       og_image_path: null,
     },
     terms: {
       title: bySlug.get("terms")?.seo.title || "Terms and Conditions | Kawaii",
       description:
-        bySlug.get("terms")?.seo.description || "Read the Kawaii terms and conditions.",
+        bySlug.get("terms")?.seo.description ||
+        "Read the Kawaii terms and conditions.",
       keywords: "Kawaii terms and conditions",
       og_image_path: null,
     },
     refund: {
       title: bySlug.get("refund")?.seo.title || "Returns and Exchange | Kawaii",
       description:
-        bySlug.get("refund")?.seo.description || "Read the Kawaii returns and exchange policy.",
+        bySlug.get("refund")?.seo.description ||
+        "Read the Kawaii returns and exchange policy.",
       keywords: "Kawaii returns, exchange policy, delivery Bangladesh",
       og_image_path: null,
     },
@@ -509,7 +576,8 @@ async function main() {
       id: "51000000-0000-4000-8000-000000000001",
       section_type: "banner",
       title: "Authentic Japanese Cosmetics",
-      subtitle: "Authentic and affordable Japanese beauty products in Bangladesh",
+      subtitle:
+        "Authentic and affordable Japanese beauty products in Bangladesh",
       image_path: "kawaii-content/v1/banner-1.webp",
       mobile_image_path: null,
       cta_label: "Shop now",
@@ -555,18 +623,133 @@ async function main() {
     },
   ];
   const fallbackSections = [
-    ["60000000-0000-4000-8000-000000000001", "banner", null, null, null, 10, true, {}],
-    ["60000000-0000-4000-8000-000000000002", "categories", "Shop by Category", "Explore Japanese beauty and personal care", null, 20, false, { cta_label: "View all products", cta_url: "/product" }],
-    ["60000000-0000-4000-8000-000000000003", "featured", "Today's Best Deals", "Authentic Japanese products at great value", null, 30, false, { limit: 6 }],
-    ["60000000-0000-4000-8000-000000000004", "reviews", "Customer Reviews", "What Kawaii customers say", null, 40, false, { limit: 12 }],
-    ["60000000-0000-4000-8000-000000000005", "richtext", "Authentic Japanese beauty in Bangladesh", null, "<p>Free gift wrapping with notes, responsive customer support, nationwide delivery, and carefully sourced Japanese cosmetics and personal-care products.</p>", 50, true, { layout: "simple", image_bucket: "branding", cards: [], eyebrow: "Welcome to Kawaii", cta_label: "Learn about Kawaii", cta_url: "/about-us" }],
-    ["60000000-0000-4000-8000-000000000006", "promo", null, null, null, 60, false, {}],
-    ["60000000-0000-4000-8000-000000000007", "banner_v2", null, null, null, 70, false, {}],
-    ["60000000-0000-4000-8000-000000000008", "categories_v2", "Shop by Category", null, null, 80, false, {}],
-    ["60000000-0000-4000-8000-000000000009", "featured_v2", "Featured Products", null, null, 90, false, {}],
-    ["60000000-0000-4000-8000-000000000010", "reviews_v2", "Customer Reviews", null, null, 100, false, {}],
-    ["60000000-0000-4000-8000-000000000011", "promo_v2", null, null, null, 110, false, {}],
-    ["60000000-0000-4000-8000-000000000012", "richtext_v2", "About Kawaii", null, null, 120, false, { layout: "feature", image_bucket: "branding", cards: [] }],
+    [
+      "60000000-0000-4000-8000-000000000001",
+      "banner",
+      null,
+      null,
+      null,
+      10,
+      true,
+      {},
+    ],
+    [
+      "60000000-0000-4000-8000-000000000002",
+      "categories",
+      "Shop by Category",
+      "Explore Japanese beauty and personal care",
+      null,
+      20,
+      false,
+      { cta_label: "View all products", cta_url: "/product" },
+    ],
+    [
+      "60000000-0000-4000-8000-000000000003",
+      "featured",
+      "Today's Best Deals",
+      "Authentic Japanese products at great value",
+      null,
+      30,
+      false,
+      { limit: 6 },
+    ],
+    [
+      "60000000-0000-4000-8000-000000000004",
+      "reviews",
+      "Customer Reviews",
+      "What Kawaii customers say",
+      null,
+      40,
+      false,
+      { limit: 12 },
+    ],
+    [
+      "60000000-0000-4000-8000-000000000005",
+      "richtext",
+      "Authentic Japanese beauty in Bangladesh",
+      null,
+      "<p>Free gift wrapping with notes, responsive customer support, nationwide delivery, and carefully sourced Japanese cosmetics and personal-care products.</p>",
+      50,
+      true,
+      {
+        layout: "simple",
+        image_bucket: "branding",
+        cards: [],
+        eyebrow: "Welcome to Kawaii",
+        cta_label: "Learn about Kawaii",
+        cta_url: "/about-us",
+      },
+    ],
+    [
+      "60000000-0000-4000-8000-000000000006",
+      "promo",
+      null,
+      null,
+      null,
+      60,
+      false,
+      {},
+    ],
+    [
+      "60000000-0000-4000-8000-000000000007",
+      "banner_v2",
+      null,
+      null,
+      null,
+      70,
+      false,
+      {},
+    ],
+    [
+      "60000000-0000-4000-8000-000000000008",
+      "categories_v2",
+      "Shop by Category",
+      null,
+      null,
+      80,
+      false,
+      {},
+    ],
+    [
+      "60000000-0000-4000-8000-000000000009",
+      "featured_v2",
+      "Featured Products",
+      null,
+      null,
+      90,
+      false,
+      {},
+    ],
+    [
+      "60000000-0000-4000-8000-000000000010",
+      "reviews_v2",
+      "Customer Reviews",
+      null,
+      null,
+      100,
+      false,
+      {},
+    ],
+    [
+      "60000000-0000-4000-8000-000000000011",
+      "promo_v2",
+      null,
+      null,
+      null,
+      110,
+      false,
+      {},
+    ],
+    [
+      "60000000-0000-4000-8000-000000000012",
+      "richtext_v2",
+      "About Kawaii",
+      null,
+      null,
+      120,
+      false,
+      { layout: "feature", image_bucket: "branding", cards: [] },
+    ],
   ].map(([id, type, title, subtitle, body, sort, active, config]) => ({
     id,
     type,
@@ -590,10 +773,111 @@ async function main() {
       active: true,
       url: "/product",
     },
+    navbar: {
+      variant: "classic",
+      items: [
+        {
+          id: "categories",
+          kind: "categories",
+          label: "Category",
+          href: "/product",
+        },
+        { id: "about", kind: "link", label: "About", href: "/about-us" },
+        { id: "reviews", kind: "link", label: "Reviews", href: "/reviews" },
+        {
+          id: "contact",
+          kind: "link",
+          label: "Contact",
+          href: "/contact-us",
+        },
+      ],
+      announcement: {
+        text: "Free nationwide delivery on orders over ৳1,500",
+        active: true,
+        url: "/product",
+      },
+      ...(existingCms.navbar && typeof existingCms.navbar === "object"
+        ? existingCms.navbar
+        : {}),
+      copy: {
+        ...KAWAII_NAVBAR_COPY,
+        ...(existingCms.navbar?.copy &&
+        typeof existingCms.navbar.copy === "object"
+          ? existingCms.navbar.copy
+          : {}),
+      },
+      productCardCopy: {
+        ...KAWAII_PRODUCT_CARD_COPY,
+        ...(existingCms.navbar?.productCardCopy &&
+        typeof existingCms.navbar.productCardCopy === "object"
+          ? existingCms.navbar.productCardCopy
+          : {}),
+      },
+    },
+    footer: {
+      variant: "classic",
+      description:
+        "Authentic and affordable Japanese cosmetics, skincare, hair care, and personal care in Bangladesh.",
+      columns: [
+        {
+          id: "shop",
+          title: "Shop",
+          links: [
+            { id: "all-products", label: "All products", href: "/product" },
+            { id: "favorites", label: "Favorites", href: "/wishlist" },
+            { id: "cart", label: "Cart", href: "/cart" },
+          ],
+        },
+        {
+          id: "support",
+          title: "Support",
+          links: [
+            { id: "track-order", label: "Track order", href: "/track-order" },
+            {
+              id: "shipping-returns",
+              label: "Shipping & returns",
+              href: "/refund-policy",
+            },
+            { id: "contact", label: "Contact", href: "/contact-us" },
+          ],
+        },
+        {
+          id: "brand",
+          title: "Brand",
+          links: [
+            { id: "about", label: "About", href: "/about-us" },
+            { id: "reviews", label: "Reviews", href: "/reviews" },
+          ],
+        },
+      ],
+      legalLinks: [
+        { id: "terms", label: "Terms of service", href: "/terms-of-service" },
+        { id: "privacy", label: "Privacy policy", href: "/privacy-policy" },
+        {
+          id: "refund",
+          label: "Shipping & returns",
+          href: "/refund-policy",
+        },
+      ],
+      ...(existingCms.footer && typeof existingCms.footer === "object"
+        ? existingCms.footer
+        : {}),
+      copy: {
+        ...KAWAII_FOOTER_COPY,
+        ...(existingCms.footer?.copy &&
+        typeof existingCms.footer.copy === "object"
+          ? existingCms.footer.copy
+          : {}),
+      },
+    },
     seo: pagesSeo.home,
     pages_seo: pagesSeo,
     currencies: { default: "BDT", enabled: ["BDT"] },
-    deliveryCharges: { insideDhaka: 60, outsideDhaka: 120, freeDelivery: false },
+    deliveryCharges: {
+      insideDhaka: 60,
+      outsideDhaka: 120,
+      freeDelivery: false,
+    },
     chatWidgets: {
       provider: "whatsapp",
       whatsappNumber: "8801608950309",
@@ -782,14 +1066,8 @@ commit;
     },
   };
   const readme = `# Kawaii\n\nProduction storefront: ${sourceUrl}\n\nAdmin: ${sourceUrl}/admin/login\n\nVercel project: \`store-kawaii\`\n\nSupabase project: \`${projectRef}\`\n\nThe storefront content is migrated. Product, category, review, price, and inventory data will be imported separately from the owner-provided CSV.\n\nDNS verification is pending. Privileged values remain blank in \`environment.backup.json\`.\n\n## Local development\n\n\`\`\`bash\ncd frontend/website\nnpm run dev:client -- kawaii\n\`\`\`\n`;
-  writeFileSync(
-    tenantPath,
-    `${JSON.stringify(tenant, null, 2)}\n`,
-  );
-  writeFileSync(
-    deploymentPath,
-    `${JSON.stringify(deployment, null, 2)}\n`,
-  );
+  writeFileSync(tenantPath, `${JSON.stringify(tenant, null, 2)}\n`);
+  writeFileSync(deploymentPath, `${JSON.stringify(deployment, null, 2)}\n`);
   writeFileSync(
     join(clientDirectory, "environment.backup.json"),
     `${JSON.stringify(environmentBackup, null, 2)}\n`,

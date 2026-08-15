@@ -103,6 +103,8 @@ const KAWAII_SECTION_LABELS: Partial<Record<HomepageSectionType, string>> = {
   richtext: "Kawaii Brand Story",
   reviews: "Customer Reviews",
   promo: "Featured Promotion",
+  guarantees: "Shopping Guarantees",
+  studio_notes: "Studio Notes",
 };
 
 function sectionDisplayName(section: HomepageSectionRow, themeId: string) {

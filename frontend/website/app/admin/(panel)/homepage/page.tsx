@@ -56,9 +56,9 @@ export default async function HomepagePage() {
   );
   const transformedProducts = productPage.products.map(transformProduct);
   const selectedProducts = [
-    ...selectHomepageProducts(transformedProducts, 8, 8, "featured"),
-    ...selectHomepageProducts(transformedProducts, 8, 8, "deals"),
-    ...selectHomepageProducts(transformedProducts, 8, 8, "new-arrivals"),
+    ...selectHomepageProducts(transformedProducts, 10, 10, "featured"),
+    ...selectHomepageProducts(transformedProducts, 10, 10, "deals"),
+    ...selectHomepageProducts(transformedProducts, 10, 10, "new-arrivals"),
   ];
   const previewData: HomepageRendererData = {
     banners,

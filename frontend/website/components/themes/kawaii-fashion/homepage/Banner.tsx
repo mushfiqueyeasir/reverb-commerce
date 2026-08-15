@@ -17,14 +17,44 @@ import type { Banner } from "@/utility/getBanners";
 interface KawaiiFashionBannerProps {
   banners: Banner[];
   description?: string | null;
+  editLabel?: string | null;
+  footerNote?: string | null;
+  imageBadge?: string | null;
+  carouselRoleDescription?: string | null;
+  carouselAnnouncementTemplate?: string | null;
+  pauseLabel?: string | null;
+  resumeLabel?: string | null;
+  previousLabel?: string | null;
+  nextLabel?: string | null;
   headingLevel?: "h1" | "h2";
 }
 
 const ROTATION_INTERVAL = 7000;
 
+function announcement(
+  template: string,
+  current: number,
+  total: number,
+  title: string,
+) {
+  return template
+    .replaceAll("{current}", String(current))
+    .replaceAll("{total}", String(total))
+    .replaceAll("{title}", title);
+}
+
 export default function KawaiiFashionBanner({
   banners,
   description,
+  editLabel,
+  footerNote,
+  imageBadge,
+  carouselRoleDescription,
+  carouselAnnouncementTemplate,
+  pauseLabel,
+  resumeLabel,
+  previousLabel,
+  nextLabel,
   headingLevel = "h1",
 }: KawaiiFashionBannerProps) {
   const slides = banners.filter((banner) => banner.title?.trim());
@@ -55,12 +85,25 @@ export default function KawaiiFashionBanner({
   const Heading = headingLevel;
   const title = active.title?.trim();
   if (!title) return null;
-  const subtitle = active.subtitle?.trim() || "New season, softly styled";
-  const blurb =
-    description?.trim() ||
-    "Fresh silhouettes, pretty details, and easy layers chosen for everyday dressing.";
+  const subtitle = active.subtitle?.trim();
+  const blurb = description?.trim();
   const href = safeKawaiiHref(active.ctaUrl, "/product");
-  const ctaLabel = active.ctaLabel?.trim() || "Shop the collection";
+  const ctaLabel = active.ctaLabel?.trim();
+  const normalizedEditLabel = editLabel?.trim();
+  const normalizedFooterNote = footerNote?.trim();
+  const normalizedImageBadge = imageBadge?.trim();
+  const normalizedCarouselRoleDescription = carouselRoleDescription?.trim();
+  const normalizedAnnouncementTemplate = carouselAnnouncementTemplate?.trim();
+  const normalizedPauseLabel = pauseLabel?.trim();
+  const normalizedResumeLabel = resumeLabel?.trim();
+  const normalizedPreviousLabel = previousLabel?.trim();
+  const normalizedNextLabel = nextLabel?.trim();
+  const hasRotationControl = Boolean(
+    normalizedPauseLabel && normalizedResumeLabel,
+  );
+  const hasControls = Boolean(
+    hasRotationControl || normalizedPreviousLabel || normalizedNextLabel,
+  );
   const desktopImage = active.imageUrl || active.mobileImageUrl;
   const mobileImage = active.mobileImageUrl || active.imageUrl;
   const desktopSrcSet = desktopImage
@@ -79,8 +122,8 @@ export default function KawaiiFashionBanner({
   return (
     <section
       className="relative isolate overflow-hidden bg-background px-4 py-6 text-foreground sm:px-6 sm:py-8 lg:px-10 lg:py-10"
-      aria-roledescription="carousel"
-      aria-labelledby={labelId}
+      aria-roledescription={normalizedCarouselRoleDescription || undefined}
+      aria-labelledby={normalizedEditLabel ? labelId : undefined}
       onMouseEnter={() => setInteracting(true)}
       onMouseLeave={() => setInteracting(false)}
       onFocusCapture={() => setInteracting(true)}
@@ -90,44 +133,61 @@ export default function KawaiiFashionBanner({
         }
       }}
     >
-      <p className="sr-only" aria-live={isPlaying ? "off" : "polite"}>
-        {`Slide ${activeIndex + 1} of ${slides.length}: ${title}`}
-      </p>
+      {normalizedAnnouncementTemplate ? (
+        <p className="sr-only" aria-live={isPlaying ? "off" : "polite"}>
+          {announcement(
+            normalizedAnnouncementTemplate,
+            activeIndex + 1,
+            slides.length,
+            title,
+          )}
+        </p>
+      ) : null}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-2/3 bg-[radial-gradient(circle_at_18%_16%,color-mix(in_srgb,var(--primary)_13%,transparent),transparent_38%)]" />
-      <div className="relative mx-auto grid max-w-[1500px] overflow-hidden border border-border bg-surface lg:min-h-[720px] lg:grid-cols-[0.88fr_1.12fr]">
+      <div className="relative mx-auto grid max-w-[1520px] overflow-hidden border border-border bg-surface lg:min-h-[720px] lg:grid-cols-[0.88fr_1.12fr]">
         <div className="relative z-10 flex flex-col justify-between px-5 py-6 sm:px-10 sm:py-10 lg:px-14 lg:py-14 xl:px-20">
           <div className="flex items-center justify-between gap-4 border-b border-border pb-4 text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground sm:text-[11px]">
-            <span id={labelId}>Kawaii fashion edit</span>
+            {normalizedEditLabel ? (
+              <span id={labelId}>{normalizedEditLabel}</span>
+            ) : null}
             <span>{String(activeIndex + 1).padStart(2, "0")}</span>
           </div>
           <div className="py-8 sm:py-12 lg:py-16">
-            <p className="mb-5 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-primary">
-              <span
-                className="size-1.5 rounded-full bg-primary"
-                aria-hidden="true"
-              />
-              {subtitle}
-            </p>
+            {subtitle ? (
+              <p className="mb-5 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-primary">
+                <span
+                  className="size-1.5 rounded-full bg-primary"
+                  aria-hidden="true"
+                />
+                {subtitle}
+              </p>
+            ) : null}
             <Heading className="max-w-[11ch] text-balance font-display text-[clamp(2.75rem,12vw,6.7rem)] font-semibold leading-[0.9] tracking-[-0.06em]">
               {title}
             </Heading>
-            <p className="mt-6 max-w-lg text-sm leading-7 text-muted-foreground sm:text-base">
-              {blurb}
-            </p>
-            <Link
-              href={href}
-              className="group mt-8 inline-flex min-h-12 items-center gap-4 bg-primary px-6 text-xs font-bold uppercase tracking-[0.18em] text-primary-foreground transition-colors hover:bg-foreground hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-surface motion-reduce:transition-none"
-            >
-              {ctaLabel}
-              <ArrowRight
-                className="size-4 transition-transform group-hover:translate-x-1 motion-reduce:transition-none"
-                aria-hidden="true"
-              />
-            </Link>
+            {blurb ? (
+              <p className="mt-6 max-w-lg text-sm leading-7 text-muted-foreground sm:text-base">
+                {blurb}
+              </p>
+            ) : null}
+            {ctaLabel ? (
+              <Link
+                href={href}
+                className="group mt-8 inline-flex min-h-12 items-center gap-4 bg-primary px-6 text-xs font-bold uppercase tracking-[0.18em] text-primary-foreground transition-colors hover:bg-foreground hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-surface motion-reduce:transition-none"
+              >
+                {ctaLabel}
+                <ArrowRight
+                  className="size-4 transition-transform group-hover:translate-x-1 motion-reduce:transition-none"
+                  aria-hidden="true"
+                />
+              </Link>
+            ) : null}
           </div>
-          <p className="max-w-sm border-t border-border pt-4 text-[10px] font-medium uppercase leading-5 tracking-[0.2em] text-muted-foreground">
-            Thoughtfully selected · Easy everyday styling
-          </p>
+          {normalizedFooterNote ? (
+            <p className="max-w-sm border-t border-border pt-4 text-[10px] font-medium uppercase leading-5 tracking-[0.2em] text-muted-foreground">
+              {normalizedFooterNote}
+            </p>
+          ) : null}
         </div>
 
         <div className="relative min-h-[360px] overflow-hidden bg-card sm:min-h-[480px] lg:min-h-full">
@@ -150,19 +210,21 @@ export default function KawaiiFashionBanner({
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_26%,color-mix(in_srgb,var(--primary)_25%,transparent),transparent_28%),linear-gradient(145deg,var(--card),var(--surface))]" />
           )}
           <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-foreground/30 to-transparent" />
-          <span className="absolute right-5 top-5 border border-background/65 bg-background/85 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground backdrop-blur-sm sm:right-8 sm:top-8">
-            The new mood
-          </span>
-          {hasMultiple ? (
+          {normalizedImageBadge ? (
+            <span className="absolute right-5 top-5 border border-background/65 bg-background/85 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground backdrop-blur-sm sm:right-8 sm:top-8">
+              {normalizedImageBadge}
+            </span>
+          ) : null}
+          {hasMultiple && hasControls ? (
             <div className="absolute bottom-5 right-5 flex items-center gap-2 sm:bottom-8 sm:right-8">
-              {!reduceMotion ? (
+              {!reduceMotion && hasRotationControl ? (
                 <button
                   type="button"
                   data-preview-interactive
                   onClick={() => setPaused((current) => !current)}
                   className="grid size-11 place-items-center border border-background/70 bg-background/90 text-foreground transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none"
                   aria-label={
-                    paused ? "Resume slide rotation" : "Pause slide rotation"
+                    paused ? normalizedResumeLabel : normalizedPauseLabel
                   }
                   aria-pressed={paused}
                 >
@@ -173,24 +235,28 @@ export default function KawaiiFashionBanner({
                   )}
                 </button>
               ) : null}
-              <button
-                type="button"
-                data-preview-interactive
-                onClick={() => selectSlide(activeIndex - 1)}
-                className="grid size-11 place-items-center border border-background/70 bg-background/90 text-foreground transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none"
-                aria-label="Previous collection"
-              >
-                <ChevronLeft className="size-4" aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                data-preview-interactive
-                onClick={() => selectSlide(activeIndex + 1)}
-                className="grid size-11 place-items-center border border-background/70 bg-background/90 text-foreground transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none"
-                aria-label="Next collection"
-              >
-                <ChevronRight className="size-4" aria-hidden="true" />
-              </button>
+              {normalizedPreviousLabel ? (
+                <button
+                  type="button"
+                  data-preview-interactive
+                  onClick={() => selectSlide(activeIndex - 1)}
+                  className="grid size-11 place-items-center border border-background/70 bg-background/90 text-foreground transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none"
+                  aria-label={normalizedPreviousLabel}
+                >
+                  <ChevronLeft className="size-4" aria-hidden="true" />
+                </button>
+              ) : null}
+              {normalizedNextLabel ? (
+                <button
+                  type="button"
+                  data-preview-interactive
+                  onClick={() => selectSlide(activeIndex + 1)}
+                  className="grid size-11 place-items-center border border-background/70 bg-background/90 text-foreground transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none"
+                  aria-label={normalizedNextLabel}
+                >
+                  <ChevronRight className="size-4" aria-hidden="true" />
+                </button>
+              ) : null}
             </div>
           ) : null}
         </div>

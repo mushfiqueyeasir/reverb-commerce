@@ -343,9 +343,9 @@ export function SettingsForm({
       gtm_id: orNull(gtmId),
       analytics_enabled: analyticsEnabled,
       security_enabled: false,
-      announcement_text: null,
-      announcement_active: false,
-      announcement_url: null,
+      announcement_text: settings.announcement_text ?? null,
+      announcement_active: settings.announcement_active ?? false,
+      announcement_url: settings.announcement_url ?? null,
       seo: pagesSeo.home,
       pages_seo: pagesSeo,
     };

@@ -14,16 +14,32 @@ interface KawaiiFashionFeaturedProductsProps {
   eyebrow?: string | null;
   ctaLabel?: string | null;
   ctaHref?: string;
+  soldOutBadge?: string | null;
+  specialPriceBadge?: string | null;
+  defaultBadge?: string | null;
+  listLabel?: string | null;
+  uncategorizedLabelTemplate?: string | null;
 }
 
-function productBadge(product: TransformedProduct) {
+function productBadge(
+  product: TransformedProduct,
+  labels: {
+    soldOut?: string;
+    specialPrice?: string;
+    default?: string;
+  },
+) {
   const stock = product.stock.reduce(
     (total, item) => total + Math.max(0, item.quantity || 0),
     0,
   );
-  if (stock === 0) return "Sold out";
-  if (product.originalPrice > product.currentPrice) return "Special price";
-  return "New favorite";
+  if (stock === 0) return labels.soldOut;
+  if (product.originalPrice > product.currentPrice) return labels.specialPrice;
+  return labels.default;
+}
+
+function numberedLabel(template: string, index: number) {
+  return template.replaceAll("{number}", String(index + 1).padStart(2, "0"));
 }
 
 export default function KawaiiFashionFeaturedProducts({
@@ -33,30 +49,46 @@ export default function KawaiiFashionFeaturedProducts({
   eyebrow,
   ctaLabel,
   ctaHref = "/product",
+  soldOutBadge,
+  specialPriceBadge,
+  defaultBadge,
+  listLabel,
+  uncategorizedLabelTemplate,
 }: KawaiiFashionFeaturedProductsProps) {
   const { format } = useCurrency();
+  const badgeLabels = {
+    soldOut: soldOutBadge?.trim(),
+    specialPrice: specialPriceBadge?.trim(),
+    default: defaultBadge?.trim(),
+  };
+  const normalizedListLabel = listLabel?.trim();
+  const normalizedUncategorizedTemplate = uncategorizedLabelTemplate?.trim();
 
   if (products.length === 0) return null;
 
   return (
     <section className="relative bg-surface py-16 sm:py-24 lg:py-32">
-      <div className="mx-auto max-w-[1500px] px-5 sm:px-6 lg:px-10">
+      <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
         <SectionHeading
-          eyebrow={eyebrow || "Just in"}
-          title={title || "A little wardrobe refresh"}
+          eyebrow={eyebrow}
+          title={title}
           subtitle={subtitle}
           ctaLabel={ctaLabel}
           ctaHref={ctaHref}
         />
         <ol
-          className="grid grid-cols-2 gap-x-3 gap-y-9 sm:gap-x-5 lg:grid-cols-4 lg:gap-x-7 lg:gap-y-12"
-          aria-label="Featured products"
+          className="grid grid-cols-2 gap-x-3 gap-y-9 sm:gap-x-5 lg:grid-cols-5 lg:gap-x-7 lg:gap-y-12"
+          aria-label={normalizedListLabel || undefined}
         >
           {products.map((product, index) => {
             const image = product.image.trim();
             const hoverImage = product.hoverImage?.trim();
             const reduced = product.originalPrice > product.currentPrice;
-            const category = product.categories[0]?.categoryName;
+            const category = product.categories[0]?.categoryName?.trim();
+            const badge = productBadge(product, badgeLabels);
+            const uncategorizedLabel = normalizedUncategorizedTemplate
+              ? numberedLabel(normalizedUncategorizedTemplate, index)
+              : undefined;
 
             return (
               <li key={product.id}>
@@ -71,7 +103,7 @@ export default function KawaiiFashionFeaturedProducts({
                           src={image}
                           alt={product.title}
                           fill
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                           className="object-cover transition-transform duration-700 group-hover:scale-[1.025] motion-reduce:transition-none"
                         />
                       ) : (
@@ -84,22 +116,25 @@ export default function KawaiiFashionFeaturedProducts({
                           src={hoverImage}
                           alt=""
                           fill
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                           className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100 motion-reduce:transition-none"
                         />
                       ) : null}
-                      <span className="absolute left-3 top-3 bg-background/90 px-2.5 py-1.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-foreground backdrop-blur-sm sm:left-4 sm:top-4 sm:text-[10px]">
-                        {productBadge(product)}
-                      </span>
+                      {badge ? (
+                        <span className="absolute left-3 top-3 bg-background/90 px-2.5 py-1.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-foreground backdrop-blur-sm sm:left-4 sm:top-4 sm:text-[10px]">
+                          {badge}
+                        </span>
+                      ) : null}
                       <span className="absolute bottom-3 right-3 grid size-10 place-items-center bg-primary text-primary-foreground transition-transform group-hover:-translate-y-1 group-hover:translate-x-1 motion-reduce:transition-none sm:bottom-4 sm:right-4">
                         <ArrowUpRight className="size-4" aria-hidden="true" />
                       </span>
                     </div>
                     <div className="pt-4">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                        {category ||
-                          `Look ${String(index + 1).padStart(2, "0")}`}
-                      </p>
+                      {category || uncategorizedLabel ? (
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                          {category || uncategorizedLabel}
+                        </p>
+                      ) : null}
                       <h3 className="mt-1 line-clamp-2 font-display text-base font-semibold leading-snug tracking-[-0.025em] text-foreground sm:text-lg">
                         {product.title}
                       </h3>

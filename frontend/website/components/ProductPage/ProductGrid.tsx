@@ -21,7 +21,7 @@ export default function ProductGrid({
     <div
       className={
         variant === "kawaii-fashion"
-          ? "grid grid-cols-2 gap-x-3 gap-y-9 sm:gap-x-5 lg:grid-cols-4 lg:gap-x-7 lg:gap-y-12"
+          ? "grid grid-cols-2 gap-x-3 gap-y-9 sm:gap-x-5 lg:grid-cols-5 lg:gap-x-7 lg:gap-y-12"
           : "grid grid-cols-2 gap-x-3 gap-y-6 sm:gap-x-6 sm:gap-y-8 lg:grid-cols-3 xl:grid-cols-5"
       }
     >

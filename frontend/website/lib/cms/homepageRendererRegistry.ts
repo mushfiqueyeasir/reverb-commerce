@@ -22,7 +22,7 @@ export const LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS = {
   reviews_v2: "reviews-classic",
   promo_v2: "promo-classic",
   richtext_v2: "richtext-classic",
-} as const satisfies Record<HomepageSectionType, string>;
+} as const satisfies HomepageRendererIdMapping;
 
 export const V2_DESIGN_HOMEPAGE_RENDERER_PATHS = {
   banner: "banner-v2",
@@ -39,7 +39,7 @@ export const V2_DESIGN_HOMEPAGE_RENDERER_PATHS = {
   reviews_v2: "reviews-v2",
   promo_v2: "promo-v2",
   richtext_v2: "richtext-v2",
-} as const satisfies Record<HomepageSectionType, string>;
+} as const satisfies HomepageRendererIdMapping;
 
 export const KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS = {
   banner: "kawaii-fashion.banner",
@@ -56,7 +56,9 @@ export const KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS = {
   reviews_v2: "kawaii-fashion.reviews",
   promo_v2: "kawaii-fashion.promo",
   richtext_v2: "kawaii-fashion.story",
-} as const satisfies Record<HomepageSectionType, string>;
+  guarantees: "kawaii-fashion.guarantees",
+  studio_notes: "kawaii-fashion.studio-notes",
+} as const satisfies HomepageRendererIdMapping;
 
 export function resolveHomepageRendererId(
   type: unknown,
@@ -65,9 +67,10 @@ export function resolveHomepageRendererId(
   const normalizedType = normalizeHomepageSectionType(type);
   if (!normalizedType) return null;
   const rendererId = mapping[normalizedType];
-  return typeof rendererId === "string" && rendererId.trim()
-    ? rendererId
-    : LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS[normalizedType];
+  if (typeof rendererId === "string" && rendererId.trim()) return rendererId;
+  const legacyMapping: HomepageRendererIdMapping =
+    LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS;
+  return legacyMapping[normalizedType] ?? null;
 }
 
 export function resolveHomepageRenderer<Renderer>(
@@ -78,10 +81,12 @@ export function resolveHomepageRenderer<Renderer>(
   const normalizedType = normalizeHomepageSectionType(type);
   if (!normalizedType) return null;
   const rendererId = resolveHomepageRendererId(normalizedType, mapping);
-  const fallbackId = LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS[normalizedType];
+  const legacyMapping: HomepageRendererIdMapping =
+    LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS;
+  const fallbackId = legacyMapping[normalizedType];
   return (
     (rendererId ? registry[rendererId] : undefined) ??
-    registry[fallbackId] ??
+    (fallbackId ? registry[fallbackId] : undefined) ??
     null
   );
 }

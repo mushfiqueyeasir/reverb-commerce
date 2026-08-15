@@ -125,7 +125,9 @@ with seed as (
         jsonb_build_object('id', '60000000-0000-4000-8000-000000000011', 'type', 'promo_v2', 'title', 'New-store offer', 'subtitle', 'Replace this placeholder promotion before launch', 'body', null, 'sort', 110, 'active', false, 'config', '{}'::jsonb),
         jsonb_build_object('id', '60000000-0000-4000-8000-000000000012', 'type', 'richtext_v2', 'title', 'Built for everyday use', 'subtitle', null, 'body', '<p>This is placeholder homepage content. Tell customers what makes the store distinctive.</p>', 'sort', 120, 'active', false, 'config', jsonb_build_object('layout', 'feature', 'image_bucket', 'branding', 'cards', '[]'::jsonb)),
         jsonb_build_object('id', '60000000-0000-4000-8000-000000000013', 'type', 'deals', 'title', 'Today''s Best Deals', 'subtitle', 'Save on selected products', 'body', null, 'sort', 130, 'active', false, 'config', jsonb_build_object('limit', 5, 'cta_label', 'View all products', 'cta_url', '/product')),
-        jsonb_build_object('id', '60000000-0000-4000-8000-000000000014', 'type', 'new_arrivals', 'title', 'New Arrival Products', 'subtitle', 'Discover the latest additions', 'body', null, 'sort', 140, 'active', false, 'config', jsonb_build_object('limit', 5, 'cta_label', 'View all products', 'cta_url', '/product'))
+        jsonb_build_object('id', '60000000-0000-4000-8000-000000000014', 'type', 'new_arrivals', 'title', 'New Arrival Products', 'subtitle', 'Discover the latest additions', 'body', null, 'sort', 140, 'active', false, 'config', jsonb_build_object('limit', 5, 'cta_label', 'View all products', 'cta_url', '/product')),
+        jsonb_build_object('id', '60000000-0000-4000-8000-000000000015', 'type', 'guarantees', 'title', null, 'subtitle', null, 'body', null, 'sort', 150, 'active', false, 'config', jsonb_build_object('accessible_label', 'Shopping guarantees', 'items', jsonb_build_array(jsonb_build_object('title', 'Carefully packed', 'body', 'Prepared with attention, from us to you.'), jsonb_build_object('title', 'Secure checkout', 'body', 'A simple and protected shopping experience.'), jsonb_build_object('title', 'Here to help', 'body', 'Friendly support before and after your order.')))),
+        jsonb_build_object('id', '60000000-0000-4000-8000-000000000016', 'type', 'studio_notes', 'title', 'New edits, style stories, and lovely little surprises.', 'subtitle', 'Join our list to hear about fresh arrivals and special collections.', 'body', null, 'sort', 160, 'active', false, 'config', jsonb_build_object('eyebrow', 'Notes from the studio', 'cta_label', 'Join our list', 'cta_url', '/contact-us'))
       ),
       'about_sections', jsonb_build_array(
         jsonb_build_object('id', 'about-hero', 'type', 'hero', 'title', 'Hero', 'sort', 0, 'active', true, 'config', jsonb_build_object('image_path', 'store-template/v1/home/hero-desktop.png', 'image_bucket', 'banner')),
@@ -148,6 +150,70 @@ with seed as (
         'refund', jsonb_build_object('slug', 'refund', 'title', 'Shipping &amp; Returns', 'body_html', '<p>Placeholder shipping and returns policy. Add the merchant''s actual timeframes, costs, and eligibility rules before launch.</p>', 'updated_at', '1970-01-01T00:00:00Z')
       ),
       'announcement', jsonb_build_object('text', 'Welcome to our new store', 'active', true, 'url', '/product'),
+      'navbar', jsonb_build_object(
+        'variant', 'classic',
+        'items', jsonb_build_array(
+          jsonb_build_object('id', 'categories', 'kind', 'categories', 'label', 'Category', 'href', '/product'),
+          jsonb_build_object('id', 'about', 'kind', 'link', 'label', 'About', 'href', '/about-us'),
+          jsonb_build_object('id', 'reviews', 'kind', 'link', 'label', 'Reviews', 'href', '/reviews'),
+          jsonb_build_object('id', 'contact', 'kind', 'link', 'label', 'Contact', 'href', '/contact-us')
+        ),
+        'announcement', jsonb_build_object('text', 'Welcome to our new store', 'active', true, 'url', '/product'),
+        'copy', jsonb_build_object(
+          'primaryNavigationAriaLabel', 'Primary navigation',
+          'desktopSearchAriaLabel', 'Search products',
+          'desktopFavoritesAriaLabel', 'Favorites',
+          'desktopBagAriaLabel', 'Shopping bag',
+          'homeLinkAriaLabelTemplate', '{storeName} home',
+          'shopAllTemplate', 'Shop all {label}',
+          'collectionsCountTemplate', '{count} collections',
+          'mobileNavigationAriaLabel', 'Mobile shopping navigation',
+          'mobileHomeLabel', 'Home',
+          'mobileSavedLabel', 'Saved',
+          'mobileShopLabel', 'Shop',
+          'mobileBagLabel', 'Bag',
+          'mobileSearchLabel', 'Search',
+          'mobileSearchAriaLabel', 'Search products',
+          'countOverflowLabel', '9+',
+          'collectionsLabel', 'Collections',
+          'shopByCategoryLabel', 'Shop by category',
+          'primaryCategoryLabel', 'Primary category',
+          'exploreLabel', 'Explore',
+          'emptyCollectionLabel', 'Explore all products in this collection.',
+          'compactMenuTitle', 'Shop categories',
+          'compactMenuDescription', 'Find your collection.'
+        ),
+        'productCardCopy', jsonb_build_object(
+          'addFavoriteAriaLabel', 'Add to favorites',
+          'removeFavoriteAriaLabel', 'Remove from favorites',
+          'favoriteSavedToast', 'Saved to favorites',
+          'favoriteRemovedToast', 'Removed from favorites',
+          'soldOutButtonLabel', 'Sold Out',
+          'quickAddButtonLabel', 'Quick Add'
+        )
+      ),
+      'footer', jsonb_build_object(
+        'variant', 'classic',
+        'description', 'Browse products, discover new arrivals, and shop securely online.',
+        'columns', jsonb_build_array(
+          jsonb_build_object('id', 'shop', 'title', 'Shop', 'links', jsonb_build_array(jsonb_build_object('id', 'all-products', 'label', 'All products', 'href', '/product'), jsonb_build_object('id', 'favorites', 'label', 'Favorites', 'href', '/wishlist'), jsonb_build_object('id', 'cart', 'label', 'Cart', 'href', '/cart'))),
+          jsonb_build_object('id', 'support', 'title', 'Support', 'links', jsonb_build_array(jsonb_build_object('id', 'track-order', 'label', 'Track order', 'href', '/track-order'), jsonb_build_object('id', 'shipping-returns', 'label', 'Shipping & returns', 'href', '/refund-policy'), jsonb_build_object('id', 'contact', 'label', 'Contact', 'href', '/contact-us'))),
+          jsonb_build_object('id', 'brand', 'title', 'Brand', 'links', jsonb_build_array(jsonb_build_object('id', 'about', 'label', 'About', 'href', '/about-us'), jsonb_build_object('id', 'reviews', 'label', 'Reviews', 'href', '/reviews')))
+        ),
+        'legalLinks', jsonb_build_array(
+          jsonb_build_object('id', 'terms', 'label', 'Terms of service', 'href', '/terms-of-service'),
+          jsonb_build_object('id', 'privacy', 'label', 'Privacy policy', 'href', '/privacy-policy'),
+          jsonb_build_object('id', 'refund', 'label', 'Shipping & returns', 'href', '/refund-policy')
+        ),
+        'copy', jsonb_build_object(
+          'homeLinkAriaLabelTemplate', '{storeName} home',
+          'copyrightTemplate', '© {year} {storeName}',
+          'facebookAriaLabel', 'Facebook',
+          'instagramAriaLabel', 'Instagram',
+          'twitterAriaLabel', 'X',
+          'youtubeAriaLabel', 'YouTube'
+        )
+      ),
       'seo', jsonb_build_object(
         'title', context.store_name || ' | Shop Online',
         'description', 'Browse sample products and replace this search description before launch.',
@@ -188,11 +254,31 @@ set
   announcement_text = 'Welcome to our new store',
   announcement_active = true,
   announcement_url = '/product',
-  socials = coalesce(settings.socials, '{}'::jsonb) ||
+  socials = jsonb_set(
     case
-      when coalesce(settings.socials, '{}'::jsonb) ? '_cms' then '{}'::jsonb
-      else jsonb_build_object('_cms', seed.cms)
-    end
+      when jsonb_typeof(settings.socials) = 'object' then settings.socials
+      else '{}'::jsonb
+    end,
+    '{_cms}',
+    seed.cms ||
+      case
+        when jsonb_typeof(settings.socials -> '_cms') = 'object' then settings.socials -> '_cms'
+        else '{}'::jsonb
+      end ||
+      jsonb_build_object(
+        'navbar',
+        (
+          case
+            when jsonb_typeof(settings.socials #> '{_cms,navbar}') = 'object' then settings.socials #> '{_cms,navbar}'
+            else seed.cms -> 'navbar'
+          end
+        ) || jsonb_build_object(
+          'announcement',
+          seed.cms #> '{navbar,announcement}'
+        )
+      ),
+    true
+  )
 from seed
 where settings.id = 1;
 
@@ -341,7 +427,7 @@ on conflict do nothing;
 delete from public.homepage_sections section
 using store_template_context context
 where context.should_seed
-  and (select count(*) from public.homepage_sections) = 14
+  and (select count(*) from public.homepage_sections) = 16
   and (select count(*) from public.homepage_sections where type = 'banner') = 1
   and (select count(*) from public.homepage_sections where type = 'categories') = 1
   and (select count(*) from public.homepage_sections where type = 'featured') = 1
@@ -356,11 +442,13 @@ where context.should_seed
   and (select count(*) from public.homepage_sections where type = 'richtext_v2') = 1
   and (select count(*) from public.homepage_sections where type = 'deals') = 1
   and (select count(*) from public.homepage_sections where type = 'new_arrivals') = 1
+  and (select count(*) from public.homepage_sections where type = 'guarantees') = 1
+  and (select count(*) from public.homepage_sections where type = 'studio_notes') = 1
   and not exists (
     select 1
     from public.homepage_sections existing
     where existing.body is not null
-       or (existing.type not in ('deals', 'new_arrivals') and existing.config <> '{}'::jsonb)
+       or (existing.type not in ('deals', 'new_arrivals', 'guarantees', 'studio_notes') and existing.config <> '{}'::jsonb)
        or not (
          (existing.type = 'banner' and existing.title is null and existing.subtitle is null and existing.sort = 10 and existing.active)
          or (existing.type = 'categories' and existing.title = 'Shop by Category' and existing.subtitle = 'Find your fit across every collection' and existing.sort = 20 and existing.active)
@@ -375,8 +463,10 @@ where context.should_seed
          or (existing.type = 'promo_v2' and existing.title is null and existing.subtitle is null and existing.sort = 47 and not existing.active)
          or (existing.type = 'richtext_v2' and existing.title = 'Our Story' and existing.subtitle is null and existing.sort = 48 and not existing.active)
          or (existing.type = 'deals' and existing.title = 'Today''s Best Deals' and existing.subtitle = 'Save on selected products' and existing.sort = 49 and not existing.active and existing.config = '{"limit":4,"cta_label":"View all products","cta_url":"/product"}'::jsonb)
-         or (existing.type = 'new_arrivals' and existing.title = 'New Arrival Products' and existing.subtitle = 'Discover the latest additions' and existing.sort = 50 and not existing.active and existing.config = '{"limit":4,"cta_label":"View all products","cta_url":"/product"}'::jsonb)
-       )
+          or (existing.type = 'new_arrivals' and existing.title = 'New Arrival Products' and existing.subtitle = 'Discover the latest additions' and existing.sort = 50 and not existing.active and existing.config = '{"limit":4,"cta_label":"View all products","cta_url":"/product"}'::jsonb)
+          or (existing.type = 'guarantees' and existing.title is null and existing.subtitle is null and existing.sort = 51 and not existing.active and existing.config = '{"accessible_label":"Shopping guarantees","items":[{"title":"Carefully packed","body":"Prepared with attention, from us to you."},{"title":"Secure checkout","body":"A simple and protected shopping experience."},{"title":"Here to help","body":"Friendly support before and after your order."}]}'::jsonb)
+          or (existing.type = 'studio_notes' and existing.title = 'New edits, style stories, and lovely little surprises.' and existing.subtitle = 'Join our list to hear about fresh arrivals and special collections.' and existing.sort = 52 and not existing.active and existing.config = '{"eyebrow":"Notes from the studio","cta_label":"Join our list","cta_url":"/contact-us"}'::jsonb)
+        )
   );
 
 insert into public.homepage_sections (
@@ -398,7 +488,9 @@ from (values
   ('60000000-0000-4000-8000-000000000011'::uuid, 'promo_v2', 'New-store offer', 'Replace this placeholder promotion before launch', null, 110, false, '{}'::jsonb),
   ('60000000-0000-4000-8000-000000000012'::uuid, 'richtext_v2', 'Built for everyday use', null, '<p>This is placeholder homepage content. Tell customers what makes the store distinctive.</p>', 120, false, '{"layout":"feature","image_bucket":"branding","cards":[]}'::jsonb),
   ('60000000-0000-4000-8000-000000000013'::uuid, 'deals', 'Today''s Best Deals', 'Save on selected products', null, 130, false, '{"limit":5,"cta_label":"View all products","cta_url":"/product"}'::jsonb),
-  ('60000000-0000-4000-8000-000000000014'::uuid, 'new_arrivals', 'New Arrival Products', 'Discover the latest additions', null, 140, false, '{"limit":5,"cta_label":"View all products","cta_url":"/product"}'::jsonb)
+  ('60000000-0000-4000-8000-000000000014'::uuid, 'new_arrivals', 'New Arrival Products', 'Discover the latest additions', null, 140, false, '{"limit":5,"cta_label":"View all products","cta_url":"/product"}'::jsonb),
+  ('60000000-0000-4000-8000-000000000015'::uuid, 'guarantees', null, null, null, 150, false, '{"accessible_label":"Shopping guarantees","items":[{"title":"Carefully packed","body":"Prepared with attention, from us to you."},{"title":"Secure checkout","body":"A simple and protected shopping experience."},{"title":"Here to help","body":"Friendly support before and after your order."}]}'::jsonb),
+  ('60000000-0000-4000-8000-000000000016'::uuid, 'studio_notes', 'New edits, style stories, and lovely little surprises.', 'Join our list to hear about fresh arrivals and special collections.', null, 160, false, '{"eyebrow":"Notes from the studio","cta_label":"Join our list","cta_url":"/contact-us"}'::jsonb)
 ) as section(id, type, title, subtitle, body, sort, active, config)
 cross join store_template_context context
 where context.should_seed

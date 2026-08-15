@@ -316,8 +316,13 @@ export type HomepageSectionV2Type =
 
 export type HomepageProductSectionType = "deals" | "new_arrivals";
 
+export type HomepageSupportSectionType = "guarantees" | "studio_notes";
+
 export type HomepageSectionType =
-  HomepageSectionV1Type | HomepageSectionV2Type | HomepageProductSectionType;
+  | HomepageSectionV1Type
+  | HomepageSectionV2Type
+  | HomepageProductSectionType
+  | HomepageSupportSectionType;
 
 export const HOMEPAGE_SECTION_TYPES: HomepageSectionType[] = [
   "banner",
@@ -334,6 +339,8 @@ export const HOMEPAGE_SECTION_TYPES: HomepageSectionType[] = [
   "reviews_v2",
   "promo_v2",
   "richtext_v2",
+  "guarantees",
+  "studio_notes",
 ];
 
 export interface BannerStatItem {
@@ -360,6 +367,43 @@ export const DEFAULT_BANNER_MARQUEE: string[] = [
 export const DEFAULT_BANNER_DESCRIPTION =
   "Discover thoughtfully selected products made for dependable everyday use.";
 
+const DEFAULT_KAWAII_BANNER_LABELS = {
+  edit_label: "Kawaii fashion edit",
+  footer_note: "Thoughtfully selected · Easy everyday styling",
+  image_badge: "The new mood",
+  carousel_role_description: "carousel",
+  carousel_announcement_template: "Slide {current} of {total}: {title}",
+  pause_label: "Pause slide rotation",
+  resume_label: "Resume slide rotation",
+  previous_label: "Previous collection",
+  next_label: "Next collection",
+};
+
+const DEFAULT_KAWAII_PRODUCT_LABELS = {
+  sold_out_badge: "Sold out",
+  special_price_badge: "Special price",
+  default_badge: "New favorite",
+  product_list_label: "Featured products",
+  uncategorized_label_template: "Look {number}",
+};
+
+const DEFAULT_KAWAII_REVIEW_LABELS = {
+  customer_fallback: "Verified customer",
+  body_fallback: "A lovely piece that feels just right.",
+  item_label_template: "Note {number}",
+  verified_label: "Verified review",
+  rating_aria_template: "{rating} out of {maximum} stars",
+};
+
+const DEFAULT_KAWAII_PROMO_LABELS = {
+  kicker: "A special little something",
+  limited_label: "Limited edit",
+  discount_suffix: "off",
+  image_eyebrow: "This week’s pick",
+  image_title: "Wear it your way",
+  cta_fallback_label: "Shop the edit",
+};
+
 export interface HomepageSectionRow {
   id: string;
   type: HomepageSectionType;
@@ -385,6 +429,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     active: true,
     config: {
       description: DEFAULT_BANNER_DESCRIPTION,
+      ...DEFAULT_KAWAII_BANNER_LABELS,
       show_marquee: true,
       stats: DEFAULT_BANNER_STATS,
       marquee_items: DEFAULT_BANNER_MARQUEE,
@@ -414,6 +459,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     active: true,
     config: {
       limit: 5,
+      ...DEFAULT_KAWAII_PRODUCT_LABELS,
       cta_label: "View all products",
       cta_url: "/product",
     },
@@ -428,7 +474,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     body: null,
     sort: 3,
     active: true,
-    config: {},
+    config: { ...DEFAULT_KAWAII_REVIEW_LABELS },
     created_at: new Date(0).toISOString(),
     updated_at: new Date(0).toISOString(),
   },
@@ -440,7 +486,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     body: null,
     sort: 4,
     active: true,
-    config: {},
+    config: { ...DEFAULT_KAWAII_PROMO_LABELS },
     created_at: new Date(0).toISOString(),
     updated_at: new Date(0).toISOString(),
   },
@@ -464,7 +510,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     body: null,
     sort: 6,
     active: false,
-    config: {},
+    config: { ...DEFAULT_KAWAII_BANNER_LABELS },
     created_at: new Date(0).toISOString(),
     updated_at: new Date(0).toISOString(),
   },
@@ -490,6 +536,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     active: false,
     config: {
       limit: 6,
+      ...DEFAULT_KAWAII_PRODUCT_LABELS,
       cta_label: "View all products",
       cta_url: "/product",
     },
@@ -504,7 +551,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     body: null,
     sort: 9,
     active: false,
-    config: {},
+    config: { ...DEFAULT_KAWAII_REVIEW_LABELS },
     created_at: new Date(0).toISOString(),
     updated_at: new Date(0).toISOString(),
   },
@@ -516,7 +563,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     body: null,
     sort: 10,
     active: false,
-    config: {},
+    config: { ...DEFAULT_KAWAII_PROMO_LABELS },
     created_at: new Date(0).toISOString(),
     updated_at: new Date(0).toISOString(),
   },
@@ -542,6 +589,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     active: false,
     config: {
       limit: 5,
+      ...DEFAULT_KAWAII_PRODUCT_LABELS,
       cta_label: "View all products",
       cta_url: "/product",
     },
@@ -558,8 +606,54 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSectionRow[] = [
     active: false,
     config: {
       limit: 5,
+      ...DEFAULT_KAWAII_PRODUCT_LABELS,
       cta_label: "View all products",
       cta_url: "/product",
+    },
+    created_at: new Date(0).toISOString(),
+    updated_at: new Date(0).toISOString(),
+  },
+  {
+    id: "60000000-0000-4000-8000-000000000015",
+    type: "guarantees",
+    title: null,
+    subtitle: null,
+    body: null,
+    sort: 14,
+    active: false,
+    config: {
+      accessible_label: "Shopping guarantees",
+      items: [
+        {
+          title: "Carefully packed",
+          body: "Prepared with attention, from us to you.",
+        },
+        {
+          title: "Secure checkout",
+          body: "A simple and protected shopping experience.",
+        },
+        {
+          title: "Here to help",
+          body: "Friendly support before and after your order.",
+        },
+      ],
+    },
+    created_at: new Date(0).toISOString(),
+    updated_at: new Date(0).toISOString(),
+  },
+  {
+    id: "60000000-0000-4000-8000-000000000016",
+    type: "studio_notes",
+    title: "New edits, style stories, and lovely little surprises.",
+    subtitle:
+      "Join our list to hear about fresh arrivals and special collections.",
+    body: null,
+    sort: 15,
+    active: false,
+    config: {
+      eyebrow: "Notes from the studio",
+      cta_label: "Join our list",
+      cta_url: "/contact-us",
     },
     created_at: new Date(0).toISOString(),
     updated_at: new Date(0).toISOString(),

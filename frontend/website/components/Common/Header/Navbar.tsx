@@ -26,7 +26,11 @@ import { useWishlistStore } from "@/store/wishlistStore";
 import { isActivePath } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 import type { MenuLink, MenuType } from "@/type/menyType";
-import type { NavbarConfig } from "@/lib/cms/siteChrome";
+import {
+  DEFAULT_NAVBAR,
+  type NavbarConfig,
+  type NavbarCopy,
+} from "@/lib/cms/siteChrome";
 
 interface NavbarProps {
   menuData: MenuType[];
@@ -320,14 +324,27 @@ function MenuLinkItem({
   );
 }
 
+type CategoryMegaMenuCopy = Pick<
+  NavbarCopy,
+  | "collectionsLabel"
+  | "shopByCategoryLabel"
+  | "primaryCategoryLabel"
+  | "exploreLabel"
+  | "emptyCollectionLabel"
+  | "compactMenuTitle"
+  | "compactMenuDescription"
+>;
+
 export function CategoryMegaMenu({
   menu,
   pathname,
   activeCategory,
+  copy = DEFAULT_NAVBAR.copy,
 }: {
   menu: MenuType;
   pathname: string;
   activeCategory: string | null;
+  copy?: CategoryMegaMenuCopy;
 }) {
   const allProducts = menu.items?.find((item) => item.isDefault);
   const groups = menu.items?.filter((item) => !item.isDefault) ?? [];
@@ -350,6 +367,7 @@ export function CategoryMegaMenu({
         groups={groups}
         pathname={pathname}
         activeCategory={activeCategory}
+        copy={copy}
       />
     );
   }
@@ -367,11 +385,11 @@ export function CategoryMegaMenu({
           <div className="flex items-center gap-2 text-primary">
             <Grid2X2 className="size-4" />
             <span className="font-mono text-[10px] uppercase tracking-[0.24em]">
-              Collections
+              {copy.collectionsLabel}
             </span>
           </div>
           <p className="mt-2 font-display text-xl font-semibold text-foreground">
-            Shop by category
+            {copy.shopByCategoryLabel}
           </p>
         </div>
         {allProducts ? (
@@ -445,14 +463,14 @@ export function CategoryMegaMenu({
                   <div className="relative flex w-full items-end justify-between gap-4 p-5 text-white">
                     <div>
                       <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-white/65">
-                        Primary category
+                        {copy.primaryCategoryLabel}
                       </p>
                       <h3 className="mt-2 font-display text-2xl font-semibold">
                         {selectedGroup.label}
                       </h3>
                     </div>
                     <span className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.14em]">
-                      Explore <ArrowRight className="size-4" />
+                      {copy.exploreLabel} <ArrowRight className="size-4" />
                     </span>
                   </div>
                 </Link>
@@ -471,7 +489,7 @@ export function CategoryMegaMenu({
                   </div>
                 ) : (
                   <p className="mt-6 text-sm text-muted-foreground">
-                    Explore all products in this collection.
+                    {copy.emptyCollectionLabel}
                   </p>
                 )}
               </>
@@ -488,11 +506,13 @@ function CompactCategoryMenu({
   groups,
   pathname,
   activeCategory,
+  copy,
 }: {
   allProducts: MenuLink | undefined;
   groups: MenuLink[];
   pathname: string;
   activeCategory: string | null;
+  copy: CategoryMegaMenuCopy;
 }) {
   return (
     <DropdownMenuContent
@@ -503,10 +523,10 @@ function CompactCategoryMenu({
       <div className="flex items-center justify-between gap-3 px-2 pb-3 pt-1">
         <div>
           <p className="font-display text-lg font-semibold text-foreground">
-            Shop categories
+            {copy.compactMenuTitle}
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Find your collection.
+            {copy.compactMenuDescription}
           </p>
         </div>
         {allProducts ? (

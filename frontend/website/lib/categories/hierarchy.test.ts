@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Category } from "@/type/categoryType";
 import {
+  filterCategoriesWithProductLinks,
   flattenCategoryHierarchy,
   getCategoryBreadcrumb,
   getDescendantSlugs,
@@ -59,6 +60,15 @@ describe("category hierarchy", () => {
       "grandchild",
       "child-b",
     ]);
+  });
+
+  it("keeps linked categories and their parent path", () => {
+    expect(
+      filterCategoriesWithProductLinks(
+        flattenCategoryHierarchy(categories),
+        new Set(["grandchild", "default"]),
+      ).map((item) => item._id),
+    ).toEqual(["default", "parent", "child-a", "grandchild"]);
   });
 
   it("builds category breadcrumbs", () => {

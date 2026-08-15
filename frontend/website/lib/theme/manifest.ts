@@ -9,6 +9,7 @@ import {
   KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS,
   LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS,
   V2_DESIGN_HOMEPAGE_RENDERER_PATHS,
+  type HomepageRendererIdMapping,
 } from "../cms/homepageRendererRegistry";
 import {
   DEFAULT_PALETTE,
@@ -68,7 +69,7 @@ export interface StorefrontThemeManifest {
   renderers: {
     navbar: string;
     footer: string;
-    homepageSections: Record<HomepageSectionType, string>;
+    homepageSections: HomepageRendererIdMapping;
     aboutSections: Record<AboutSectionType, string>;
   };
   compatibility: {
@@ -90,7 +91,7 @@ export interface StorefrontThemeManifest {
   };
 }
 
-const LEGACY_HOMEPAGE_RENDERERS: Record<HomepageSectionType, string> = {
+const LEGACY_HOMEPAGE_RENDERERS: HomepageRendererIdMapping = {
   ...LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS,
 };
 
@@ -98,7 +99,7 @@ const LEGACY_ABOUT_RENDERERS: Record<AboutSectionType, string> = {
   ...LEGACY_CLASSIC_ABOUT_RENDERER_PATHS,
 };
 
-const V2_HOMEPAGE_RENDERERS: Record<HomepageSectionType, string> = {
+const V2_HOMEPAGE_RENDERERS: HomepageRendererIdMapping = {
   ...V2_DESIGN_HOMEPAGE_RENDERER_PATHS,
 };
 
@@ -106,7 +107,7 @@ const V2_ABOUT_RENDERERS: Record<AboutSectionType, string> = {
   ...V2_DESIGN_ABOUT_RENDERER_PATHS,
 };
 
-const KAWAII_FASHION_HOMEPAGE_RENDERERS: Record<HomepageSectionType, string> = {
+const KAWAII_FASHION_HOMEPAGE_RENDERERS: HomepageRendererIdMapping = {
   ...KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS,
 };
 
@@ -133,6 +134,8 @@ export const KAWAII_FASHION_HOMEPAGE_SECTION_TYPES: readonly HomepageSectionType
     "richtext",
     "reviews",
     "promo",
+    "guarantees",
+    "studio_notes",
   ];
 
 export const THEME_ABOUT_SECTION_TYPES: readonly AboutSectionType[] = [

@@ -17,6 +17,8 @@ export default function KawaiiAboutHero({
   const firstLine = configString(config, "headline_line1");
   const secondLine = configString(config, "headline_line2");
   const subtitle = configString(config, "subtitle");
+  const accessibleLabel = configString(config, "accessible_label");
+  const imageAlt = configString(config, "image_alt");
   const primaryLabel = configString(config, "cta_primary_label");
   const primaryHref = safeKawaiiHref(
     configString(config, "cta_primary_url"),
@@ -27,6 +29,10 @@ export default function KawaiiAboutHero({
     configString(config, "cta_secondary_url"),
     "/contact-us",
   );
+  const headingText =
+    [firstLine, secondLine].filter(Boolean).join(" ") ||
+    accessibleLabel ||
+    eyebrow;
   const Heading = headingLevel;
 
   if (
@@ -44,7 +50,7 @@ export default function KawaiiAboutHero({
   return (
     <section
       className="relative isolate overflow-hidden bg-background text-foreground"
-      aria-labelledby={headingId}
+      aria-labelledby={headingText ? headingId : undefined}
     >
       <div
         className="absolute inset-x-0 top-0 h-1/2 bg-[linear-gradient(135deg,var(--surface),color-mix(in_srgb,var(--surface)_72%,#d8ceff))]"
@@ -74,11 +80,11 @@ export default function KawaiiAboutHero({
                 </span>
               ) : null}
             </Heading>
-          ) : (
+          ) : headingText ? (
             <Heading id={headingId} className="sr-only">
-              {eyebrow || "About us"}
+              {headingText}
             </Heading>
-          )}
+          ) : null}
           {subtitle ? (
             <p className="mt-7 max-w-xl text-base leading-8 text-muted-foreground sm:text-lg">
               {subtitle}
@@ -119,7 +125,7 @@ export default function KawaiiAboutHero({
             {imageUrl ? (
               <Image
                 src={imageUrl}
-                alt=""
+                alt={imageAlt || ""}
                 fill
                 priority={!preview}
                 sizes="(max-width: 1024px) 100vw, 52vw"

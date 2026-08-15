@@ -9,6 +9,8 @@ export default function KawaiiAboutCta({ config }: KawaiiAboutRendererProps) {
   const headingId = useId();
   const eyebrow = configString(config, "eyebrow");
   const title = configString(config, "title");
+  const accessibleLabel = configString(config, "accessible_label");
+  const headingText = title || accessibleLabel || eyebrow;
   const body = configString(config, "body");
   const primaryLabel = configString(config, "cta_primary_label");
   const primaryHref = safeKawaiiHref(
@@ -28,7 +30,7 @@ export default function KawaiiAboutCta({ config }: KawaiiAboutRendererProps) {
   return (
     <section
       className="bg-background px-5 py-16 text-foreground sm:px-8 sm:py-24 lg:px-12 lg:py-28"
-      aria-labelledby={headingId}
+      aria-labelledby={headingText ? headingId : undefined}
     >
       <div className="relative mx-auto max-w-[1500px] overflow-hidden rounded-md border border-border bg-[linear-gradient(125deg,var(--surface),color-mix(in_srgb,var(--surface)_68%,#d8ceff))] px-6 py-16 sm:px-10 sm:py-20 lg:px-16 lg:py-24">
         <div
@@ -52,11 +54,11 @@ export default function KawaiiAboutCta({ config }: KawaiiAboutRendererProps) {
             >
               {title}
             </h2>
-          ) : (
+          ) : headingText ? (
             <h2 id={headingId} className="sr-only">
-              {eyebrow || "Continue exploring"}
+              {headingText}
             </h2>
-          )}
+          ) : null}
           {body ? (
             <p className="mt-7 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
               {body}

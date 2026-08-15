@@ -11,6 +11,9 @@ import {
   getHomepageSectionVersion,
   normalizeHomepageSections,
   normalizeHomepageSectionType,
+  normalizeKawaiiHomepageTextConfig,
+  parseKawaiiGuaranteesConfig,
+  parseKawaiiStudioNotesConfig,
 } from "./homepageSections";
 
 function legacySections(): HomepageSectionRow[] {
@@ -33,7 +36,7 @@ describe("homepage section normalization", () => {
 
     const normalized = normalizeHomepageSections(existing);
 
-    expect(normalized).toHaveLength(14);
+    expect(normalized).toHaveLength(16);
     expect(normalized.find((row) => row.type === "categories")).toEqual(
       existing[1],
     );
@@ -46,9 +49,11 @@ describe("homepage section normalization", () => {
       "richtext_v2",
       "deals",
       "new_arrivals",
+      "guarantees",
+      "studio_notes",
     ]);
     expect(normalized.slice(6).every((row) => !row.active)).toBe(true);
-    expect(new Set(normalized.map((row) => row.type)).size).toBe(14);
+    expect(new Set(normalized.map((row) => row.type)).size).toBe(16);
     expect(normalized[6].sort).toBe(21);
   });
 
@@ -99,7 +104,7 @@ describe("homepage section normalization", () => {
   });
 
   it("exposes family, version, and display metadata for every fixed type", () => {
-    expect(HOMEPAGE_SECTION_TYPES).toHaveLength(14);
+    expect(HOMEPAGE_SECTION_TYPES).toHaveLength(16);
     expect(
       HOMEPAGE_SECTION_TYPES.every(
         (type) => getHomepageSectionMetadata(type) !== null,
@@ -115,6 +120,75 @@ describe("homepage section normalization", () => {
       "new-arrivals",
     );
     expect(getHomepageSectionFamily("deals")).toBe("featured");
+    expect(getHomepageSectionFamily("guarantees")).toBe("guarantees");
+    expect(getHomepageSectionDisplayName("studio_notes")).toBe("Studio Notes");
     expect(getHomepageSectionMetadata("unknown")).toBeNull();
+  });
+
+  it("parses complete Kawaii support configuration without fallbacks", () => {
+    const guarantees = DEFAULT_HOMEPAGE_SECTIONS.find(
+      (row) => row.type === "guarantees",
+    )!;
+    const studio = DEFAULT_HOMEPAGE_SECTIONS.find(
+      (row) => row.type === "studio_notes",
+    )!;
+
+    expect(parseKawaiiGuaranteesConfig(guarantees.config)).toEqual({
+      accessibleLabel: "Shopping guarantees",
+      items: [
+        {
+          title: "Carefully packed",
+          body: "Prepared with attention, from us to you.",
+        },
+        {
+          title: "Secure checkout",
+          body: "A simple and protected shopping experience.",
+        },
+        {
+          title: "Here to help",
+          body: "Friendly support before and after your order.",
+        },
+      ],
+    });
+    expect(parseKawaiiStudioNotesConfig(studio.config)).toEqual({
+      eyebrow: "Notes from the studio",
+      ctaLabel: "Join our list",
+      ctaUrl: "/contact-us",
+    });
+    expect(parseKawaiiGuaranteesConfig({ items: [] })).toBeNull();
+    expect(parseKawaiiStudioNotesConfig({ eyebrow: "Notes" })).toBeNull();
+  });
+
+  it("canonically trims and validates Kawaii homepage text fields", () => {
+    expect(
+      normalizeKawaiiHomepageTextConfig("banner", {
+        edit_label: "  Kawaii fashion edit  ",
+        footer_note: "   ",
+        carousel_role_description: "  carousel  ",
+        untouched: true,
+      }),
+    ).toEqual({
+      config: {
+        edit_label: "Kawaii fashion edit",
+        footer_note: null,
+        carousel_role_description: "carousel",
+        untouched: true,
+      },
+    });
+    expect(
+      normalizeKawaiiHomepageTextConfig("banner", {
+        carousel_role_description: "x".repeat(121),
+      }).error,
+    ).toMatch(/120 characters or fewer/);
+    expect(
+      normalizeKawaiiHomepageTextConfig("featured", {
+        product_list_label: "x".repeat(121),
+      }).error,
+    ).toMatch(/120 characters or fewer/);
+    expect(
+      normalizeKawaiiHomepageTextConfig("reviews", {
+        rating_aria_template: 5,
+      }).error,
+    ).toMatch(/must be text/);
   });
 });

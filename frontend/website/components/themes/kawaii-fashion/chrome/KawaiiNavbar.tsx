@@ -21,7 +21,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { isExternalChromeHref, isSafeChromeHref } from "@/lib/cms/siteChrome";
+import {
+  interpolateChromeTemplate,
+  isExternalChromeHref,
+  isSafeChromeHref,
+  type NavbarCopy,
+} from "@/lib/cms/siteChrome";
 import { isActivePath } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/cartStore";
@@ -32,6 +37,7 @@ interface KawaiiNavbarProps {
   menuData: MenuType[];
   logoUrl: string | null;
   storeName: string;
+  copy: NavbarCopy;
   announcementText?: string | null;
   announcementActive?: boolean;
   announcementUrl?: string | null;
@@ -43,6 +49,7 @@ export default function KawaiiNavbar({
   menuData,
   logoUrl,
   storeName,
+  copy,
   announcementText,
   announcementActive = false,
   announcementUrl,
@@ -80,13 +87,22 @@ export default function KawaiiNavbar({
         ) : null}
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
           <div className="flex h-16 items-center md:hidden">
-            <Brand logoUrl={logoUrl} storeName={storeName} compact />
+            <Brand
+              logoUrl={logoUrl}
+              storeName={storeName}
+              homeLinkAriaLabelTemplate={copy.homeLinkAriaLabelTemplate}
+              compact
+            />
           </div>
 
           <div className="hidden h-20 grid-cols-[minmax(10rem,1fr)_minmax(0,2fr)_minmax(10rem,1fr)] items-center gap-6 md:grid">
-            <Brand logoUrl={logoUrl} storeName={storeName} />
+            <Brand
+              logoUrl={logoUrl}
+              storeName={storeName}
+              homeLinkAriaLabelTemplate={copy.homeLinkAriaLabelTemplate}
+            />
             <nav
-              aria-label="Primary navigation"
+              aria-label={copy.primaryNavigationAriaLabel}
               className="flex min-w-0 items-center justify-center gap-5 overflow-x-auto [scrollbar-width:none] lg:gap-8 [&::-webkit-scrollbar]:hidden"
             >
               {menus.map((menu) => (
@@ -95,20 +111,22 @@ export default function KawaiiNavbar({
                   menu={menu}
                   pathname={pathname}
                   activeCategory={activeCategory}
+                  copy={copy}
                 />
               ))}
             </nav>
             <div className="flex items-center justify-end gap-1">
               <ActionButton
-                label="Search products"
+                label={copy.desktopSearchAriaLabel}
                 onClick={() => setIsSearchOpen(true)}
               >
                 <Search className="size-[1.125rem]" />
               </ActionButton>
               <ActionLink
                 href="/wishlist"
-                label="Favorites"
+                label={copy.desktopFavoritesAriaLabel}
                 count={wishlistCount}
+                countOverflowLabel={copy.countOverflowLabel}
                 active={isActivePath(pathname, "/wishlist")}
               >
                 <Heart
@@ -120,8 +138,9 @@ export default function KawaiiNavbar({
               </ActionLink>
               <ActionLink
                 href="/cart"
-                label="Shopping bag"
+                label={copy.desktopBagAriaLabel}
                 count={itemCount}
+                countOverflowLabel={copy.countOverflowLabel}
                 active={isActivePath(pathname, "/cart")}
               >
                 <ShoppingBag className="size-[1.125rem]" />
@@ -138,6 +157,7 @@ export default function KawaiiNavbar({
             itemCount={itemCount}
             wishlistCount={wishlistCount}
             onSearchOpen={() => setIsSearchOpen(true)}
+            copy={copy}
           />
           <SearchSidebar
             open={isSearchOpen}
@@ -176,16 +196,22 @@ function Announcement({ text, href }: { text: string; href?: string | null }) {
 function Brand({
   logoUrl,
   storeName,
+  homeLinkAriaLabelTemplate,
   compact = false,
 }: {
   logoUrl: string | null;
   storeName: string;
+  homeLinkAriaLabelTemplate: string;
   compact?: boolean;
 }) {
   return (
     <Link
       href="/"
-      aria-label={`${storeName} home`}
+      aria-label={interpolateChromeTemplate(
+        homeLinkAriaLabelTemplate,
+        { storeName },
+        ["storeName"],
+      )}
       className="flex min-w-0 items-center"
     >
       {logoUrl ? (
@@ -215,10 +241,12 @@ function DesktopMenu({
   menu,
   pathname,
   activeCategory,
+  copy,
 }: {
   menu: MenuType;
   pathname: string;
   activeCategory: string | null;
+  copy: NavbarCopy;
 }) {
   const external = isExternalChromeHref(menu.href);
   const active = !external && isActivePath(pathname, menu.href);
@@ -257,6 +285,7 @@ function DesktopMenu({
           menu={menu}
           pathname={pathname}
           activeCategory={activeCategory}
+          copy={copy}
         />
       ) : (
         <DropdownMenuContent
@@ -270,13 +299,23 @@ function DesktopMenu({
               href={menu.href}
               className="flex items-center justify-between rounded-xl bg-primary/10 px-4 py-3 text-sm font-semibold text-primary outline-none transition hover:bg-primary/15"
             >
-              <span>Shop all {menu.label.toLowerCase()}</span>
+              <span>
+                {interpolateChromeTemplate(
+                  copy.shopAllTemplate,
+                  { label: menu.label.toLowerCase() },
+                  ["label"],
+                )}
+              </span>
               <span aria-hidden>→</span>
             </Link>
           </DropdownMenuItem>
           <div className="mt-2 grid max-h-[min(60vh,24rem)] grid-cols-2 gap-1 overflow-y-auto sm:grid-cols-3">
             {children.map((item) => (
-              <CategoryLink key={`${item.label}-${item.href}`} item={item} />
+              <CategoryLink
+                key={`${item.label}-${item.href}`}
+                item={item}
+                collectionsCountTemplate={copy.collectionsCountTemplate}
+              />
             ))}
           </div>
         </DropdownMenuContent>
@@ -285,7 +324,13 @@ function DesktopMenu({
   );
 }
 
-function CategoryLink({ item }: { item: MenuLink }) {
+function CategoryLink({
+  item,
+  collectionsCountTemplate,
+}: {
+  item: MenuLink;
+  collectionsCountTemplate: string;
+}) {
   return (
     <DropdownMenuItem asChild className="rounded-xl p-0">
       <Link
@@ -296,7 +341,11 @@ function CategoryLink({ item }: { item: MenuLink }) {
         <span>{item.label}</span>
         {item.items?.length ? (
           <span className="mt-1 text-[10px] font-normal uppercase tracking-wider text-muted-foreground">
-            {item.items.length} collections
+            {interpolateChromeTemplate(
+              collectionsCountTemplate,
+              { count: item.items.length },
+              ["count"],
+            )}
           </span>
         ) : null}
       </Link>
@@ -329,12 +378,14 @@ function ActionLink({
   href,
   label,
   count,
+  countOverflowLabel,
   active,
   children,
 }: {
   href: string;
   label: string;
   count: number;
+  countOverflowLabel: string;
   active: boolean;
   children: React.ReactNode;
 }) {
@@ -351,7 +402,7 @@ function ActionLink({
       {children}
       {count > 0 ? (
         <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground">
-          {count > 9 ? "9+" : count}
+          {count > 9 ? countOverflowLabel : count}
         </span>
       ) : null}
     </Link>
@@ -363,53 +414,61 @@ function KawaiiMobileBottomNav({
   itemCount,
   wishlistCount,
   onSearchOpen,
+  copy,
 }: {
   pathname: string;
   itemCount: number;
   wishlistCount: number;
   onSearchOpen: () => void;
+  copy: NavbarCopy;
 }) {
   return (
     <nav
-      aria-label="Mobile shopping navigation"
+      aria-label={copy.mobileNavigationAriaLabel}
       className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       <div className="mx-auto grid h-16 max-w-lg grid-cols-5 items-center px-1">
         <MobileTab
           href="/"
-          label="Home"
+          label={copy.mobileHomeLabel}
           active={isActivePath(pathname, "/")}
+          countOverflowLabel={copy.countOverflowLabel}
           icon={<Home className="size-5" />}
         />
         <MobileTab
           href="/wishlist"
-          label="Saved"
+          label={copy.mobileSavedLabel}
           active={isActivePath(pathname, "/wishlist")}
           count={wishlistCount}
+          countOverflowLabel={copy.countOverflowLabel}
           icon={<Heart className="size-5" />}
         />
         <MobileTab
           href="/product"
-          label="Shop"
+          label={copy.mobileShopLabel}
           active={isActivePath(pathname, "/product")}
+          countOverflowLabel={copy.countOverflowLabel}
           featured
           icon={<Store className="size-5" />}
         />
         <MobileTab
           href="/cart"
-          label="Bag"
+          label={copy.mobileBagLabel}
           active={isActivePath(pathname, "/cart")}
           count={itemCount}
+          countOverflowLabel={copy.countOverflowLabel}
           icon={<ShoppingBag className="size-5" />}
         />
         <button
           type="button"
-          aria-label="Search products"
+          aria-label={copy.mobileSearchAriaLabel}
           onClick={onSearchOpen}
           className="flex h-full flex-col items-center justify-center gap-1 text-muted-foreground transition active:text-primary"
         >
           <Search className="size-5" />
-          <span className="text-[10px] font-medium">Search</span>
+          <span className="text-[10px] font-medium">
+            {copy.mobileSearchLabel}
+          </span>
         </button>
       </div>
     </nav>
@@ -422,6 +481,7 @@ function MobileTab({
   active,
   icon,
   count = 0,
+  countOverflowLabel,
   featured = false,
 }: {
   href: string;
@@ -429,6 +489,7 @@ function MobileTab({
   active: boolean;
   icon: React.ReactNode;
   count?: number;
+  countOverflowLabel: string;
   featured?: boolean;
 }) {
   return (
@@ -451,7 +512,7 @@ function MobileTab({
         {icon}
         {count > 0 ? (
           <span className="absolute -right-2 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground">
-            {count > 9 ? "9+" : count}
+            {count > 9 ? countOverflowLabel : count}
           </span>
         ) : null}
       </span>

@@ -13,8 +13,11 @@ export default function KawaiiAboutStory({
   const headingId = useId();
   const eyebrow = configString(config, "eyebrow");
   const title = configString(config, "title");
+  const accessibleLabel = configString(config, "accessible_label");
+  const imageAlt = configString(config, "image_alt");
   const paragraphs = htmlParagraphs(configString(config, "body_html"));
   const extra = configString(config, "extra");
+  const headingText = title || accessibleLabel || eyebrow;
 
   if (!eyebrow && !title && paragraphs.length === 0 && !extra && !imageUrl) {
     return null;
@@ -23,7 +26,7 @@ export default function KawaiiAboutStory({
   return (
     <section
       className="relative overflow-hidden bg-background py-20 text-foreground sm:py-28 lg:py-36"
-      aria-labelledby={headingId}
+      aria-labelledby={headingText ? headingId : undefined}
     >
       <div
         className="absolute right-0 top-0 h-2/3 w-1/2 bg-[linear-gradient(160deg,color-mix(in_srgb,var(--surface)_78%,#ddd4ff),transparent)]"
@@ -35,7 +38,7 @@ export default function KawaiiAboutStory({
             {imageUrl ? (
               <Image
                 src={imageUrl}
-                alt={title || eyebrow || "Our story"}
+                alt={imageAlt || ""}
                 fill
                 sizes="(max-width: 1024px) 100vw, 58vw"
                 className="object-cover"
@@ -65,11 +68,11 @@ export default function KawaiiAboutStory({
               >
                 {title}
               </h2>
-            ) : (
+            ) : headingText ? (
               <h2 id={headingId} className="sr-only">
-                {eyebrow || "Our story"}
+                {headingText}
               </h2>
-            )}
+            ) : null}
             {paragraphs.length > 0 ? (
               <div className="mt-7 space-y-5 text-sm leading-7 text-muted-foreground sm:text-base sm:leading-8">
                 {paragraphs.map((paragraph, index) => (

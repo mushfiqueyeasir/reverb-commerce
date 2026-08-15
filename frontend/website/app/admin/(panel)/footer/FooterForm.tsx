@@ -24,12 +24,40 @@ import {
 } from "@/lib/cms/siteChrome";
 import { saveFooter } from "./actions";
 
+const FOOTER_COPY_FIELDS: ReadonlyArray<{
+  key: keyof FooterConfig["copy"];
+  label: string;
+  hint?: string;
+}> = [
+  {
+    key: "homeLinkAriaLabelTemplate",
+    label: "Home link aria template",
+    hint: "Available token: {storeName}",
+  },
+  {
+    key: "copyrightTemplate",
+    label: "Copyright template",
+    hint: "Available tokens: {year}, {storeName}",
+  },
+  { key: "facebookAriaLabel", label: "Facebook aria label" },
+  { key: "instagramAriaLabel", label: "Instagram aria label" },
+  { key: "twitterAriaLabel", label: "X aria label" },
+  { key: "youtubeAriaLabel", label: "YouTube aria label" },
+];
+
 export function FooterForm({ initialConfig }: { initialConfig: FooterConfig }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [config, setConfig] = useState(() =>
     normalizeFooterConfig(initialConfig),
   );
+
+  const updateCopy = (key: keyof FooterConfig["copy"], value: string) => {
+    setConfig((current) => ({
+      ...current,
+      copy: { ...current.copy, [key]: value },
+    }));
+  };
 
   const addColumn = () => {
     setConfig((current) => {
@@ -355,6 +383,30 @@ export function FooterForm({ initialConfig }: { initialConfig: FooterConfig }) {
               No legal links are configured.
             </p>
           ) : null}
+        </div>
+      </AdminCard>
+
+      <AdminCard
+        title="Kawaii footer copy"
+        description="Storefront labels and accessibility text used by the Kawaii footer. Templates are rendered as plain text."
+      >
+        <div className="grid gap-4 md:grid-cols-2">
+          {FOOTER_COPY_FIELDS.map((field) => (
+            <FormField
+              key={field.key}
+              label={field.label}
+              htmlFor={`footer-copy-${field.key}`}
+              hint={field.hint}
+            >
+              <Input
+                id={`footer-copy-${field.key}`}
+                className={adminInputClass}
+                value={config.copy[field.key]}
+                maxLength={160}
+                onChange={(event) => updateCopy(field.key, event.target.value)}
+              />
+            </FormField>
+          ))}
         </div>
       </AdminCard>
 

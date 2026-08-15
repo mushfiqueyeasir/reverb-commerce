@@ -342,13 +342,19 @@ test("renders the complete store seed without psql directives", () => {
   assert.ok(tableHomepage);
   assert.equal(
     [...jsonHomepage.matchAll(/jsonb_build_object\('id', '60000000/g)].length,
-    14,
+    16,
   );
   assert.equal(
     [...tableHomepage.matchAll(/^  \('60000000-0000-4000-8000-/gm)].length,
-    14,
+    16,
   );
-  for (const type of [...v2Types, "deals", "new_arrivals"]) {
+  for (const type of [
+    ...v2Types,
+    "deals",
+    "new_arrivals",
+    "guarantees",
+    "studio_notes",
+  ]) {
     assert.match(
       jsonHomepage,
       new RegExp(`'type', '${type}'[^\\n]*'active', false`),
@@ -369,6 +375,22 @@ test("renders the complete store seed without psql directives", () => {
   assert.doesNotMatch(jsonBanners, /banner_v2/);
   assert.match(tableBanners, /id, section_type,[\s\S]*?'banner',/);
   assert.doesNotMatch(tableBanners, /banner_v2/);
+  assert.match(
+    rendered,
+    /'navbar', jsonb_build_object\([\s\S]*?'announcement', jsonb_build_object\('text', 'Welcome to our new store', 'active', true, 'url', '\/product'\)/,
+  );
+  assert.match(
+    template,
+    /'navbar', jsonb_build_object\([\s\S]*?'copy', jsonb_build_object\([\s\S]*?'shopAllTemplate', 'Shop all \{label\}'/,
+  );
+  assert.match(
+    template,
+    /'productCardCopy', jsonb_build_object\([\s\S]*?'quickAddButtonLabel', 'Quick Add'/,
+  );
+  assert.match(
+    rendered,
+    /'footer', jsonb_build_object\([\s\S]*?'copyrightTemplate', '© \{year\} \{storeName\}'/,
+  );
 });
 
 test("defines an idempotent disabled homepage V2 migration", () => {
@@ -428,12 +450,39 @@ test("defines filtered homepage product section types", () => {
     );
   }
   assert.match(migration, /where existing\.type = section_defaults\.type/);
-  assert.match(migration, /sort_base\.max_sort \+ ordered_defaults\.missing_position/);
-  assert.match(migration, /\n  false,\n  ordered_defaults\.config/);
-  assert.equal(
-    [...migration.matchAll(/'60000000-0000-4000-8000-/g)].length,
-    2,
+  assert.match(
+    migration,
+    /sort_base\.max_sort \+ ordered_defaults\.missing_position/,
   );
+  assert.match(migration, /\n  false,\n  ordered_defaults\.config/);
+  assert.equal([...migration.matchAll(/'60000000-0000-4000-8000-/g)].length, 2);
+});
+
+test("defines idempotent disabled homepage support sections", () => {
+  const migration = readFileSync(
+    join(
+      import.meta.dirname,
+      "..",
+      "supabase",
+      "migrations",
+      "0042_homepage_support_sections.sql",
+    ),
+    "utf8",
+  );
+
+  for (const type of ["guarantees", "studio_notes"]) {
+    assert.equal(
+      [...migration.matchAll(new RegExp(`'${type}'`, "g"))].length,
+      2,
+    );
+  }
+  assert.match(migration, /where existing\.type = section_defaults\.type/);
+  assert.match(
+    migration,
+    /sort_base\.max_sort \+ ordered_defaults\.missing_position/,
+  );
+  assert.match(migration, /\n  false,\n  ordered_defaults\.config/);
+  assert.equal([...migration.matchAll(/'60000000-0000-4000-8000-/g)].length, 2);
 });
 
 test("keeps provisioning credentials in GitHub environment secrets", () => {
@@ -518,7 +567,10 @@ test("removes product vector search infrastructure", () => {
   );
 
   assert.match(migration, /drop table if exists public\.product_embeddings/);
-  assert.match(migration, /drop function if exists public\.match_product_embeddings/);
+  assert.match(
+    migration,
+    /drop function if exists public\.match_product_embeddings/,
+  );
   assert.match(migration, /drop extension if exists vector/);
 });
 
@@ -570,10 +622,7 @@ test("defines a revisioned theme builder with referenced legacy content", () => 
     migration,
     /'footer'[\s\S]*'relation', 'site_settings'[\s\S]*'socials', '_cms', 'footer'/,
   );
-  assert.match(
-    migration,
-    /'homepage'[\s\S]*'relation', 'homepage_sections'/,
-  );
+  assert.match(migration, /'homepage'[\s\S]*'relation', 'homepage_sections'/);
 });
 
 test("restricts theme writes to atomic optimistic admin RPCs", () => {
@@ -604,8 +653,11 @@ test("restricts theme writes to atomic optimistic admin RPCs", () => {
   assert.equal([...migration.matchAll(/not public\.is_admin\(\)/g)].length, 3);
   assert.equal([...migration.matchAll(/errcode = '40001'/g)].length, 3);
   assert.equal(
-    [...migration.matchAll(/v_published\.design_config #> '\{resolvedTokens,palette\}'/g)]
-      .length,
+    [
+      ...migration.matchAll(
+        /v_published\.design_config #> '\{resolvedTokens,palette\}'/g,
+      ),
+    ].length,
     2,
   );
   assert.match(
@@ -646,6 +698,67 @@ test("applies themes atomically through one RPC", () => {
     migration,
     /grant execute on function public\.apply_theme\(bigint, text, integer, jsonb, jsonb\)[\s\S]*to authenticated, service_role/,
   );
+});
+
+test("backfills navbar announcement without replacing existing navbar config", () => {
+  const migration = readFileSync(
+    join(
+      import.meta.dirname,
+      "..",
+      "supabase",
+      "migrations",
+      "0043_navbar_announcement_config.sql",
+    ),
+    "utf8",
+  );
+
+  assert.doesNotMatch(migration, /--/);
+  assert.match(migration, /settings\.announcement_text/);
+  assert.match(migration, /settings\.announcement_active/);
+  assert.match(migration, /settings\.announcement_url/);
+  assert.match(migration, /source\.navbar \|\| jsonb_build_object\(/);
+  assert.match(migration, /and not source\.navbar \? 'announcement'/);
+  assert.doesNotMatch(migration, /updated_at/);
+});
+
+test("keeps existing Kawaii chrome while bootstrapping copy", () => {
+  const script = readFileSync(
+    join(import.meta.dirname, "migrate-kawaii-content.mjs"),
+    "utf8",
+  );
+
+  assert.match(script, /\.\.\.\(existingCms\.navbar/);
+  assert.match(script, /\.\.\.KAWAII_NAVBAR_COPY/);
+  assert.match(script, /\.\.\.\(existingCms\.navbar\?\.copy/);
+  assert.match(script, /\.\.\.KAWAII_PRODUCT_CARD_COPY/);
+  assert.match(script, /\.\.\.\(existingCms\.navbar\?\.productCardCopy/);
+  assert.match(script, /\.\.\.\(existingCms\.footer/);
+  assert.match(script, /\.\.\.KAWAII_FOOTER_COPY/);
+  assert.match(script, /\.\.\.\(existingCms\.footer\?\.copy/);
+});
+
+test("backfills Kawaii chrome copy without replacing merchant values", () => {
+  const migration = readFileSync(
+    join(
+      import.meta.dirname,
+      "..",
+      "supabase",
+      "migrations",
+      "0044_kawaii_chrome_copy_config.sql",
+    ),
+    "utf8",
+  );
+
+  assert.doesNotMatch(migration, /--/);
+  assert.match(migration, /defaults\.navbar_copy \|\| source\.navbar_copy/);
+  assert.match(
+    migration,
+    /defaults\.product_card_copy \|\| source\.product_card_copy/,
+  );
+  assert.match(migration, /defaults\.footer_copy \|\| source\.footer_copy/);
+  assert.match(migration, /source\.navbar \|\| jsonb_build_object/);
+  assert.match(migration, /source\.footer \|\| jsonb_build_object/);
+  assert.doesNotMatch(migration, /updated_at/);
 });
 
 test("checks migration store identity before schema reconciliation", () => {

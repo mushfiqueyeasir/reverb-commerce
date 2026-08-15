@@ -9,12 +9,16 @@ import {
   getHomepageSectionMetadata,
   normalizeHomepageSections,
   normalizeHomepageSectionType,
+  normalizeKawaiiHomepageTextConfig,
+  parseKawaiiGuaranteesConfig,
+  parseKawaiiStudioNotesConfig,
 } from "@/lib/cms/homepageSections";
 import { parseHomepageStoryConfig } from "@/lib/cms/homepageStory";
 import { sanitizeCmsHtml } from "@/lib/html/sanitize";
 import { getStorefrontThemeManifest } from "@/lib/theme/manifest";
 import { readCurrentPublishedStorefrontTheme } from "@/lib/theme/store";
 import { readCmsBlob, tableExists, writeCmsBlob } from "@/lib/cms/jsonStore";
+import { isSafeChromeHref } from "@/lib/cms/siteChrome";
 
 export interface SectionInput {
   id: string;
@@ -115,43 +119,98 @@ export async function saveSection(
   }
 
   const now = new Date().toISOString();
-  const config = {
+  let config = {
     ...(current.config ?? {}),
     ...(input.config ?? {}),
   };
   const metadata = getHomepageSectionMetadata(current.type);
+  const publishedTheme = await readCurrentPublishedStorefrontTheme();
+  const isKawaii = publishedTheme.config.themeId === "kawaii-fashion";
+  let normalizedTitle = input.title;
+  let normalizedSubtitle = input.subtitle;
+  if (isKawaii && metadata) {
+    normalizedTitle = input.title?.trim() || null;
+    normalizedSubtitle = input.subtitle?.trim() || null;
+    if ((normalizedTitle?.length ?? 0) > 200) {
+      return { error: "Heading must be 200 characters or fewer." };
+    }
+    if ((normalizedSubtitle?.length ?? 0) > 500) {
+      return { error: "Subtitle must be 500 characters or fewer." };
+    }
+    const normalizedConfig = normalizeKawaiiHomepageTextConfig(
+      metadata.family,
+      config,
+    );
+    if (normalizedConfig.error) return { error: normalizedConfig.error };
+    config = normalizedConfig.config;
+    const ctaUrl = config.cta_url;
+    if (typeof ctaUrl === "string" && ctaUrl && !isSafeChromeHref(ctaUrl)) {
+      return { error: "Button link is invalid." };
+    }
+  }
+  if (current.type === "guarantees") {
+    const guarantees = parseKawaiiGuaranteesConfig(config);
+    if (!guarantees) {
+      return {
+        error:
+          "Add an accessible label and exactly three complete guarantee items.",
+      };
+    }
+    config.accessible_label = guarantees.accessibleLabel;
+    config.items = guarantees.items;
+  }
+  if (current.type === "studio_notes") {
+    const studio = parseKawaiiStudioNotesConfig(config);
+    normalizedTitle = input.title?.trim() || null;
+    normalizedSubtitle = input.subtitle?.trim() || null;
+    if (
+      !studio ||
+      !normalizedTitle ||
+      normalizedTitle.length > 200 ||
+      !normalizedSubtitle ||
+      normalizedSubtitle.length > 500
+    ) {
+      return { error: "Complete every Studio Notes content field." };
+    }
+    if (!isSafeChromeHref(studio.ctaUrl)) {
+      return { error: "Studio Notes button link is invalid." };
+    }
+    config.eyebrow = studio.eyebrow;
+    config.cta_label = studio.ctaLabel;
+    config.cta_url = studio.ctaUrl;
+  }
   if (metadata?.family === "featured") {
-    const publishedTheme = await readCurrentPublishedStorefrontTheme();
-    const maximum =
-      publishedTheme.config.themeId === "kawaii-fashion"
-        ? 8
-        : metadata.version === 2
-          ? 6
-          : 5;
+    const maximum = isKawaii ? 10 : metadata.version === 2 ? 6 : 5;
     const requestedLimit = Number(config.limit);
     const normalizedLimit = Number.isFinite(requestedLimit)
       ? Math.min(maximum, Math.max(1, Math.floor(requestedLimit)))
       : maximum;
-    config.limit = normalizedLimit === maximum - 1 ? maximum : normalizedLimit;
-    config.cta_label =
-      typeof config.cta_label === "string" && config.cta_label.trim()
-        ? config.cta_label.trim()
-        : "View all products";
-    config.cta_url = "/product";
+    config.limit =
+      !isKawaii && normalizedLimit === maximum - 1 ? maximum : normalizedLimit;
+    if (!isKawaii) {
+      config.cta_label =
+        typeof config.cta_label === "string" && config.cta_label.trim()
+          ? config.cta_label.trim()
+          : "View all products";
+      config.cta_url = "/product";
+    }
   }
   if (current.type === "categories") {
     if (!Array.isArray(config.category_ids)) {
       return { error: "Mosaic categories must be an ordered list." };
     }
+    const maximum = isKawaii ? 5 : 4;
     const categoryIds = config.category_ids.filter(
       (categoryId): categoryId is string => typeof categoryId === "string",
     );
     if (
       categoryIds.length !== config.category_ids.length ||
-      categoryIds.length > 4 ||
+      categoryIds.length > maximum ||
       new Set(categoryIds).size !== categoryIds.length
     ) {
-      return { error: "Choose up to four unique Mosaic categories." };
+      return {
+        error: `Choose up to ${maximum} unique Mosaic categories.`,
+      };
     }
     if (categoryIds.length) {
       const supabase = await createSupabaseServerClient();
@@ -178,6 +237,28 @@ export async function saveSection(
     if (Array.isArray(config.cards) && config.cards.length > 6) {
       return { error: "A Story section can have a maximum of six cards." };
     }
+    if (isKawaii && Array.isArray(config.cards)) {
+      for (const card of config.cards) {
+        if (!card || typeof card !== "object" || Array.isArray(card)) {
+          return { error: "Every Story card must be complete." };
+        }
+        const value = card as Record<string, unknown>;
+        for (const [key, maximum] of [
+          ["id", 120],
+          ["label", 160],
+          ["detail", 500],
+        ] as const) {
+          if (typeof value[key] !== "string") {
+            return { error: `Story card ${key} must be text.` };
+          }
+          if (value[key].trim().length > maximum) {
+            return {
+              error: `Story card ${key} must be ${maximum} characters or fewer.`,
+            };
+          }
+        }
+      }
+    }
     const story = parseHomepageStoryConfig(config);
     if (
       story.imagePath?.includes("..") ||
@@ -198,8 +279,8 @@ export async function saveSection(
   }
   const payload = {
     type: current.type,
-    title: input.title,
-    subtitle: input.subtitle,
+    title: normalizedTitle,
+    subtitle: normalizedSubtitle,
     body: input.body ? sanitizeCmsHtml(input.body) : null,
     sort: current.sort,
     active: input.active,

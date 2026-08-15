@@ -10,15 +10,11 @@ import {
 } from "./homepageRendererRegistry";
 
 describe("homepage renderer registry", () => {
-  it("provides a Legacy Classic dispatch path for all 14 section types", () => {
+  it("provides Legacy Classic dispatch paths only for supported types", () => {
     expect(Object.keys(LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS)).toEqual(
-      HOMEPAGE_SECTION_TYPES,
+      HOMEPAGE_SECTION_TYPES.slice(0, 14),
     );
-    expect(
-      HOMEPAGE_SECTION_TYPES.map(
-        (type) => LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS[type],
-      ),
-    ).toEqual([
+    expect(Object.values(LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS)).toEqual([
       "banner-classic",
       "categories-classic",
       "featured-classic",
@@ -36,15 +32,11 @@ describe("homepage renderer registry", () => {
     ]);
   });
 
-  it("provides a V2 Design dispatch path for all 14 section types", () => {
+  it("provides V2 Design dispatch paths only for supported types", () => {
     expect(Object.keys(V2_DESIGN_HOMEPAGE_RENDERER_PATHS)).toEqual(
-      HOMEPAGE_SECTION_TYPES,
+      HOMEPAGE_SECTION_TYPES.slice(0, 14),
     );
-    expect(
-      HOMEPAGE_SECTION_TYPES.map(
-        (type) => V2_DESIGN_HOMEPAGE_RENDERER_PATHS[type],
-      ),
-    ).toEqual([
+    expect(Object.values(V2_DESIGN_HOMEPAGE_RENDERER_PATHS)).toEqual([
       "banner-v2",
       "categories-v2",
       "featured-v2",
@@ -62,7 +54,7 @@ describe("homepage renderer registry", () => {
     ]);
   });
 
-  it("provides a Kawaii Fashion dispatch path for all 14 section types", () => {
+  it("provides a Kawaii Fashion dispatch path for all 16 section types", () => {
     expect(Object.keys(KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS)).toEqual(
       HOMEPAGE_SECTION_TYPES,
     );
@@ -85,6 +77,8 @@ describe("homepage renderer registry", () => {
       "kawaii-fashion.reviews",
       "kawaii-fashion.promo",
       "kawaii-fashion.story",
+      "kawaii-fashion.guarantees",
+      "kawaii-fashion.studio-notes",
     ]);
   });
 
@@ -96,6 +90,7 @@ describe("homepage renderer registry", () => {
     ).toBe("theme-featured");
     expect(resolveHomepageRendererId("reviews_v2", {})).toBe("reviews-classic");
     expect(resolveHomepageRendererId("hero", {})).toBe("banner-classic");
+    expect(resolveHomepageRendererId("guarantees", {})).toBeNull();
     expect(resolveHomepageRendererId("video", {})).toBeNull();
   });
 

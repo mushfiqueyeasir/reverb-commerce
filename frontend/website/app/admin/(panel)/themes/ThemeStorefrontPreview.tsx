@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import { ThemeFooter, ThemeHeader } from "@/components/Common/ThemeChrome";
 import HomepageRenderer from "@/components/HomePage/HomepageRenderer";
 import { CurrencyProvider } from "@/components/providers/CurrencyProvider";
+import { ProductCardCopyProvider } from "@/components/providers/ProductCardCopyProvider";
 import { StoreBrandProvider } from "@/components/providers/StoreBrandProvider";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DEFAULT_CHAT_WIDGETS } from "@/lib/chatWidgets";
@@ -66,17 +67,34 @@ export function ThemeStorefrontPreview({
     gtm_id: null,
     analytics_enabled: false,
     security_enabled: false,
-    announcement_text: isKawaiiFashion
-      ? "Free delivery across Bangladesh on orders over ৳3,000"
-      : null,
-    announcement_active: isKawaiiFashion,
-    announcement_url: isKawaiiFashion ? "/product" : null,
+    announcement_text: null,
+    announcement_active: false,
+    announcement_url: null,
     updated_at: new Date(0).toISOString(),
     currencies: { ...DEFAULT_CURRENCY_SETTINGS },
     deliveryCharges: { ...DEFAULT_DELIVERY_CHARGES },
     chatWidgets: { ...DEFAULT_CHAT_WIDGETS },
     palette,
-    navbar: structuredClone(DEFAULT_NAVBAR),
+    navbar: {
+      ...structuredClone(DEFAULT_NAVBAR),
+      announcement: isKawaiiFashion
+        ? {
+            text: "Free delivery across Bangladesh on orders over ৳3,000",
+            active: true,
+            url: "/product",
+          }
+        : null,
+      productCardCopy: isKawaiiFashion
+        ? {
+            addFavoriteAriaLabel: "Add to favorites",
+            removeFavoriteAriaLabel: "Remove from favorites",
+            favoriteSavedToast: "Saved to favorites",
+            favoriteRemovedToast: "Removed from favorites",
+            soldOutButtonLabel: "Sold Out",
+            quickAddButtonLabel: "Quick Add",
+          }
+        : structuredClone(DEFAULT_NAVBAR.productCardCopy),
+    },
     footer: {
       ...structuredClone(DEFAULT_FOOTER),
       description: isKawaiiFashion
@@ -94,32 +112,34 @@ export function ThemeStorefrontPreview({
     >
       <StoreBrandProvider storeName={storeName}>
         <CurrencyProvider currencies={settings.currencies}>
-          <ScrollArea className="h-dvh bg-background" variant="brand">
-            <ThemeHeader
-              rendererId={manifest.renderers.navbar}
-              categories={previewData.categories}
-              settings={settings}
-              aiSearchEnabled={false}
-            />
-            <main className="min-h-[60vh]">
-              <HomepageRenderer
-                sections={previewSections}
-                data={previewData}
-                preview
-                rendererMapping={manifest.renderers.homepageSections}
-                resolveImageUrl={(path) => path}
+          <ProductCardCopyProvider copy={settings.navbar.productCardCopy}>
+            <ScrollArea className="h-dvh bg-background" variant="brand">
+              <ThemeHeader
+                rendererId={manifest.renderers.navbar}
+                categories={previewData.categories}
+                settings={settings}
+                aiSearchEnabled={false}
               />
-            </main>
-            <ThemeFooter
-              rendererId={manifest.renderers.footer}
-              settings={settings}
-              preview
-            />
-            <div
-              className="h-[calc(5.75rem+env(safe-area-inset-bottom))] md:hidden"
-              aria-hidden
-            />
-          </ScrollArea>
+              <main className="min-h-[60vh]">
+                <HomepageRenderer
+                  sections={previewSections}
+                  data={previewData}
+                  preview
+                  rendererMapping={manifest.renderers.homepageSections}
+                  resolveImageUrl={(path) => path}
+                />
+              </main>
+              <ThemeFooter
+                rendererId={manifest.renderers.footer}
+                settings={settings}
+                preview
+              />
+              <div
+                className="h-[calc(5.75rem+env(safe-area-inset-bottom))] md:hidden"
+                aria-hidden
+              />
+            </ScrollArea>
+          </ProductCardCopyProvider>
         </CurrencyProvider>
       </StoreBrandProvider>
     </div>

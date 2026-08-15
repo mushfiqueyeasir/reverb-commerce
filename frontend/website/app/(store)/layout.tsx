@@ -4,10 +4,11 @@ import PromotionModalWrapper from "@/components/Common/PromotionModalWrapper";
 import ChatPlugins from "@/components/Common/ChatPlugins";
 import CursorGlow from "@/components/HomePage/CursorGlow";
 import { CurrencyProvider } from "@/components/providers/CurrencyProvider";
+import { ProductCardCopyProvider } from "@/components/providers/ProductCardCopyProvider";
 import { CustomSecurity } from "@/utility/security/scripts";
 import { Analytics } from "@/utility/analytics/analyticsScript";
 import { getPromotions } from "@/utility/getPromotion";
-import { getCategories } from "@/utility/getCategory";
+import { getStorefrontCategories } from "@/utility/getCategory";
 import { getSiteSettings } from "@/utility/getSettings";
 import { getAiSearchSettings } from "@/lib/aiSearchSettings";
 import { getStorefrontThemeManifest } from "@/lib/theme/manifest";
@@ -25,7 +26,7 @@ export default async function StoreLayout({
   const [promotions, categories, settings, aiSearch, publishedTheme] =
     await Promise.all([
       getPromotions(),
-      getCategories(),
+      getStorefrontCategories(),
       getSiteSettings(),
       getAiSearchSettings(),
       readCurrentPublishedStorefrontTheme(),
@@ -37,44 +38,46 @@ export default async function StoreLayout({
 
   return (
     <CurrencyProvider currencies={settings.currencies}>
-      <div
-        data-store-theme={manifest.id}
-        data-store-theme-version={manifest.version}
-        className="relative bg-background text-foreground"
-      >
-        {settings.analytics_enabled && (
-          <Analytics
-            googleAnalyticsId={settings.google_analytics_id}
-            metaPixelId={settings.meta_pixel_id}
-            gtmId={settings.gtm_id}
-          />
-        )}
-        {appConfig.securityEnabled && <CustomSecurity />}
+      <ProductCardCopyProvider copy={settings.navbar.productCardCopy}>
+        <div
+          data-store-theme={manifest.id}
+          data-store-theme-version={manifest.version}
+          className="relative bg-background text-foreground"
+        >
+          {settings.analytics_enabled && (
+            <Analytics
+              googleAnalyticsId={settings.google_analytics_id}
+              metaPixelId={settings.meta_pixel_id}
+              gtmId={settings.gtm_id}
+            />
+          )}
+          {appConfig.securityEnabled && <CustomSecurity />}
 
-        <CursorGlow />
-        <StoreScrollShell>
-          <div className="relative">
-            <ThemeHeader
-              rendererId={manifest.renderers.navbar}
-              categories={categories}
-              settings={settings}
-              aiSearchEnabled={aiSearch.enabled}
-            />
-            <div className="min-h-[60vh]">{children}</div>
-            <ThemeFooter
-              rendererId={manifest.renderers.footer}
-              settings={settings}
-            />
-            {/* Clearance for the mobile shopping tab bar */}
-            <div
-              className="h-[calc(5.75rem+env(safe-area-inset-bottom))] md:hidden"
-              aria-hidden
-            />
-          </div>
-        </StoreScrollShell>
-        <PromotionModalWrapper promotions={promotions} />
-        <ChatPlugins widgets={settings.chatWidgets} />
-      </div>
+          <CursorGlow />
+          <StoreScrollShell>
+            <div className="relative">
+              <ThemeHeader
+                rendererId={manifest.renderers.navbar}
+                categories={categories}
+                settings={settings}
+                aiSearchEnabled={aiSearch.enabled}
+              />
+              <div className="min-h-[60vh]">{children}</div>
+              <ThemeFooter
+                rendererId={manifest.renderers.footer}
+                settings={settings}
+              />
+              {/* Clearance for the mobile shopping tab bar */}
+              <div
+                className="h-[calc(5.75rem+env(safe-area-inset-bottom))] md:hidden"
+                aria-hidden
+              />
+            </div>
+          </StoreScrollShell>
+          <PromotionModalWrapper promotions={promotions} />
+          <ChatPlugins widgets={settings.chatWidgets} />
+        </div>
+      </ProductCardCopyProvider>
     </CurrencyProvider>
   );
 }

@@ -137,6 +137,8 @@ describe("storefront theme manifest", () => {
       "richtext",
       "reviews",
       "promo",
+      "guarantees",
+      "studio_notes",
     ]);
     expect(THEME_ABOUT_SECTION_TYPES).toEqual([
       "hero",
@@ -185,9 +187,9 @@ describe("storefront theme manifest", () => {
   ])(
     "maps every homepage and About source type for $id",
     (theme, homepage, about, homepageSectionTypes) => {
-      expect(HOMEPAGE_SECTION_TYPES).toHaveLength(14);
+      expect(HOMEPAGE_SECTION_TYPES).toHaveLength(16);
       expect(Object.keys(theme.renderers.homepageSections).sort()).toEqual(
-        [...HOMEPAGE_SECTION_TYPES].sort(),
+        Object.keys(homepage).sort(),
       );
       expect(theme.renderers.homepageSections).toEqual(homepage);
       expect(ABOUT_SECTION_TYPES).toHaveLength(12);

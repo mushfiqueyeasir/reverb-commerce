@@ -104,6 +104,8 @@ const V1_ABOUT_SECTIONS: AboutSectionRow[] = [
       headline_line2: "Made for everyday life.",
       subtitle:
         "Thoughtful products, dependable quality, and a collection built around the people who use it.",
+      accessible_label: "About the store",
+      image_alt: "Store collection",
       cta_primary_label: "Shop products",
       cta_primary_url: "/product",
       cta_secondary_label: "Talk to us",
@@ -121,6 +123,7 @@ const V1_ABOUT_SECTIONS: AboutSectionRow[] = [
     sort: 1,
     active: true,
     config: {
+      accessible_label: "Highlights",
       items: [
         { label: "Focus", value: "Quality" },
         { label: "Service", value: "Reliable" },
@@ -143,6 +146,8 @@ const V1_ABOUT_SECTIONS: AboutSectionRow[] = [
       body_html: ABOUT_INTRO_HTML,
       extra:
         "This is placeholder story content. Replace it with the people, purpose, and standards behind your store before launch.",
+      accessible_label: "Our story",
+      image_alt: "Store story",
       image_path: "",
       image_bucket: "banner",
     },
@@ -158,6 +163,7 @@ const V1_ABOUT_SECTIONS: AboutSectionRow[] = [
     config: {
       eyebrow: "What we stand for",
       title: "Quality over noise.",
+      accessible_label: "Our values",
       items: [
         {
           title: "Built to perform",
@@ -187,6 +193,8 @@ const V1_ABOUT_SECTIONS: AboutSectionRow[] = [
       title_line1: "Every detail",
       title_line2: "considered.",
       body: "This is placeholder material copy. Explain the actual materials, production process, and quality checks used by your store.",
+      accessible_label: "Our craft",
+      image_alt: "Product detail",
       image_path: "",
       image_bucket: "branding",
       fabric_label: "Product",
@@ -218,6 +226,7 @@ const V1_ABOUT_SECTIONS: AboutSectionRow[] = [
       eyebrow: "Community",
       title: "Join a community that values quality.",
       body: "When you choose our store, you join people who value thoughtful products and dependable service. Thank you for being here.",
+      accessible_label: "Continue exploring",
       cta_primary_label: "Explore products",
       cta_primary_url: "/product",
       cta_secondary_label: "See community",

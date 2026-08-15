@@ -75,9 +75,10 @@ export const THEME_DESIGN_CONFIG = {
 export const TEMPLATE_PROMOTION_ID = "70000000-0000-4000-8000-000000000001";
 export const CATEGORY_IDS = [
   "0987e8ee-906f-4602-9a00-acd4c7bf8d99",
-  "5469167b-24c1-4316-b135-e9213e5c75e1",
-  "42fda0a5-9bfb-47b2-8c18-9dd467b28ade",
+  "22765491-5bd5-4530-9065-9ffa6929456b",
+  "4b1ea4e0-7a57-41b8-88ca-260a391e7cc0",
   "c3ad32eb-5717-4edf-91e5-6ca96ee6cdc2",
+  "e66f9feb-6a86-4003-bb1d-76b347532cd3",
 ];
 export const HOMEPAGE_TYPES = [
   "banner",
@@ -88,6 +89,8 @@ export const HOMEPAGE_TYPES = [
   "richtext",
   "reviews",
   "promo",
+  "guarantees",
+  "studio_notes",
   "banner_v2",
   "categories_v2",
   "featured_v2",
@@ -114,6 +117,39 @@ export const BANNER_PATHS = [1, 2, 3].map(
 );
 const EPOCH = "1970-01-01T00:00:00.000Z";
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const KAWAII_BANNER_LABELS = {
+  edit_label: "Kawaii fashion edit",
+  footer_note: "Thoughtfully selected · Easy everyday styling",
+  image_badge: "The new mood",
+  carousel_role_description: "carousel",
+  carousel_announcement_template: "Slide {current} of {total}: {title}",
+  pause_label: "Pause slide rotation",
+  resume_label: "Resume slide rotation",
+  previous_label: "Previous collection",
+  next_label: "Next collection",
+};
+const KAWAII_PRODUCT_LABELS = {
+  sold_out_badge: "Sold out",
+  special_price_badge: "Special price",
+  default_badge: "New favorite",
+  product_list_label: "Featured products",
+  uncategorized_label_template: "Look {number}",
+};
+const KAWAII_REVIEW_LABELS = {
+  customer_fallback: "Verified customer",
+  body_fallback: "A lovely piece that feels just right.",
+  item_label_template: "Note {number}",
+  verified_label: "Verified review",
+  rating_aria_template: "{rating} out of {maximum} stars",
+};
+const KAWAII_PROMO_LABELS = {
+  kicker: "A special little something",
+  limited_label: "Limited edit",
+  discount_suffix: "off",
+  image_eyebrow: "This week’s pick",
+  image_title: "Wear it your way",
+  cta_fallback_label: "Shop the edit",
+};
 
 function stableValue(value) {
   if (Array.isArray(value)) return value.map(stableValue);
@@ -180,6 +216,7 @@ export function buildHomepageSections() {
       {
         description:
           "Kawaii is a Dhaka-based Facebook destination for authentic Japanese cosmetics and everyday skincare in Bangladesh.",
+        ...KAWAII_BANNER_LABELS,
         show_marquee: true,
         stats: [
           { label: "Facebook likes", value: "88K+" },
@@ -205,6 +242,7 @@ export function buildHomepageSections() {
       {
         eyebrow: "Find your routine",
         category_ids: [...CATEGORY_IDS],
+        limit: 5,
         cta_label: "View all products",
         cta_url: "/product",
       },
@@ -218,7 +256,8 @@ export function buildHomepageSections() {
       2,
       {
         eyebrow: "Special savings",
-        limit: 8,
+        limit: 10,
+        ...KAWAII_PRODUCT_LABELS,
         cta_label: "View all products",
         cta_url: "/product",
       },
@@ -232,7 +271,8 @@ export function buildHomepageSections() {
       3,
       {
         eyebrow: "Just arrived",
-        limit: 8,
+        limit: 10,
+        ...KAWAII_PRODUCT_LABELS,
         cta_label: "View all products",
         cta_url: "/product",
       },
@@ -246,7 +286,8 @@ export function buildHomepageSections() {
       4,
       {
         eyebrow: "Selected by Kawaii",
-        limit: 8,
+        limit: 10,
+        ...KAWAII_PRODUCT_LABELS,
         cta_label: "View all products",
         cta_url: "/product",
       },
@@ -261,6 +302,7 @@ export function buildHomepageSections() {
       {
         eyebrow: "Customer review",
         limit: 12,
+        ...KAWAII_REVIEW_LABELS,
         cta_label: "Read reviews",
         cta_url: "/reviews",
       },
@@ -276,6 +318,45 @@ export function buildHomepageSections() {
         promotion_id: TEMPLATE_PROMOTION_ID,
         cta_label: "Explore the collection",
         cta_url: "/product",
+        ...KAWAII_PROMO_LABELS,
+      },
+    ),
+    homepageRow(
+      "60000000-0000-4000-8000-000000000015",
+      "guarantees",
+      null,
+      null,
+      null,
+      8,
+      {
+        accessible_label: "Shopping guarantees",
+        items: [
+          {
+            title: "Carefully packed",
+            body: "Prepared with attention, from us to you.",
+          },
+          {
+            title: "Secure checkout",
+            body: "A simple and protected shopping experience.",
+          },
+          {
+            title: "Here to help",
+            body: "Friendly support before and after your order.",
+          },
+        ],
+      },
+    ),
+    homepageRow(
+      "60000000-0000-4000-8000-000000000016",
+      "studio_notes",
+      "New edits, style stories, and lovely little surprises.",
+      "Join our list to hear about fresh arrivals and special collections.",
+      null,
+      9,
+      {
+        eyebrow: "Notes from the studio",
+        cta_label: "Join our list",
+        cta_url: "/contact-us",
       },
     ),
     homepageRow(
@@ -320,10 +401,11 @@ export function buildHomepageSections() {
       null,
       null,
       null,
-      8,
+      10,
       {
         description:
           "Meet Kawaii's authentic Japanese cosmetics and everyday skincare collection in Bangladesh.",
+        ...KAWAII_BANNER_LABELS,
       },
     ),
     homepageRow(
@@ -332,7 +414,7 @@ export function buildHomepageSections() {
       "Explore the Kawaii Collection",
       "Four ways to begin an everyday beauty routine",
       null,
-      9,
+      11,
       {
         eyebrow: "Japanese beauty",
         category_ids: [...CATEGORY_IDS],
@@ -347,10 +429,11 @@ export function buildHomepageSections() {
       "Everyday Beauty, Featured",
       "Six Kawaii picks for skincare and cosmetics routines",
       null,
-      10,
+      12,
       {
         eyebrow: "Selected by Kawaii",
         limit: 6,
+        ...KAWAII_PRODUCT_LABELS,
         cta_label: "Shop the collection",
         cta_url: "/product",
       },
@@ -362,10 +445,11 @@ export function buildHomepageSections() {
       "Kawaii Customer Voice",
       "A published review from the community",
       null,
-      11,
+      13,
       {
         eyebrow: "Community snapshot",
         limit: 12,
+        ...KAWAII_REVIEW_LABELS,
         cta_label: "See customer feedback",
         cta_url: "/reviews",
       },
@@ -376,11 +460,12 @@ export function buildHomepageSections() {
       "Kawaii's Featured Collection",
       "Authentic Japanese beauty for everyday care",
       null,
-      12,
+      14,
       {
         promotion_id: TEMPLATE_PROMOTION_ID,
         cta_label: "Discover featured products",
         cta_url: "/product",
+        ...KAWAII_PROMO_LABELS,
       },
     ),
     homepageRow(
@@ -389,7 +474,7 @@ export function buildHomepageSections() {
       "Kawaii, Dhaka",
       "Japanese beauty for Bangladesh",
       "<p>Discover authentic Japanese cosmetics through Kawaii, a Dhaka-based Facebook page focused on everyday skincare. Its public page snapshot records 88,594 likes and 143 people talking about the page.</p>",
-      13,
+      15,
       {
         image_path: STORY_EDITORIAL_PATH,
         image_bucket: "branding",
@@ -474,6 +559,12 @@ function sharedAboutConfig(version) {
           version === 2 ? "Everyday care." : "For everyday skincare.",
         subtitle:
           "Kawaii is a Dhaka-based Facebook page and authentic Japanese cosmetics seller for customers in Bangladesh.",
+        accessible_label:
+          version === 2 ? "Kawaii manifesto" : "Kawaii introduction",
+        image_alt:
+          version === 2
+            ? "Kawaii Japanese beauty collection in Dhaka"
+            : "Authentic Japanese cosmetics selected by Kawaii",
         cta_primary_label: "Shop products",
         cta_primary_url: "/product",
         cta_secondary_label: "Visit Facebook",
@@ -488,6 +579,7 @@ function sharedAboutConfig(version) {
       version === 2 ? "Kawaii signals" : "Kawaii snapshot",
       version === 2 ? 7 : 1,
       {
+        accessible_label: version === 2 ? "Kawaii signals" : "Kawaii snapshot",
         items: [
           { label: "Facebook likes · public snapshot", value: "88K+" },
           { label: "Talking about this · snapshot", value: "143" },
@@ -511,6 +603,11 @@ function sharedAboutConfig(version) {
           "<p>Kawaii brings authentic Japanese cosmetics and skincare into one approachable collection for beauty shoppers in Bangladesh.</p><p>The brand's Dhaka-based Facebook page shares products and everyday skincare inspiration with its community.</p>",
         extra:
           "The public Facebook snapshot records 88,594 likes and 143 people talking about the page.",
+        accessible_label: version === 2 ? "Kawaii editorial" : "Kawaii story",
+        image_alt:
+          version === 2
+            ? "Kawaii Japanese beauty editorial"
+            : "Japanese cosmetics and skincare presented by Kawaii",
         image_path: BANNER_PATHS[version === 2 ? 0 : 1],
         image_bucket: "banner",
       },
@@ -526,6 +623,8 @@ function sharedAboutConfig(version) {
           version === 2
             ? "Clear choices for everyday beauty."
             : "Authenticity, relevance, and everyday care.",
+        accessible_label:
+          version === 2 ? "Kawaii principles" : "What Kawaii offers",
         items: [
           {
             title: "Authentic Japanese cosmetics",
@@ -554,6 +653,9 @@ function sharedAboutConfig(version) {
         title_line2:
           version === 2 ? "everyday routines." : "thoughtful routines.",
         body: "Kawaii focuses on authentic Japanese cosmetics and everyday skincare for beauty shoppers in Bangladesh.",
+        accessible_label:
+          version === 2 ? "Kawaii profile study" : "Kawaii collection focus",
+        image_alt: "Kawaii Cosmetics BD Facebook profile",
         image_path: FACEBOOK_PROFILE_PATH,
         image_bucket: "branding",
         fabric_label: "Facebook page",
@@ -585,6 +687,8 @@ function sharedAboutConfig(version) {
             ? "Make Japanese beauty part of your routine."
             : "Explore authentic Japanese beauty.",
         body: "Browse Kawaii's cosmetics and skincare collection, or visit the public Facebook page for updates from Dhaka.",
+        accessible_label:
+          version === 2 ? "Explore with Kawaii" : "Connect with Kawaii",
         cta_primary_label: "Explore products",
         cta_primary_url: "/product",
         cta_secondary_label: "Visit Facebook",

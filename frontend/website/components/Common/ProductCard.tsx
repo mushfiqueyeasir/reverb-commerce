@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import ProductModal from "./ProductModal";
 import ImageLoader from "./ImageLoader";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
+import { useProductCardCopy } from "@/components/providers/ProductCardCopyProvider";
 import { useStoreName } from "@/components/providers/StoreBrandProvider";
 import { useWishlistStore } from "@/store/wishlistStore";
 import { cn } from "@/lib/utils";
@@ -51,6 +52,7 @@ export default function ProductCard({
 }: ProductCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { format } = useCurrency();
+  const productCardCopy = useProductCardCopy();
   const storeName = useStoreName();
   const isFavorite = useWishlistStore((s) => s.isFavorite(id));
   const toggleItem = useWishlistStore((s) => s.toggleItem);
@@ -67,14 +69,6 @@ export default function ProductCard({
       : discount && discount > 0
         ? `${discount}% Off`
         : "New");
-  const kawaiiBadge =
-    tag ||
-    (isOutOfStock
-      ? "Sold out"
-      : originalPrice > currentPrice
-        ? "Special price"
-        : "New favorite");
-
   if (variant === "kawaii-fashion") {
     return (
       <>
@@ -104,14 +98,12 @@ export default function ProductCard({
               )}
             </Link>
 
-            <span className="absolute left-3 top-3 bg-background/90 px-2.5 py-1.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-foreground backdrop-blur-sm sm:left-4 sm:top-4 sm:text-[10px]">
-              {kawaiiBadge}
-            </span>
-
             <button
               type="button"
               aria-label={
-                isFavorite ? "Remove from favorites" : "Add to favorites"
+                isFavorite
+                  ? productCardCopy.removeFavoriteAriaLabel
+                  : productCardCopy.addFavoriteAriaLabel
               }
               aria-pressed={isFavorite}
               onClick={(event) => {
@@ -126,7 +118,9 @@ export default function ProductCard({
                   originalPrice,
                 });
                 toast.success(
-                  added ? "Saved to favorites" : "Removed from favorites",
+                  added
+                    ? productCardCopy.favoriteSavedToast
+                    : productCardCopy.favoriteRemovedToast,
                 );
               }}
               className={cn(
@@ -149,7 +143,9 @@ export default function ProductCard({
                   "translate-y-0 cursor-not-allowed bg-foreground/90 opacity-100 text-background md:translate-y-0 md:opacity-100",
               )}
             >
-              {isOutOfStock ? "Sold Out" : "Quick Add"}
+              {isOutOfStock
+                ? productCardCopy.soldOutButtonLabel
+                : productCardCopy.quickAddButtonLabel}
               <Plus className="size-4 shrink-0" />
             </button>
           </div>

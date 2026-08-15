@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Category } from "@/type/categoryType";
 import type { SiteSettings } from "@/utility/getSettings";
 import { getMenuData } from "@/constant/menuData";
+import { resolveKawaiiAnnouncement } from "@/lib/cms/siteChrome";
 import KawaiiNavbar from "./KawaiiNavbar";
 
 export interface KawaiiHeaderProps {
@@ -17,6 +18,12 @@ export default function KawaiiHeader({
   aiSearchEnabled,
   preview = false,
 }: KawaiiHeaderProps) {
+  const announcement = resolveKawaiiAnnouncement(settings.navbar.announcement, {
+    text: settings.announcement_text,
+    active: settings.announcement_active,
+    url: settings.announcement_url,
+  });
+
   return (
     <Suspense
       fallback={
@@ -26,10 +33,11 @@ export default function KawaiiHeader({
       <KawaiiNavbar
         menuData={getMenuData(categories, settings.navbar)}
         logoUrl={settings.logoUrl}
-        storeName={settings.store_name || "Store"}
-        announcementText={settings.announcement_text}
-        announcementActive={settings.announcement_active}
-        announcementUrl={settings.announcement_url}
+        storeName={settings.store_name}
+        copy={settings.navbar.copy}
+        announcementText={announcement.text}
+        announcementActive={announcement.active}
+        announcementUrl={announcement.url}
         aiSearchEnabled={aiSearchEnabled}
         preview={preview}
       />

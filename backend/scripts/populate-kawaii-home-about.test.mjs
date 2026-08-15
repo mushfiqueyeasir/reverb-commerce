@@ -39,6 +39,8 @@ const CANONICAL_HOMEPAGE_IDS = new Map([
   ["featured", "60000000-0000-4000-8000-000000000003"],
   ["reviews", "60000000-0000-4000-8000-000000000005"],
   ["promo", "60000000-0000-4000-8000-000000000004"],
+  ["guarantees", "60000000-0000-4000-8000-000000000015"],
+  ["studio_notes", "60000000-0000-4000-8000-000000000016"],
   ["richtext", "60000000-0000-4000-8000-000000000006"],
   ["banner_v2", "60000000-0000-4000-8000-000000000007"],
   ["categories_v2", "60000000-0000-4000-8000-000000000008"],
@@ -50,13 +52,13 @@ const CANONICAL_HOMEPAGE_IDS = new Map([
 
 test("buildHomepageSections returns the canonical Kawaii sections", () => {
   const rows = buildHomepageSections();
-  assert.equal(rows.length, 14);
+  assert.equal(rows.length, 16);
   assert.deepEqual(
     new Set(rows.map((row) => row.type)),
     new Set(HOMEPAGE_TYPES),
   );
-  assert.equal(new Set(rows.map((row) => row.id)).size, 14);
-  assert.equal(rows.filter((row) => row.active).length, 8);
+  assert.equal(new Set(rows.map((row) => row.id)).size, 16);
+  assert.equal(rows.filter((row) => row.active).length, 10);
   assert.deepEqual(
     rows.filter((row) => row.active).map((row) => row.type),
     [
@@ -68,11 +70,13 @@ test("buildHomepageSections returns the canonical Kawaii sections", () => {
       "richtext",
       "reviews",
       "promo",
+      "guarantees",
+      "studio_notes",
     ],
   );
   assert.deepEqual(
     rows.filter((row) => row.active).map((row) => row.sort),
-    [0, 1, 2, 3, 4, 5, 6, 7],
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
   );
   assert.ok(
     rows.filter((row) => row.type.endsWith("_v2")).every((row) => !row.active),
@@ -83,6 +87,7 @@ test("buildHomepageSections returns the canonical Kawaii sections", () => {
     rows.find((row) => row.type === "categories").config.category_ids,
     CATEGORY_IDS,
   );
+  assert.equal(rows.find((row) => row.type === "categories").config.limit, 5);
   const productSections = rows.filter((row) =>
     ["deals", "new_arrivals", "featured", "featured_v2"].includes(row.type),
   );
@@ -94,16 +99,55 @@ test("buildHomepageSections returns the canonical Kawaii sections", () => {
   assert.ok(
     productSections
       .filter((row) => row.active)
-      .every((row) => row.config.limit === 8),
+      .every((row) => row.config.limit === 10),
   );
   assert.equal(rows.find((row) => row.type === "featured_v2").config.limit, 6);
   assert.equal(rows.find((row) => row.type === "reviews").config.limit, 12);
   assert.equal(rows.find((row) => row.type === "reviews_v2").config.limit, 12);
-  for (const type of ["promo", "promo_v2"]) {
+  const banner = rows.find((row) => row.type === "banner");
+  assert.equal(banner.config.edit_label, "Kawaii fashion edit");
+  assert.equal(banner.config.carousel_role_description, "carousel");
+  assert.equal(
+    banner.config.carousel_announcement_template,
+    "Slide {current} of {total}: {title}",
+  );
+  for (const row of productSections) {
+    assert.equal(row.config.sold_out_badge, "Sold out");
+    assert.equal(row.config.special_price_badge, "Special price");
+    assert.equal(row.config.default_badge, "New favorite");
+    assert.equal(row.config.product_list_label, "Featured products");
+    assert.equal(row.config.uncategorized_label_template, "Look {number}");
+  }
+  for (const type of ["reviews", "reviews_v2"]) {
+    const config = rows.find((row) => row.type === type).config;
+    assert.equal(config.item_label_template, "Note {number}");
+    assert.equal(config.verified_label, "Verified review");
     assert.equal(
-      rows.find((row) => row.type === type).config.promotion_id,
-      TEMPLATE_PROMOTION_ID,
+      config.rating_aria_template,
+      "{rating} out of {maximum} stars",
     );
+  }
+  const guarantees = rows.find((row) => row.type === "guarantees");
+  assert.equal(guarantees.config.accessible_label, "Shopping guarantees");
+  assert.equal(guarantees.config.items.length, 3);
+  assert.ok(
+    guarantees.config.items.every(
+      (item) => item.title.trim() && item.body.trim(),
+    ),
+  );
+  const studioNotes = rows.find((row) => row.type === "studio_notes");
+  assert.equal(studioNotes.config.eyebrow, "Notes from the studio");
+  assert.equal(studioNotes.config.cta_label, "Join our list");
+  assert.equal(studioNotes.config.cta_url, "/contact-us");
+  for (const type of ["promo", "promo_v2"]) {
+    const config = rows.find((row) => row.type === type).config;
+    assert.equal(config.promotion_id, TEMPLATE_PROMOTION_ID);
+    assert.equal(config.kicker, "A special little something");
+    assert.equal(config.limited_label, "Limited edit");
+    assert.equal(config.discount_suffix, "off");
+    assert.equal(config.image_eyebrow, "This week’s pick");
+    assert.equal(config.image_title, "Wear it your way");
+    assert.equal(config.cta_fallback_label, "Shop the edit");
   }
 });
 
@@ -124,6 +168,41 @@ test("buildAboutSections keeps the Kawaii V1 sections active", () => {
     assert.ok(row.title?.trim());
     assert.ok(Object.keys(row.config).length > 0);
     assert.match(JSON.stringify(row), /beauty|cosmetic|skincare|Kawaii/i);
+  }
+  for (const row of rows) assert.ok(row.config.accessible_label?.trim());
+  for (const type of [
+    "hero",
+    "story",
+    "craft",
+    "hero_v2",
+    "story_v2",
+    "craft_v2",
+  ]) {
+    assert.ok(
+      rows.find((row) => row.type === type).config.image_alt?.trim(),
+      `${type} must provide image_alt`,
+    );
+  }
+  for (const type of ["stats", "stats_v2"]) {
+    assert.ok(
+      rows
+        .find((row) => row.type === type)
+        .config.items.every((item) => item.label.trim() && item.value.trim()),
+    );
+  }
+  for (const type of ["values", "values_v2"]) {
+    assert.ok(
+      rows
+        .find((row) => row.type === type)
+        .config.items.every((item) => item.title.trim()),
+    );
+  }
+  for (const type of ["craft", "craft_v2"]) {
+    assert.ok(
+      rows
+        .find((row) => row.type === type)
+        .config.items.every((item) => item.label.trim()),
+    );
   }
   assert.doesNotMatch(
     copy,

@@ -45,6 +45,26 @@ export function flattenCategoryHierarchy(categories: Category[]): Category[] {
   return result;
 }
 
+export function filterCategoriesWithProductLinks(
+  categories: Category[],
+  linkedCategoryIds: ReadonlySet<string>,
+): Category[] {
+  const byId = new Map(categories.map((category) => [category._id, category]));
+  const included = new Set<string>();
+
+  for (const categoryId of linkedCategoryIds) {
+    const visited = new Set<string>();
+    let current = byId.get(categoryId);
+    while (current && !visited.has(current._id)) {
+      visited.add(current._id);
+      included.add(current._id);
+      current = current.parentId ? byId.get(current.parentId) : undefined;
+    }
+  }
+
+  return categories.filter((category) => included.has(category._id));
+}
+
 export function getDescendantIds(
   categories: Category[],
   categoryId: string,

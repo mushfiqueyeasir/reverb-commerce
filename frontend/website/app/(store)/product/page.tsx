@@ -8,7 +8,7 @@ import {
   transformProduct,
   type StorefrontProductSort,
 } from "@/utility/getProducts";
-import { getCategories } from "@/utility/getCategory";
+import { getStorefrontCategories } from "@/utility/getCategory";
 import { getDescendantIds } from "@/lib/categories/hierarchy";
 import { getStorefrontThemeManifest } from "@/lib/theme/manifest";
 import { readCurrentPublishedStorefrontTheme } from "@/lib/theme/store";
@@ -119,7 +119,7 @@ export default async function ProductsPage({
   const minPrice = priceParam(params.minPrice);
   const maxPrice = priceParam(params.maxPrice);
   const [categories, publishedTheme] = await Promise.all([
-    getCategories(),
+    getStorefrontCategories(),
     readCurrentPublishedStorefrontTheme(),
   ]);
   const manifest = getStorefrontThemeManifest(

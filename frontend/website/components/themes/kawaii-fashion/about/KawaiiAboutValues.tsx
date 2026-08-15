@@ -12,6 +12,8 @@ export default function KawaiiAboutValues({
   const headingId = useId();
   const eyebrow = configString(config, "eyebrow");
   const title = configString(config, "title");
+  const accessibleLabel = configString(config, "accessible_label");
+  const headingText = title || accessibleLabel || eyebrow;
   const values = parseValues(config);
 
   if (values.length === 0) return null;
@@ -19,7 +21,7 @@ export default function KawaiiAboutValues({
   return (
     <section
       className="relative overflow-hidden border-y border-border bg-surface py-20 text-foreground sm:py-28 lg:py-32"
-      aria-labelledby={headingId}
+      aria-labelledby={headingText ? headingId : undefined}
     >
       <div
         className="absolute -right-24 -top-24 size-80 rounded-full bg-[color-mix(in_srgb,var(--surface)_55%,#cfc2ff)] opacity-70 blur-3xl"
@@ -39,11 +41,11 @@ export default function KawaiiAboutValues({
             >
               {title}
             </h2>
-          ) : (
+          ) : headingText ? (
             <h2 id={headingId} className="sr-only">
-              {eyebrow || "Our values"}
+              {headingText}
             </h2>
-          )}
+          ) : null}
         </div>
 
         <ol className="mt-12 grid gap-4 md:grid-cols-3 lg:mt-16">
@@ -60,9 +62,11 @@ export default function KawaiiAboutValues({
                   {String(index + 1).padStart(2, "0")}
                 </span>
               </div>
-              <h3 className="mt-12 font-display text-2xl font-semibold leading-tight tracking-[-0.03em] sm:text-3xl">
-                {value.title || `Value ${index + 1}`}
-              </h3>
+              {value.title ? (
+                <h3 className="mt-12 font-display text-2xl font-semibold leading-tight tracking-[-0.03em] sm:text-3xl">
+                  {value.title}
+                </h3>
+              ) : null}
               {value.body ? (
                 <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
                   {value.body}

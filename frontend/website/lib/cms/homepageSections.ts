@@ -4,12 +4,15 @@ import {
   type HomepageSectionRow,
   type HomepageSectionType,
   type HomepageSectionV1Type,
+  type HomepageSupportSectionType,
 } from "../../type/db";
 
 export type HomepageProductSelection = "featured" | "deals" | "new-arrivals";
+export type HomepageSectionFamily =
+  HomepageSectionV1Type | HomepageSupportSectionType;
 
 export interface HomepageSectionMetadata {
-  family: HomepageSectionV1Type;
+  family: HomepageSectionFamily;
   version: 1 | 2;
   displayName: string;
   productSelection?: HomepageProductSelection;
@@ -81,7 +84,165 @@ export const HOMEPAGE_SECTION_METADATA: Record<
     version: 2,
     displayName: "Story - Editorial",
   },
+  guarantees: {
+    family: "guarantees",
+    version: 1,
+    displayName: "Shopping Guarantees",
+  },
+  studio_notes: {
+    family: "studio_notes",
+    version: 1,
+    displayName: "Studio Notes",
+  },
 };
+
+export interface KawaiiGuaranteeItem {
+  title: string;
+  body: string;
+}
+
+export interface KawaiiGuaranteesConfig {
+  accessibleLabel: string;
+  items: [KawaiiGuaranteeItem, KawaiiGuaranteeItem, KawaiiGuaranteeItem];
+}
+
+export interface KawaiiStudioNotesConfig {
+  eyebrow: string;
+  ctaLabel: string;
+  ctaUrl: string;
+}
+
+export const KAWAII_HOMEPAGE_TEXT_FIELD_LIMITS: Partial<
+  Record<HomepageSectionFamily, Readonly<Record<string, number>>>
+> = {
+  banner: {
+    description: 1000,
+    edit_label: 120,
+    footer_note: 240,
+    image_badge: 120,
+    carousel_role_description: 120,
+    carousel_announcement_template: 240,
+    pause_label: 120,
+    resume_label: 120,
+    previous_label: 120,
+    next_label: 120,
+  },
+  categories: {
+    eyebrow: 120,
+    cta_label: 120,
+    cta_url: 500,
+  },
+  featured: {
+    eyebrow: 120,
+    cta_label: 120,
+    cta_url: 500,
+    sold_out_badge: 120,
+    special_price_badge: 120,
+    default_badge: 120,
+    product_list_label: 120,
+    uncategorized_label_template: 160,
+  },
+  reviews: {
+    eyebrow: 120,
+    cta_label: 120,
+    cta_url: 500,
+    customer_fallback: 160,
+    body_fallback: 1000,
+    item_label_template: 160,
+    verified_label: 120,
+    rating_aria_template: 200,
+  },
+  promo: {
+    cta_label: 120,
+    cta_url: 500,
+    kicker: 160,
+    limited_label: 120,
+    discount_suffix: 80,
+    image_eyebrow: 120,
+    image_title: 160,
+    cta_fallback_label: 120,
+  },
+  richtext: {
+    eyebrow: 120,
+    cta_label: 120,
+    cta_url: 500,
+    image_alt: 500,
+    image_label: 160,
+    image_value: 200,
+    image_tag: 120,
+    copy_label: 160,
+    cards_label: 160,
+  },
+};
+
+export function normalizeKawaiiHomepageTextConfig(
+  family: HomepageSectionFamily,
+  config: Record<string, unknown>,
+): { config: Record<string, unknown>; error?: string } {
+  const limits = KAWAII_HOMEPAGE_TEXT_FIELD_LIMITS[family];
+  if (!limits) return { config: { ...config } };
+  const normalized = { ...config };
+  for (const [key, maximum] of Object.entries(limits)) {
+    if (!(key in normalized)) continue;
+    const value = normalized[key];
+    if (value === null || value === undefined) {
+      normalized[key] = null;
+      continue;
+    }
+    if (typeof value !== "string") {
+      return { config: normalized, error: `${key} must be text.` };
+    }
+    const text = value.trim();
+    if (text.length > maximum) {
+      return {
+        config: normalized,
+        error: `${key} must be ${maximum} characters or fewer.`,
+      };
+    }
+    normalized[key] = text || null;
+  }
+  return { config: normalized };
+}
+
+function requiredConfigString(value: unknown, maximum: number): string | null {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim();
+  return normalized && normalized.length <= maximum ? normalized : null;
+}
+
+export function parseKawaiiGuaranteesConfig(
+  config: Record<string, unknown>,
+): KawaiiGuaranteesConfig | null {
+  const accessibleLabel = requiredConfigString(config.accessible_label, 120);
+  if (
+    !accessibleLabel ||
+    !Array.isArray(config.items) ||
+    config.items.length !== 3
+  ) {
+    return null;
+  }
+  const items = config.items.map((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+    const value = item as Record<string, unknown>;
+    const title = requiredConfigString(value.title, 160);
+    const body = requiredConfigString(value.body, 500);
+    return title && body ? { title, body } : null;
+  });
+  if (items.some((item) => item === null)) return null;
+  return {
+    accessibleLabel,
+    items: items as KawaiiGuaranteesConfig["items"],
+  };
+}
+
+export function parseKawaiiStudioNotesConfig(
+  config: Record<string, unknown>,
+): KawaiiStudioNotesConfig | null {
+  const eyebrow = requiredConfigString(config.eyebrow, 120);
+  const ctaLabel = requiredConfigString(config.cta_label, 120);
+  const ctaUrl = requiredConfigString(config.cta_url, 500);
+  return eyebrow && ctaLabel && ctaUrl ? { eyebrow, ctaLabel, ctaUrl } : null;
+}
 
 export interface NormalizeHomepageSectionsOptions {
   appendMissing?: boolean;
@@ -109,7 +270,7 @@ export function getHomepageSectionMetadata(
 
 export function getHomepageSectionFamily(
   type: unknown,
-): HomepageSectionV1Type | null {
+): HomepageSectionFamily | null {
   return getHomepageSectionMetadata(type)?.family ?? null;
 }
 

@@ -52,9 +52,52 @@ export interface NavbarItem {
   href: string;
 }
 
+export interface NavbarAnnouncement {
+  text: string;
+  active: boolean;
+  url: string | null;
+}
+
+export interface NavbarCopy {
+  primaryNavigationAriaLabel: string;
+  desktopSearchAriaLabel: string;
+  desktopFavoritesAriaLabel: string;
+  desktopBagAriaLabel: string;
+  homeLinkAriaLabelTemplate: string;
+  shopAllTemplate: string;
+  collectionsCountTemplate: string;
+  mobileNavigationAriaLabel: string;
+  mobileHomeLabel: string;
+  mobileSavedLabel: string;
+  mobileShopLabel: string;
+  mobileBagLabel: string;
+  mobileSearchLabel: string;
+  mobileSearchAriaLabel: string;
+  countOverflowLabel: string;
+  collectionsLabel: string;
+  shopByCategoryLabel: string;
+  primaryCategoryLabel: string;
+  exploreLabel: string;
+  emptyCollectionLabel: string;
+  compactMenuTitle: string;
+  compactMenuDescription: string;
+}
+
+export interface ProductCardCopy {
+  addFavoriteAriaLabel: string;
+  removeFavoriteAriaLabel: string;
+  favoriteSavedToast: string;
+  favoriteRemovedToast: string;
+  soldOutButtonLabel: string;
+  quickAddButtonLabel: string;
+}
+
 export interface NavbarConfig {
   variant: NavbarVariant;
   items: NavbarItem[];
+  announcement: NavbarAnnouncement | null;
+  copy: NavbarCopy;
+  productCardCopy: ProductCardCopy;
 }
 
 export interface FooterLink {
@@ -69,11 +112,21 @@ export interface FooterColumn {
   links: FooterLink[];
 }
 
+export interface FooterCopy {
+  homeLinkAriaLabelTemplate: string;
+  copyrightTemplate: string;
+  facebookAriaLabel: string;
+  instagramAriaLabel: string;
+  twitterAriaLabel: string;
+  youtubeAriaLabel: string;
+}
+
 export interface FooterConfig {
   variant: FooterVariant;
   description: string;
   columns: FooterColumn[];
   legalLinks: FooterLink[];
+  copy: FooterCopy;
 }
 
 export const DEFAULT_NAVBAR: NavbarConfig = {
@@ -89,6 +142,39 @@ export const DEFAULT_NAVBAR: NavbarConfig = {
     { id: "reviews", kind: "link", label: "Reviews", href: "/reviews" },
     { id: "contact", kind: "link", label: "Contact", href: "/contact-us" },
   ],
+  announcement: null,
+  copy: {
+    primaryNavigationAriaLabel: "Primary navigation",
+    desktopSearchAriaLabel: "Search products",
+    desktopFavoritesAriaLabel: "Favorites",
+    desktopBagAriaLabel: "Shopping bag",
+    homeLinkAriaLabelTemplate: "{storeName} home",
+    shopAllTemplate: "Shop all {label}",
+    collectionsCountTemplate: "{count} collections",
+    mobileNavigationAriaLabel: "Mobile shopping navigation",
+    mobileHomeLabel: "Home",
+    mobileSavedLabel: "Saved",
+    mobileShopLabel: "Shop",
+    mobileBagLabel: "Bag",
+    mobileSearchLabel: "Search",
+    mobileSearchAriaLabel: "Search products",
+    countOverflowLabel: "9+",
+    collectionsLabel: "Collections",
+    shopByCategoryLabel: "Shop by category",
+    primaryCategoryLabel: "Primary category",
+    exploreLabel: "Explore",
+    emptyCollectionLabel: "Explore all products in this collection.",
+    compactMenuTitle: "Shop categories",
+    compactMenuDescription: "Find your collection.",
+  },
+  productCardCopy: {
+    addFavoriteAriaLabel: "Add to favorites",
+    removeFavoriteAriaLabel: "Remove from favorites",
+    favoriteSavedToast: "Saved to favorites",
+    favoriteRemovedToast: "Removed from favorites",
+    soldOutButtonLabel: "Sold Out",
+    quickAddButtonLabel: "Quick Add",
+  },
 };
 
 export const DEFAULT_FOOTER: FooterConfig = {
@@ -136,6 +222,14 @@ export const DEFAULT_FOOTER: FooterConfig = {
       href: "/refund-policy",
     },
   ],
+  copy: {
+    homeLinkAriaLabelTemplate: "{storeName} home",
+    copyrightTemplate: "© {year} {storeName}",
+    facebookAriaLabel: "Facebook",
+    instagramAriaLabel: "Instagram",
+    twitterAriaLabel: "X",
+    youtubeAriaLabel: "YouTube",
+  },
 };
 
 function record(value: unknown): Record<string, unknown> | null {
@@ -148,6 +242,36 @@ function text(value: unknown, fallback: string, maxLength = 80): string {
   return typeof value === "string" && value.trim()
     ? value.trim().slice(0, maxLength)
     : fallback;
+}
+
+function normalizeCopy<T extends Record<keyof T, string>>(
+  value: unknown,
+  fallback: T,
+): T {
+  const input = record(value);
+  return Object.fromEntries(
+    Object.entries(fallback).map(([key, fallbackValue]) => [
+      key,
+      text(input?.[key], String(fallbackValue), 160),
+    ]),
+  ) as T;
+}
+
+type ChromeTemplateToken = "label" | "count" | "storeName" | "year";
+
+export function interpolateChromeTemplate(
+  template: string,
+  values: Partial<Record<ChromeTemplateToken, string | number>>,
+  allowedTokens: readonly ChromeTemplateToken[],
+): string {
+  const allowed = new Set(allowedTokens);
+  return template.replace(
+    /\{(label|count|storeName|year)\}/g,
+    (placeholder, token: ChromeTemplateToken) =>
+      allowed.has(token) && values[token] !== undefined
+        ? String(values[token])
+        : placeholder,
+  );
 }
 
 export function isSafeChromeHref(value: string): boolean {
@@ -166,6 +290,39 @@ export function isSafeChromeHref(value: string): boolean {
 
 export function isExternalChromeHref(value: string): boolean {
   return /^https:\/\//i.test(value.trim());
+}
+
+function normalizeNavbarAnnouncement(
+  value: unknown,
+): NavbarAnnouncement | null {
+  const input = record(value);
+  if (!input) return null;
+  const text =
+    typeof input.text === "string"
+      ? input.text.replace(/\s+/g, " ").trim().slice(0, 160)
+      : "";
+  const rawUrl = typeof input.url === "string" ? input.url.trim() : "";
+  return {
+    text,
+    active: text.length > 0 && input.active === true,
+    url: rawUrl && isSafeChromeHref(rawUrl) ? rawUrl : null,
+  };
+}
+
+export function resolveKawaiiAnnouncement(
+  announcement: NavbarAnnouncement | null,
+  legacy: {
+    text?: string | null;
+    active?: boolean;
+    url?: string | null;
+  },
+): NavbarAnnouncement {
+  if (announcement !== null) return announcement;
+  return {
+    text: legacy.text ?? "",
+    active: legacy.active === true,
+    url: legacy.url ?? null,
+  };
 }
 
 function normalizeLink(value: unknown, fallbackId: string): FooterLink | null {
@@ -189,6 +346,10 @@ function uniqueIds<T extends { id: string }>(items: T[]): T[] {
     seen.add(id);
     return { ...item, id };
   });
+}
+
+export function normalizeProductCardCopy(value: unknown): ProductCardCopy {
+  return normalizeCopy(value, DEFAULT_NAVBAR.productCardCopy);
 }
 
 export function normalizeNavbarConfig(value: unknown): NavbarConfig {
@@ -222,6 +383,9 @@ export function normalizeNavbarConfig(value: unknown): NavbarConfig {
       ? (input.variant as NavbarVariant)
       : DEFAULT_NAVBAR.variant,
     items,
+    announcement: normalizeNavbarAnnouncement(input.announcement),
+    copy: normalizeCopy(input.copy, DEFAULT_NAVBAR.copy),
+    productCardCopy: normalizeProductCardCopy(input.productCardCopy),
   };
 }
 
@@ -280,5 +444,6 @@ export function normalizeFooterConfig(
         : DEFAULT_FOOTER.description,
     columns,
     legalLinks,
+    copy: normalizeCopy(input.copy, DEFAULT_FOOTER.copy),
   };
 }
