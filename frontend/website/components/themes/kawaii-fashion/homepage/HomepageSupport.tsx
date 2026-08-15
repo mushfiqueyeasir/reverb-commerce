@@ -24,10 +24,10 @@ export function KawaiiFashionGuarantees({
   items,
 }: KawaiiFashionGuaranteesProps) {
   return (
-    <div className="relative overflow-hidden bg-background px-4 pb-4 pt-6 sm:px-6 sm:pb-5 lg:px-10">
+    <div className="relative overflow-hidden bg-background px-4 pb-16 pt-6 sm:px-6 sm:pb-24 lg:px-10 lg:pb-32">
       <section
         aria-label={accessibleLabel}
-        className="relative mx-auto grid max-w-[1520px] overflow-hidden rounded-2xl border border-border bg-card shadow-[0_24px_70px_color-mix(in_srgb,var(--foreground)_6%,transparent)] sm:grid-cols-3"
+        className="relative mx-auto grid max-w-[1520px] overflow-hidden rounded-2xl border border-border bg-card sm:grid-cols-3"
       >
         {items.map((item, index) => {
           const Icon = GUARANTEE_ICONS[index];

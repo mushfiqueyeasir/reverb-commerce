@@ -1,6 +1,5 @@
 import { requireAdminSession, canWrite } from "@/lib/admin/auth";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { getStorefrontThemePackage } from "@/components/themes/registry";
 import { getStorefrontThemeManifest } from "@/lib/theme/manifest";
 import { readCurrentPublishedStorefrontTheme } from "@/lib/theme/store";
 import { AboutTable } from "./AboutTable";
@@ -32,7 +31,8 @@ export default async function AboutAdminPage() {
       <AboutTable
         data={themeSections}
         canWrite={writable}
-        renderers={getStorefrontThemePackage(manifest.id).aboutRenderers}
+        themeId={manifest.id}
+        rendererMapping={manifest.renderers.aboutSections}
       />
     </div>
   );

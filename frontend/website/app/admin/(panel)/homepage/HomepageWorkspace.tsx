@@ -3,8 +3,8 @@
 import type {
   HomepageRendererData,
   HomepageSectionRendererMapping,
-  HomepageSectionRendererRegistry,
 } from "@/components/HomePage/HomepageRenderer";
+import { getStorefrontThemePackage } from "@/components/themes/registry";
 import type { HomepageSectionRow } from "@/type/db";
 import { HomepageTable } from "./HomepageTable";
 
@@ -14,7 +14,6 @@ export function HomepageWorkspace({
   themeId,
   themeName,
   rendererMapping,
-  renderers,
   previewData,
 }: {
   sections: HomepageSectionRow[];
@@ -22,9 +21,10 @@ export function HomepageWorkspace({
   themeId: string;
   themeName: string;
   rendererMapping: HomepageSectionRendererMapping;
-  renderers?: Partial<HomepageSectionRendererRegistry>;
   previewData: HomepageRendererData;
 }) {
+  const renderers = getStorefrontThemePackage(themeId).homepageRenderers;
+
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">

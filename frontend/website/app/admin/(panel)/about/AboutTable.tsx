@@ -22,10 +22,12 @@ import { CSS } from "@dnd-kit/utilities";
 import { Eye, GripVertical, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import AboutPageScreen from "@/components/AboutPage/AboutPageScreen";
+import { getStorefrontThemePackage } from "@/components/themes/registry";
+import type { AboutSectionRenderer } from "@/components/themes/types";
 import type {
-  AboutSectionRenderer,
-} from "@/components/themes/types";
-import type { AboutRendererRegistry } from "@/lib/cms/aboutRendererRegistry";
+  AboutRendererIdMapping,
+  AboutRendererRegistry,
+} from "@/lib/cms/aboutRendererRegistry";
 import {
   getAboutSectionDisplayName,
   getAboutSectionFamily,
@@ -106,9 +108,11 @@ function previewImage(type: AboutSectionRow["type"]): string | null {
 
 function PreviewDialog({
   section,
+  rendererMapping,
   renderers,
 }: {
   section: AboutSectionRow;
+  rendererMapping: AboutRendererIdMapping;
   renderers?: Partial<AboutRendererRegistry<AboutSectionRenderer>>;
 }) {
   const displayName = getAboutSectionDisplayName(section.type) ?? section.type;
@@ -143,6 +147,7 @@ function PreviewDialog({
             sections={[section]}
             imageUrls={{ [section.id]: previewImage(section.type) }}
             preview
+            rendererMapping={rendererMapping}
             renderers={renderers}
           />
         </ScrollArea>
@@ -154,10 +159,12 @@ function PreviewDialog({
 function SortableRow({
   section,
   canWrite,
+  rendererMapping,
   renderers,
 }: {
   section: AboutSectionRow;
   canWrite: boolean;
+  rendererMapping: AboutRendererIdMapping;
   renderers?: Partial<AboutRendererRegistry<AboutSectionRenderer>>;
 }) {
   const displayName = getAboutSectionDisplayName(section.type) ?? section.type;
@@ -212,7 +219,11 @@ function SortableRow({
       </div>
 
       <div className="flex w-full shrink-0 flex-wrap items-center justify-end gap-3 border-t border-border/60 pt-3 sm:w-auto sm:border-0 sm:pt-0">
-        <PreviewDialog section={section} renderers={renderers} />
+        <PreviewDialog
+          section={section}
+          rendererMapping={rendererMapping}
+          renderers={renderers}
+        />
         <ActiveToggle
           id={section.id}
           active={section.active}
@@ -232,12 +243,15 @@ function SortableRow({
 export function AboutTable({
   data,
   canWrite,
-  renderers,
+  themeId,
+  rendererMapping,
 }: {
   data: AboutSectionRow[];
   canWrite: boolean;
-  renderers?: Partial<AboutRendererRegistry<AboutSectionRenderer>>;
+  themeId: string;
+  rendererMapping: AboutRendererIdMapping;
 }) {
+  const renderers = getStorefrontThemePackage(themeId).aboutRenderers;
   const [items, setItems] = useState(data);
   const [, startTransition] = useTransition();
 
@@ -306,6 +320,7 @@ export function AboutTable({
                 key={section.id}
                 section={section}
                 canWrite={canWrite}
+                rendererMapping={rendererMapping}
                 renderers={renderers}
               />
             ))}
