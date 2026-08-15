@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { ArrowDown, ArrowRight, Star } from "lucide-react";
+import { ArrowDown, Star } from "lucide-react";
 import ReviewCard from "@/components/Common/ReviewCard";
 import type { TransformedReview } from "@/type/reviewType";
 
@@ -102,7 +101,7 @@ export default function ReviewPageScreen({
             ))}
           </div>
         ) : (
-          <div className="rounded-[2rem] border border-dashed border-border py-20 text-center">
+          <div className="rounded-2xl border border-dashed border-border py-20 text-center">
             <p className="font-display text-3xl font-semibold tracking-tight">
               The first field note is coming soon.
             </p>
@@ -112,28 +111,6 @@ export default function ReviewPageScreen({
           </div>
         )}
       </section>
-
-      {reviews.length > 0 ? (
-        <section className="mx-auto mt-24 max-w-[1600px] px-6 md:mt-32 md:px-10">
-          <div className="flex flex-col gap-7 rounded-[2rem] border border-primary/25 bg-card p-7 sm:p-10 md:flex-row md:items-center md:justify-between md:rounded-[2.5rem] lg:p-12">
-            <div>
-              <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-primary">
-                Your turn
-              </p>
-              <h2 className="mt-3 max-w-2xl font-display text-3xl font-bold tracking-tight sm:text-4xl">
-                Find the piece you&apos;ll have a story about.
-              </h2>
-            </div>
-            <Link
-              href="/product"
-              className="group inline-flex min-h-14 shrink-0 items-center justify-between gap-8 rounded-full bg-primary px-6 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary-foreground transition hover:brightness-110 sm:px-8"
-            >
-              Explore products
-              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-            </Link>
-          </div>
-        </section>
-      ) : null}
     </main>
   );
 }

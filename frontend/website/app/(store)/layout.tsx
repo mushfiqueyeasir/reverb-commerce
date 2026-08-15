@@ -40,8 +40,8 @@ export default async function StoreLayout({
     <CurrencyProvider currencies={settings.currencies}>
       <ProductCardCopyProvider copy={settings.navbar.productCardCopy}>
         <div
-          data-store-theme={manifest.id}
-          data-store-theme-version={manifest.version}
+          data-storefront-theme={manifest.id}
+          data-storefront-theme-version={manifest.version}
           className="relative bg-background text-foreground"
         >
           {settings.analytics_enabled && (

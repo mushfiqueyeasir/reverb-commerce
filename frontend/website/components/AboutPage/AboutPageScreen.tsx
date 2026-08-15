@@ -383,7 +383,7 @@ function CtaSection({ config }: { config: Record<string, unknown> }) {
 
   return (
     <section className="mx-auto max-w-[1600px] px-6 pt-4 md:px-10 md:pt-8">
-      <div className="relative isolate overflow-hidden rounded-[2rem] border border-primary/25 bg-card text-foreground shadow-[0_35px_100px_-55px_rgb(var(--primary-rgb)/0.7)] md:rounded-[2.75rem]">
+      <div className="relative isolate overflow-hidden rounded-2xl border border-primary/25 bg-card text-foreground shadow-[0_35px_100px_-55px_rgb(var(--primary-rgb)/0.7)] md:rounded-3xl">
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.07]"
           style={{
@@ -578,7 +578,11 @@ function renderSection(
     SOURCE_ABOUT_RENDERERS,
     renderers,
   );
-  const Renderer = resolveAboutRenderer(section.type, registry, rendererMapping);
+  const Renderer = resolveAboutRenderer(
+    section.type,
+    registry,
+    rendererMapping,
+  );
   if (!Renderer) return null;
 
   return (

@@ -32,15 +32,16 @@ export default function KawaiiFashionAiSearch({
   const normalizedPillLabel = pillLabel?.trim();
 
   if (aiSearchEnabled === false) return null;
-  if (!normalizedEyebrow || !normalizedTitle || !normalizedCtaLabel) return null;
+  if (!normalizedEyebrow || !normalizedTitle || !normalizedCtaLabel)
+    return null;
 
   return (
     <div className="relative overflow-hidden bg-background px-4 pb-16 pt-4 sm:px-6 sm:pb-24 sm:pt-5 lg:px-10 lg:pb-32">
       <section
         aria-labelledby="kawaii-ai-search-title"
-        className="relative isolate mx-auto max-w-[1520px] overflow-hidden rounded-[2rem] border border-primary/20 bg-surface"
+        className="relative isolate mx-auto max-w-[1520px] overflow-hidden rounded-2xl border border-primary/20 bg-surface"
       >
-        <div className="pointer-events-none absolute -right-24 -top-24 -z-10 size-80 rounded-full bg-primary/20 blur-3xl" />
+        <div className="pointer-events-none absolute -right-24 -top-24 -z-10 size-80 rounded-[9999px] bg-primary/20 blur-3xl" />
         <Sparkles
           className="pointer-events-none absolute left-10 top-10 size-10 -rotate-12 text-primary/20"
           aria-hidden="true"

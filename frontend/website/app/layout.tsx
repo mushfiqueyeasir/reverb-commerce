@@ -59,15 +59,19 @@ export default async function RootLayout({
     getSiteSettings(),
     readCurrentPublishedStorefrontTheme(),
   ]);
-  const palette = resolveStorefrontThemeTokens(publishedTheme.config).palette;
-  const light = isLightPalette(palette);
+  const tokens = resolveStorefrontThemeTokens(publishedTheme.config);
+  const light = isLightPalette(tokens.palette);
 
   return (
-    <html lang="en" data-theme={light ? "light" : "dark"}>
+    <html
+      lang="en"
+      data-theme={light ? "light" : "dark"}
+      data-storefront-theme={publishedTheme.config.themeId || "legacy-classic"}
+    >
       <body
         className={`${inter.variable} ${space.variable} ${jetbrains.variable} font-sans antialiased bg-background text-foreground`}
       >
-        <ThemeStyle palette={palette} />
+        <ThemeStyle tokens={tokens} />
         <StoreBrandProvider storeName={settings.store_name || "Store"}>
           {children}
         </StoreBrandProvider>

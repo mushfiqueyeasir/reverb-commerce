@@ -418,7 +418,7 @@ function ActionLink({
     >
       {children}
       {count > 0 ? (
-        <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground">
+        <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-[9999px] bg-primary px-1 text-[9px] font-bold text-primary-foreground">
           {count > 9 ? countOverflowLabel : count}
         </span>
       ) : null}
@@ -528,7 +528,7 @@ function MobileTab({
       >
         {icon}
         {count > 0 ? (
-          <span className="absolute -right-2 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground">
+          <span className="absolute -right-2 -top-1 grid h-4 min-w-4 place-items-center rounded-[9999px] bg-primary px-1 text-[9px] font-bold text-primary-foreground">
             {count > 9 ? countOverflowLabel : count}
           </span>
         ) : null}

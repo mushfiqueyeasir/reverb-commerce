@@ -29,7 +29,10 @@ import {
   type StoryCardIcon,
 } from "@/lib/cms/homepageStory";
 import { BUCKETS } from "@/lib/supabase/config";
-import { STOREFRONT_THEME_REGISTRY } from "@/lib/theme/manifest";
+import {
+  STOREFRONT_THEME_REGISTRY,
+  type StorefrontThemeSectionField,
+} from "@/lib/theme/manifest";
 import { AdminCard } from "@/components/admin/AdminCard";
 import {
   FormActions,
@@ -210,7 +213,12 @@ export function SectionForm({
     getHomepageSectionDisplayName(section.type) ?? section.type;
   const admin = STOREFRONT_THEME_REGISTRY[themeId]?.admin;
   const isKawaii = admin?.kawaiiLabels ?? false;
-  const maxMosaicCategories = admin?.maxMosaicCategories ?? MAX_MOSAIC_CATEGORIES;
+  const sectionFieldGroups = admin?.sectionFieldGroups ?? [];
+  const extraFieldGroups = sectionFieldGroups.filter(
+    (group) => group.family === family,
+  );
+  const maxMosaicCategories =
+    admin?.maxMosaicCategories ?? MAX_MOSAIC_CATEGORIES;
   const featuredLimit = admin?.featuredLimit ?? null;
   const bannerSectionType = isBannerSectionType(section.type)
     ? section.type
@@ -356,27 +364,15 @@ export function SectionForm({
       isKawaii ? "" : DEFAULT_BANNER_DESCRIPTION,
     ),
   );
-  const [kawaiiText, setKawaiiText] = useState(() => ({
-    editLabel: strConfig(config, "edit_label"),
-    footerNote: strConfig(config, "footer_note"),
-    imageBadge: strConfig(config, "image_badge"),
-    productListLabel: strConfig(config, "product_list_label"),
-    uncategorizedLabelTemplate: strConfig(
-      config,
-      "uncategorized_label_template",
-    ),
-    customerFallback: strConfig(config, "customer_fallback"),
-    bodyFallback: strConfig(config, "body_fallback"),
-    itemLabelTemplate: strConfig(config, "item_label_template"),
-    verifiedLabel: strConfig(config, "verified_label"),
-    ratingAriaTemplate: strConfig(config, "rating_aria_template"),
-    kicker: strConfig(config, "kicker"),
-    limitedLabel: strConfig(config, "limited_label"),
-    discountSuffix: strConfig(config, "discount_suffix"),
-    imageEyebrow: strConfig(config, "image_eyebrow"),
-    imageTitle: strConfig(config, "image_title"),
-    ctaFallbackLabel: strConfig(config, "cta_fallback_label"),
-  }));
+  const [extraText, setExtraText] = useState(() => {
+    const initial: Record<string, string> = {};
+    for (const group of extraFieldGroups) {
+      for (const field of group.fields) {
+        initial[field.key] = strConfig(config, field.key);
+      }
+    }
+    return initial;
+  });
   const [stats, setStats] = useState<BannerStatItem[]>(() =>
     parseStats(config),
   );
@@ -394,8 +390,8 @@ export function SectionForm({
     (category) => !categoryIds.includes(category.id),
   );
 
-  const updateKawaiiText = (key: keyof typeof kawaiiText, value: string) => {
-    setKawaiiText((current) => ({ ...current, [key]: value }));
+  const updateExtraText = (key: string, value: string) => {
+    setExtraText((current) => ({ ...current, [key]: value }));
   };
 
   const updateGuaranteeItem = (
@@ -486,34 +482,10 @@ export function SectionForm({
       nextConfig.cta_label = ctaLabel.trim() || null;
       nextConfig.cta_url = ctaUrl.trim() || null;
     }
-    if (isKawaii && family === "banner") {
-      nextConfig.edit_label = kawaiiText.editLabel.trim() || null;
-      nextConfig.footer_note = kawaiiText.footerNote.trim() || null;
-      nextConfig.image_badge = kawaiiText.imageBadge.trim() || null;
-    }
-    if (isKawaii && family === "featured") {
-      nextConfig.product_list_label =
-        kawaiiText.productListLabel.trim() || null;
-      nextConfig.uncategorized_label_template =
-        kawaiiText.uncategorizedLabelTemplate.trim() || null;
-    }
-    if (isKawaii && family === "reviews") {
-      nextConfig.customer_fallback = kawaiiText.customerFallback.trim() || null;
-      nextConfig.body_fallback = kawaiiText.bodyFallback.trim() || null;
-      nextConfig.item_label_template =
-        kawaiiText.itemLabelTemplate.trim() || null;
-      nextConfig.verified_label = kawaiiText.verifiedLabel.trim() || null;
-      nextConfig.rating_aria_template =
-        kawaiiText.ratingAriaTemplate.trim() || null;
-    }
-    if (isKawaii && family === "promo") {
-      nextConfig.kicker = kawaiiText.kicker.trim() || null;
-      nextConfig.limited_label = kawaiiText.limitedLabel.trim() || null;
-      nextConfig.discount_suffix = kawaiiText.discountSuffix.trim() || null;
-      nextConfig.image_eyebrow = kawaiiText.imageEyebrow.trim() || null;
-      nextConfig.image_title = kawaiiText.imageTitle.trim() || null;
-      nextConfig.cta_fallback_label =
-        kawaiiText.ctaFallbackLabel.trim() || null;
+    for (const group of extraFieldGroups) {
+      for (const field of group.fields) {
+        nextConfig[field.key] = (extraText[field.key] ?? "").trim() || null;
+      }
     }
     if (hasRequiredLimit) {
       const parsedLimit = Number(limit);
@@ -605,20 +577,54 @@ export function SectionForm({
     });
   };
 
-  const kawaiiField = (
-    key: keyof typeof kawaiiText,
-    label: string,
-    hint?: string,
-  ) => (
-    <FormField label={label} htmlFor={`kawaii-${key}`} hint={hint}>
-      <Input
-        id={`kawaii-${key}`}
-        value={kawaiiText[key]}
-        onChange={(event) => updateKawaiiText(key, event.target.value)}
-        className={adminInputClass}
-      />
+  const extraField = (field: StorefrontThemeSectionField) => (
+    <FormField
+      label={field.label}
+      htmlFor={`theme-field-${field.key}`}
+      hint={field.hint}
+    >
+      {field.kind === "textarea" ? (
+        <Textarea
+          id={`theme-field-${field.key}`}
+          value={extraText[field.key] ?? ""}
+          onChange={(event) => updateExtraText(field.key, event.target.value)}
+          rows={3}
+          className={adminTextareaClass}
+        />
+      ) : (
+        <Input
+          id={`theme-field-${field.key}`}
+          value={extraText[field.key] ?? ""}
+          onChange={(event) => updateExtraText(field.key, event.target.value)}
+          className={adminInputClass}
+        />
+      )}
     </FormField>
   );
+
+  const extraFieldGroupsMarkup = extraFieldGroups.map((group) => (
+    <div
+      key={group.family}
+      className="space-y-5 rounded-xl border border-border bg-background/50 p-4"
+    >
+      <div>
+        <p className="text-sm font-medium text-foreground">{group.title}</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {group.description}
+        </p>
+      </div>
+      <div className="grid gap-5 sm:grid-cols-2">
+        {group.fields.map((field) => (
+          <div
+            key={field.key}
+            className={field.kind === "textarea" ? "sm:col-span-2" : undefined}
+          >
+            {extraField(field)}
+          </div>
+        ))}
+      </div>
+    </div>
+  ));
 
   const formActions = (
     <FormActions>
@@ -702,23 +708,7 @@ export function SectionForm({
                   />
                 </FormField>
 
-                {isKawaii ? (
-                  <div className="space-y-5 rounded-xl border border-border bg-background/50 p-4">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        Kawaii Fashion labels
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Optional visible carousel copy.
-                      </p>
-                    </div>
-                    <div className="grid gap-5 sm:grid-cols-2">
-                      {kawaiiField("editLabel", "Edit label")}
-                      {kawaiiField("imageBadge", "Image badge")}
-                    </div>
-                    {kawaiiField("footerNote", "Footer note")}
-                  </div>
-                ) : null}
+                {extraFieldGroupsMarkup}
 
                 {version === 1 && !isKawaii ? (
                   <>
@@ -1134,88 +1124,7 @@ export function SectionForm({
             />
           </FormField>
 
-          {isKawaii && family === "featured" ? (
-            <div className="space-y-5 rounded-xl border border-border bg-background/50 p-4">
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  Kawaii Fashion product labels
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Leave any label blank to hide it.
-                </p>
-              </div>
-              <div className="grid gap-5 sm:grid-cols-2">
-                {kawaiiField("productListLabel", "Product list label")}
-              </div>
-              {kawaiiField(
-                "uncategorizedLabelTemplate",
-                "Uncategorized label template",
-                "Use {number} for the generated item number.",
-              )}
-            </div>
-          ) : null}
-
-          {isKawaii && family === "reviews" ? (
-            <div className="space-y-5 rounded-xl border border-border bg-background/50 p-4">
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  Kawaii Fashion review labels
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Fallback content is used only when a review field is empty.
-                </p>
-              </div>
-              <div className="grid gap-5 sm:grid-cols-2">
-                {kawaiiField("customerFallback", "Customer fallback")}
-                {kawaiiField("verifiedLabel", "Verified label")}
-                {kawaiiField(
-                  "itemLabelTemplate",
-                  "Item label template",
-                  "Use {number} for the generated review number.",
-                )}
-                {kawaiiField(
-                  "ratingAriaTemplate",
-                  "Rating accessibility template",
-                  "Use {rating} and {maximum} for generated values.",
-                )}
-              </div>
-              <FormField
-                label="Review body fallback"
-                htmlFor="kawaii-bodyFallback"
-              >
-                <Textarea
-                  id="kawaii-bodyFallback"
-                  value={kawaiiText.bodyFallback}
-                  onChange={(event) =>
-                    updateKawaiiText("bodyFallback", event.target.value)
-                  }
-                  rows={3}
-                  className={adminTextareaClass}
-                />
-              </FormField>
-            </div>
-          ) : null}
-
-          {isKawaii && family === "promo" ? (
-            <div className="space-y-5 rounded-xl border border-border bg-background/50 p-4">
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  Kawaii Fashion promotion labels
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Leave any decorative label blank to hide it.
-                </p>
-              </div>
-              <div className="grid gap-5 sm:grid-cols-2">
-                {kawaiiField("kicker", "Kicker")}
-                {kawaiiField("limitedLabel", "Limited label")}
-                {kawaiiField("discountSuffix", "Discount suffix")}
-                {kawaiiField("ctaFallbackLabel", "Button fallback label")}
-                {kawaiiField("imageEyebrow", "Image eyebrow")}
-                {kawaiiField("imageTitle", "Image title")}
-              </div>
-            </div>
-          ) : null}
+          {extraFieldGroupsMarkup}
 
           {hasRequiredLimit || hasOptionalLimit ? (
             <FormField

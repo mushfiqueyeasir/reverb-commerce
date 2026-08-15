@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ContactPageScreen from "@/components/ContactPage/ContactPageScreen";
+import { getStorefrontThemePackage } from "@/components/themes/registry";
 import { getStorefrontThemeManifest } from "@/lib/theme/manifest";
 import { readCurrentPublishedStorefrontTheme } from "@/lib/theme/store";
 import { generateMetadata as generateSeoMetadata } from "@/utility/generateMetadata";
@@ -19,7 +20,7 @@ export default async function ContactUsPage() {
     publishedTheme.config.themeId,
     publishedTheme.config.themeVersion,
   );
-  const variant = manifest.productCardVariant;
+  const contact = getStorefrontThemePackage(manifest.id).contact;
 
-  return <ContactPageScreen variant={variant} />;
+  return <ContactPageScreen layout={contact?.ContactForm} />;
 }

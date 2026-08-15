@@ -27,7 +27,7 @@ export function KawaiiFashionGuarantees({
     <div className="relative overflow-hidden bg-background px-4 pb-4 pt-6 sm:px-6 sm:pb-5 lg:px-10">
       <section
         aria-label={accessibleLabel}
-        className="relative mx-auto grid max-w-[1520px] overflow-hidden rounded-[2rem] border border-border bg-card shadow-[0_24px_70px_color-mix(in_srgb,var(--foreground)_6%,transparent)] sm:grid-cols-3"
+        className="relative mx-auto grid max-w-[1520px] overflow-hidden rounded-2xl border border-border bg-card shadow-[0_24px_70px_color-mix(in_srgb,var(--foreground)_6%,transparent)] sm:grid-cols-3"
       >
         {items.map((item, index) => {
           const Icon = GUARANTEE_ICONS[index];
@@ -77,12 +77,12 @@ export function KawaiiFashionStudioNotes({
 }: KawaiiFashionStudioNotesProps) {
   return (
     <div className="relative overflow-hidden bg-background px-4 pb-16 pt-4 sm:px-6 sm:pb-24 sm:pt-5 lg:px-10 lg:pb-32">
-      <div className="pointer-events-none absolute bottom-0 left-1/2 size-80 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-1/2 size-80 -translate-x-1/2 rounded-[9999px] bg-primary/10 blur-3xl" />
       <section
         aria-labelledby="kawaii-studio-notes-title"
-        className="relative isolate mx-auto max-w-[1520px] overflow-hidden rounded-[2rem] border border-primary/20 bg-surface px-6 py-10 sm:px-10 sm:py-12 lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-16 lg:px-14 lg:py-14"
+        className="relative isolate mx-auto max-w-[1520px] overflow-hidden rounded-2xl border border-primary/20 bg-surface px-6 py-10 sm:px-10 sm:py-12 lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-16 lg:px-14 lg:py-14"
       >
-        <div className="pointer-events-none absolute -right-20 -top-24 -z-10 size-72 rounded-full bg-primary/15 blur-3xl" />
+        <div className="pointer-events-none absolute -right-20 -top-24 -z-10 size-72 rounded-[9999px] bg-primary/15 blur-3xl" />
         <Sparkles
           className="pointer-events-none absolute right-8 top-8 size-8 rotate-12 text-primary/25 sm:right-12 sm:top-10"
           aria-hidden="true"

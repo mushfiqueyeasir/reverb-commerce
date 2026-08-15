@@ -42,7 +42,7 @@ export default function ReviewCard({
   return (
     <article
       className={cn(
-        "group w-full overflow-hidden rounded-[2rem] border border-border bg-card transition duration-500 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_28px_75px_-45px_rgb(var(--primary-rgb)/0.65)]",
+        "group w-full overflow-hidden rounded-2xl border border-border bg-card transition duration-500 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_28px_75px_-45px_rgb(var(--primary-rgb)/0.65)]",
         className,
       )}
     >

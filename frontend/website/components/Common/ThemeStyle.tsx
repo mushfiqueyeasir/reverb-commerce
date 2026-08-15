@@ -1,21 +1,32 @@
+import type { ThemeSemanticTokens } from "@/lib/theme/manifest";
 import {
   isLightPalette,
   normalizePalette,
   paletteToCssVars,
-  type ThemePalette,
 } from "@/lib/theme/palette";
 
-/**
- * Injects the saved color palette onto `:root` so every page and component
- * (storefront + admin) inherits the same CSS variables.
- */
+export function themeTokensToCssVars(
+  tokens: ThemeSemanticTokens,
+): Record<string, string> {
+  return {
+    ...paletteToCssVars(tokens.palette),
+    "--theme-radius-sm": tokens.shape.radius.sm,
+    "--theme-radius-md": tokens.shape.radius.md,
+    "--theme-radius-lg": tokens.shape.radius.lg,
+    "--theme-radius-xl": tokens.shape.radius.xl,
+    "--theme-radius-2xl": tokens.shape.radius["2xl"],
+    "--theme-radius-3xl": tokens.shape.radius["3xl"],
+    "--theme-radius-full": tokens.shape.radius.full,
+  };
+}
+
 export default function ThemeStyle({
-  palette,
+  tokens,
 }: {
-  palette?: ThemePalette | null;
+  tokens: ThemeSemanticTokens;
 }) {
-  const normalized = normalizePalette(palette);
-  const vars = paletteToCssVars(normalized);
+  const normalized = normalizePalette(tokens.palette);
+  const vars = themeTokensToCssVars({ ...tokens, palette: normalized });
   const scheme = isLightPalette(normalized) ? "light" : "dark";
   const css = Object.entries(vars)
     .map(([key, value]) => `${key}:${value}`)

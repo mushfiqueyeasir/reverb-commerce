@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { ThemeFooter, ThemeHeader } from "@/components/Common/ThemeChrome";
+import { themeTokensToCssVars } from "@/components/Common/ThemeStyle";
 import HomepageRenderer from "@/components/HomePage/HomepageRenderer";
 import { CurrencyProvider } from "@/components/providers/CurrencyProvider";
 import { ProductCardCopyProvider } from "@/components/providers/ProductCardCopyProvider";
@@ -16,7 +17,6 @@ import {
   resolveStorefrontThemeTokens,
   type StorefrontThemeConfig,
 } from "@/lib/theme/manifest";
-import { paletteToCssVars } from "@/lib/theme/palette";
 import type { SiteSettings } from "@/utility/getSettings";
 
 export function ThemeStorefrontPreview({
@@ -28,10 +28,12 @@ export function ThemeStorefrontPreview({
     config.themeId,
     config.themeVersion,
   );
-  const palette = resolveStorefrontThemeTokens(config).palette;
+  const tokens = resolveStorefrontThemeTokens(config);
   const preview = manifest.preview;
   const fixture = THEME_PREVIEW_FIXTURES[preview.fixture];
-  const packageRenderers = getStorefrontThemePackage(manifest.id).homepageRenderers;
+  const packageRenderers = getStorefrontThemePackage(
+    manifest.id,
+  ).homepageRenderers;
   const storeName = preview.storeName;
   const settings: SiteSettings = {
     id: 1,
@@ -62,7 +64,7 @@ export function ThemeStorefrontPreview({
     currencies: { ...DEFAULT_CURRENCY_SETTINGS },
     deliveryCharges: { ...DEFAULT_DELIVERY_CHARGES },
     chatWidgets: { ...DEFAULT_CHAT_WIDGETS },
-    palette,
+    palette: tokens.palette,
     navbar: {
       ...structuredClone(DEFAULT_NAVBAR),
       announcement: preview.announcementText
@@ -82,9 +84,9 @@ export function ThemeStorefrontPreview({
 
   return (
     <div
-      data-store-theme={manifest.id}
-      data-store-theme-version={manifest.version}
-      style={paletteToCssVars(palette) as CSSProperties}
+      data-storefront-theme={manifest.id}
+      data-storefront-theme-version={manifest.version}
+      style={themeTokensToCssVars(tokens) as CSSProperties}
       className="fixed inset-0 overflow-hidden bg-background text-foreground [&_a]:pointer-events-none [&_button]:pointer-events-none"
     >
       <StoreBrandProvider storeName={storeName}>

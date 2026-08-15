@@ -58,7 +58,7 @@ export default function KawaiiFashionCategories({
 
   return (
     <section className="relative overflow-hidden bg-background py-16 sm:py-24 lg:py-32">
-      <div className="pointer-events-none absolute -right-24 top-10 size-72 rounded-full bg-primary/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 top-10 size-72 rounded-[9999px] bg-primary/10 blur-3xl" />
       <div className="relative mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
         <SectionHeading
           eyebrow={eyebrow}
@@ -90,7 +90,10 @@ export default function KawaiiFashionCategories({
                 aria-hidden={copy > 0 || undefined}
               >
                 {visible.map((category) => (
-                  <div key={`${category._id}-${copy}`} className="w-[min(62vw,13.5rem)] shrink-0">
+                  <div
+                    key={`${category._id}-${copy}`}
+                    className="w-[min(62vw,13.5rem)] shrink-0"
+                  >
                     <article className="group">
                       <Link
                         href={categoryHref(category)}
@@ -113,7 +116,10 @@ export default function KawaiiFashionCategories({
                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_60%_26%,color-mix(in_srgb,var(--primary)_22%,transparent),transparent_30%),linear-gradient(145deg,var(--card),var(--surface))]" />
                           )}
                           <span className="absolute bottom-3 right-3 grid size-10 place-items-center bg-background/90 text-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground motion-reduce:transition-none sm:bottom-4 sm:right-4">
-                            <ArrowUpRight className="size-4" aria-hidden="true" />
+                            <ArrowUpRight
+                              className="size-4"
+                              aria-hidden="true"
+                            />
                           </span>
                         </div>
                         <div className="pt-4">

@@ -20,6 +20,13 @@
   --color-primary-base: #ff5c70;
   --color-primary-foreground-base: #050505;
   --radius: 0.875rem;
+  --theme-radius-sm: 10px;
+  --theme-radius-md: 14px;
+  --theme-radius-lg: 20px;
+  --theme-radius-xl: 24px;
+  --theme-radius-2xl: 32px;
+  --theme-radius-3xl: 40px;
+  --theme-radius-full: 9999px;
 
   --primary: var(--accent-coral);
   --primary-foreground: #050505;
@@ -92,11 +99,13 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 24px;
-  --radius-2xl: 32px;
+  --radius-sm: var(--theme-radius-sm);
+  --radius-md: var(--theme-radius-md);
+  --radius-lg: var(--theme-radius-lg);
+  --radius-xl: var(--theme-radius-xl);
+  --radius-2xl: var(--theme-radius-2xl);
+  --radius-3xl: var(--theme-radius-3xl);
+  --radius-full: var(--theme-radius-full);
 }
 
 @layer base {
@@ -158,6 +167,14 @@
   button {
     cursor: pointer;
   }
+  button:not(:disabled):active,
+  [role="button"]:not([aria-disabled="true"]):active,
+  input[type="submit"]:not(:disabled):active {
+    scale: 0.98;
+  }
+  a[href]:active {
+    opacity: 0.72;
+  }
   h1,
   h2,
   h3,
@@ -173,6 +190,12 @@
   }
   .font-mono {
     font-family: var(--font-mono);
+  }
+  .rounded {
+    border-radius: var(--theme-radius-sm);
+  }
+  .rounded-full {
+    border-radius: var(--theme-radius-full);
   }
   .bg-grid {
     background-image:
@@ -336,6 +359,28 @@
   100% {
     transform: translateY(-120vh) translateX(20px);
     opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .animate-marquee,
+  .animate-marquee-reverse,
+  .animate-marquee-reviews,
+  .animate-marquee-reviews-reverse,
+  .animate-float-up,
+  .animate-hero-in,
+  .animate-spotlight,
+  .animate-particle,
+  .animate-pulse {
+    animation: none !important;
+  }
+  button:not(:disabled):active,
+  [role="button"]:not([aria-disabled="true"]):active,
+  input[type="submit"]:not(:disabled):active {
+    scale: 1;
   }
 }
 

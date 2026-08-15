@@ -29,7 +29,7 @@ export default function KawaiiAboutStory({
       aria-labelledby={headingText ? headingId : undefined}
     >
       <div
-        className="pointer-events-none absolute -left-24 bottom-1/4 size-72 rounded-full bg-primary/10 blur-3xl"
+        className="pointer-events-none absolute -left-24 bottom-1/4 size-72 rounded-[9999px] bg-primary/10 blur-3xl"
         aria-hidden="true"
       />
       <div className="relative mx-auto grid max-w-[1600px] gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:gap-16 lg:px-10 xl:gap-24">

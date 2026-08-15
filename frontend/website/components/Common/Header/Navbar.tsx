@@ -378,7 +378,7 @@ export function CategoryMegaMenu({
     <DropdownMenuContent
       align="start"
       collisionPadding={16}
-      className="w-[min(92vw,900px)] overflow-hidden rounded-[1.25rem] border-border bg-popover p-0 text-popover-foreground shadow-[0_28px_90px_rgb(0_0_0/0.35)]"
+      className="w-[min(92vw,900px)] overflow-hidden rounded-lg border-border bg-popover p-0 text-popover-foreground shadow-[0_28px_90px_rgb(0_0_0/0.35)]"
     >
       <div className="flex items-center justify-between gap-5 border-b border-border px-6 py-5">
         <div>
@@ -518,7 +518,7 @@ function CompactCategoryMenu({
     <DropdownMenuContent
       align="start"
       collisionPadding={16}
-      className="w-[min(90vw,470px)] rounded-[1.25rem] border-border bg-popover p-3 text-popover-foreground shadow-[0_24px_70px_rgb(0_0_0/0.32)]"
+      className="w-[min(90vw,470px)] rounded-lg border-border bg-popover p-3 text-popover-foreground shadow-[0_24px_70px_rgb(0_0_0/0.32)]"
     >
       <div className="flex items-center justify-between gap-3 px-2 pb-3 pt-1">
         <div>

@@ -82,7 +82,7 @@ export default function KawaiiFashionStory({
 
   return (
     <section className="relative overflow-hidden bg-background py-16 sm:py-24 lg:py-32">
-      <div className="pointer-events-none absolute left-0 top-1/3 h-64 w-64 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
+      <div className="pointer-events-none absolute left-0 top-1/3 h-64 w-64 -translate-x-1/2 rounded-[9999px] bg-primary/10 blur-3xl" />
       <div
         className={`relative mx-auto grid gap-10 px-4 sm:px-6 lg:items-center lg:px-10 ${
           hasFigure && hasCopy

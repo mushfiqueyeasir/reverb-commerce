@@ -53,7 +53,7 @@ export default function KawaiiFashionPromo({
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
         <div className="grid overflow-hidden border border-border bg-surface lg:grid-cols-[0.9fr_1.1fr]">
           <div className="relative flex min-h-[440px] flex-col justify-between overflow-hidden p-7 sm:min-h-[500px] sm:p-10 lg:min-h-[590px] lg:p-14 xl:p-16">
-            <div className="pointer-events-none absolute -left-24 top-1/4 size-72 rounded-full bg-primary/15 blur-3xl" />
+            <div className="pointer-events-none absolute -left-24 top-1/4 size-72 rounded-[9999px] bg-primary/15 blur-3xl" />
             {normalizedKicker || normalizedLimitedLabel ? (
               <div className="relative flex items-center justify-between gap-4">
                 {normalizedKicker ? (

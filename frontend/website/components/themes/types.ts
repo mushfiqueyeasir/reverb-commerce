@@ -1,10 +1,26 @@
-import type { ComponentType } from "react";
+import type { ChangeEvent, ComponentType, FormEvent } from "react";
 import type { HomepageSectionRendererRegistry } from "@/components/HomePage/HomepageRenderer";
 import type { AboutRendererRegistry } from "@/lib/cms/aboutRendererRegistry";
 import type { StorefrontThemeManifest } from "@/lib/theme/manifest";
 import type { PalettePreset } from "@/lib/theme/palette";
 import type { Category } from "@/type/categoryType";
 import type { SiteSettings } from "@/utility/getSettings";
+
+export interface ContactFormState {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+}
+
+export interface ContactFormLayoutProps {
+  formData: ContactFormState;
+  isSubmitting: boolean;
+  handleChange: (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => void;
+  handleSubmit: (e: FormEvent) => void;
+}
 
 export interface ThemeChromeHeaderProps {
   categories: Category[];
@@ -45,6 +61,9 @@ export interface StorefrontThemePackage {
   chrome: {
     Header: ComponentType<ThemeChromeHeaderProps>;
     Footer: ComponentType<ThemeChromeFooterProps>;
+  };
+  contact?: {
+    ContactForm: ComponentType<ContactFormLayoutProps>;
   };
   palettePresets: PalettePreset[];
 }

@@ -10,7 +10,7 @@ import {
   Pause,
   Play,
 } from "lucide-react";
-import { useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { safeKawaiiHref } from "@/components/themes/kawaii-fashion/safeHref";
 import type { Banner } from "@/utility/getBanners";
 
@@ -24,8 +24,7 @@ interface KawaiiFashionBannerProps {
 }
 
 const CAROUSEL_ROLE_DESCRIPTION = "carousel";
-const CAROUSEL_ANNOUNCEMENT_TEMPLATE =
-  "Slide {current} of {total}: {title}";
+const CAROUSEL_ANNOUNCEMENT_TEMPLATE = "Slide {current} of {total}: {title}";
 const PAUSE_LABEL = "Pause slide rotation";
 const RESUME_LABEL = "Resume slide rotation";
 const PREVIOUS_LABEL = "Previous collection";
@@ -57,12 +56,14 @@ export default function KawaiiFashionBanner({
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [interacting, setInteracting] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const reduceMotion = Boolean(useReducedMotion());
   const labelId = useId();
   const activeIndex = Math.min(index, Math.max(0, slides.length - 1));
   const active = slides[activeIndex];
   const hasMultiple = slides.length > 1;
-  const isPlaying = hasMultiple && !paused && !interacting && !reduceMotion;
+  const isPlaying =
+    hasMultiple && !paused && !interacting && !dragging && !reduceMotion;
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -105,6 +106,12 @@ export default function KawaiiFashionBanner({
 
   const selectSlide = (next: number) => {
     setIndex((next + slides.length) % slides.length);
+  };
+
+  const selectSwipeSlide = (offset: number, velocity: number) => {
+    const projected = offset + velocity * 0.18;
+    if (projected > 72) selectSlide(activeIndex - 1);
+    if (projected < -72) selectSlide(activeIndex + 1);
   };
 
   return (
@@ -178,7 +185,20 @@ export default function KawaiiFashionBanner({
           ) : null}
         </div>
 
-        <div className="relative order-1 min-h-[360px] overflow-hidden bg-card sm:min-h-[480px] lg:order-2 lg:min-h-full">
+        <motion.div
+          className="relative order-1 min-h-[360px] cursor-grab overflow-hidden bg-card active:cursor-grabbing sm:min-h-[480px] lg:order-2 lg:min-h-full"
+          drag={hasMultiple && !reduceMotion ? "x" : false}
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.35}
+          dragMomentum={false}
+          dragTransition={{ bounceStiffness: 220, bounceDamping: 24 }}
+          onDragStart={() => setDragging(true)}
+          onDragEnd={(_, info) => {
+            setDragging(false);
+            selectSwipeSlide(info.offset.x, info.velocity.x);
+          }}
+          style={{ touchAction: "pan-y" }}
+        >
           {mobileImage || desktopImage ? (
             <picture>
               {desktopSrcSet ? (
@@ -211,9 +231,7 @@ export default function KawaiiFashionBanner({
                   data-preview-interactive
                   onClick={() => setPaused((current) => !current)}
                   className="grid size-11 place-items-center border border-background/70 bg-background/90 text-foreground transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none"
-                  aria-label={
-                    paused ? RESUME_LABEL : PAUSE_LABEL
-                  }
+                  aria-label={paused ? RESUME_LABEL : PAUSE_LABEL}
                   aria-pressed={paused}
                 >
                   {paused ? (
@@ -247,7 +265,7 @@ export default function KawaiiFashionBanner({
               ) : null}
             </div>
           ) : null}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

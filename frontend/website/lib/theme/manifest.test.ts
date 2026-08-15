@@ -11,10 +11,13 @@ import {
 import {
   AVAILABLE_STOREFRONT_THEMES,
   KAWAII_FASHION_HOMEPAGE_SECTION_TYPES,
+  KAWAII_FASHION_SHAPE,
   KAWAII_FASHION_THEME,
+  LEGACY_CLASSIC_SHAPE,
   LEGACY_CLASSIC_THEME,
   THEME_ABOUT_SECTION_TYPES,
   THEME_HOMEPAGE_SECTION_TYPES,
+  V2_DESIGN_SHAPE,
   V2_DESIGN_THEME,
   createDefaultStorefrontThemeConfig,
   getStorefrontThemeManifest,
@@ -114,6 +117,13 @@ describe("storefront theme manifest", () => {
       ...KAWAII_WHITE_PALETTE,
       primaryForeground: "#050505",
     });
+    expect(LEGACY_CLASSIC_THEME.defaultTokens.shape).toEqual(
+      LEGACY_CLASSIC_SHAPE,
+    );
+    expect(V2_DESIGN_THEME.defaultTokens.shape).toEqual(V2_DESIGN_SHAPE);
+    expect(KAWAII_FASHION_THEME.defaultTokens.shape).toEqual(
+      KAWAII_FASHION_SHAPE,
+    );
     expect(LEGACY_CLASSIC_THEME.renderers.navbar).toBe("legacy-classic.navbar");
     expect(LEGACY_CLASSIC_THEME.renderers.footer).toBe("legacy-classic.footer");
     expect(V2_DESIGN_THEME.renderers.navbar).toBe("v2-design.navbar");
@@ -299,13 +309,14 @@ describe("normalizeStorefrontThemeConfig", () => {
           },
         },
       } as Parameters<typeof resolveStorefrontThemeTokens>[0];
-      const palette = resolveStorefrontThemeTokens(config).palette;
+      const tokens = resolveStorefrontThemeTokens(config);
 
-      expect(palette.primary).toBe("#123456");
-      expect(palette).toEqual({
+      expect(tokens.palette.primary).toBe("#123456");
+      expect(tokens.palette).toEqual({
         ...theme.defaultTokens.palette,
         primary: "#123456",
       });
+      expect(tokens.shape).toEqual(theme.defaultTokens.shape);
     },
   );
 });

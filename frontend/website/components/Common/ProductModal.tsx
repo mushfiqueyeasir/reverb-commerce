@@ -145,17 +145,17 @@ export default function ProductModal({
                     {format(currentPrice)}
                   </span>
                   {discount && discount > 0 && (
-                    <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-white">
+                    <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground">
                       {discount}% OFF
                     </span>
                   )}
                 </div>
                 {originalPrice > currentPrice && (
-                  <span className="text-sm text-gray-500 line-through block">
+                  <span className="text-sm text-muted-foreground line-through block">
                     {format(originalPrice)}
                   </span>
                 )}
-                <p className="text-sm text-gray-600">Tax included.</p>
+                <p className="text-sm text-muted-foreground">Tax included.</p>
               </div>
 
               {isSized && (

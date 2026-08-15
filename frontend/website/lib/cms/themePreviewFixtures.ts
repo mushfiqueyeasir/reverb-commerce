@@ -1,7 +1,7 @@
 import {
   KAWAII_FASHION_PREVIEW_DATA,
   KAWAII_FASHION_PREVIEW_SECTIONS,
-} from "./kawaiiFashionThemePreviewFixture";
+} from "@/components/themes/kawaii-fashion/previewFixture";
 import {
   TEE_DROP_PREVIEW_DATA,
   TEE_DROP_PREVIEW_SECTIONS,

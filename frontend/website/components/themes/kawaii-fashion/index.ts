@@ -4,6 +4,7 @@ import type { StorefrontThemePackage } from "@/components/themes/types";
 import { KAWAII_FASHION_ABOUT_RENDERERS } from "./about/renderers";
 import KawaiiFooter from "./chrome/KawaiiFooter";
 import KawaiiHeader from "./chrome/KawaiiHeader";
+import { KawaiiContactForm } from "./contact/ContactForm";
 import { KAWAII_FASHION_HOMEPAGE_RENDERERS } from "./homepage/renderers";
 
 export const KAWAII_FASHION_THEME_PACKAGE: StorefrontThemePackage = {
@@ -14,6 +15,9 @@ export const KAWAII_FASHION_THEME_PACKAGE: StorefrontThemePackage = {
   chrome: {
     Header: KawaiiHeader,
     Footer: KawaiiFooter,
+  },
+  contact: {
+    ContactForm: KawaiiContactForm,
   },
   palettePresets: getPalettePresets(KAWAII_FASHION_THEME.id),
 };

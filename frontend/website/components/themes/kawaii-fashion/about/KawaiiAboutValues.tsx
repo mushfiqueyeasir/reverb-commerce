@@ -24,7 +24,7 @@ export default function KawaiiAboutValues({
       aria-labelledby={headingText ? headingId : undefined}
     >
       <div
-        className="pointer-events-none absolute -right-24 top-1/3 size-72 rounded-full bg-primary/10 blur-3xl"
+        className="pointer-events-none absolute -right-24 top-1/3 size-72 rounded-[9999px] bg-primary/10 blur-3xl"
         aria-hidden="true"
       />
       <div className="relative mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">

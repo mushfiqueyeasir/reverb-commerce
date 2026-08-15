@@ -20,5 +20,11 @@ export default function AppToaster({
     return () => mq.removeEventListener("change", sync);
   }, []);
 
-  return <Toaster position={position} theme={theme} />;
+  return (
+    <Toaster
+      position={position}
+      theme={theme}
+      toastOptions={{ style: { borderRadius: "var(--theme-radius-lg)" } }}
+    />
+  );
 }

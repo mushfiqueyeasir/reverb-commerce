@@ -142,7 +142,7 @@ export default function ProductInfo({ product, stock }: ProductInfoProps) {
             {format(product.currentPrice)}
           </span>
           {product.discount && product.discount > 0 && (
-            <span className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white">
+            <span className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
               {product.discount}% OFF
             </span>
           )}
@@ -191,7 +191,7 @@ export default function ProductInfo({ product, stock }: ProductInfoProps) {
                       ? "border-foreground bg-foreground text-background"
                       : isAvailable
                         ? "border-border bg-card text-foreground hover:border-foreground"
-                        : "cursor-not-allowed border-border/10 bg-black/5 text-foreground/30",
+                        : "cursor-not-allowed border-border/10 bg-muted text-foreground/30",
                   )}
                   title={!isAvailable ? "Out of stock" : undefined}
                 >
@@ -258,7 +258,7 @@ export default function ProductInfo({ product, stock }: ProductInfoProps) {
           className={cn(
             "w-full rounded-full border px-4 py-3.5 text-sm font-medium transition-colors duration-200",
             !selectedVariant || isInCart || maxQuantity === 0 || quantity === 0
-              ? "cursor-not-allowed border-border/10 bg-black/5 text-foreground/40"
+              ? "cursor-not-allowed border-border/10 bg-muted text-foreground/40"
               : "border-foreground text-foreground hover:bg-foreground hover:text-background",
           )}
         >
@@ -276,7 +276,7 @@ export default function ProductInfo({ product, stock }: ProductInfoProps) {
           type="button"
           onClick={handleBuyNow}
           disabled={!selectedVariant || maxQuantity === 0 || quantity === 0}
-          className="w-full rounded-full bg-primary px-4 py-3.5 text-sm font-medium text-white transition-colors duration-200 hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-full bg-primary px-4 py-3.5 text-sm font-medium text-primary-foreground transition-colors duration-200 hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Buy it now
         </button>

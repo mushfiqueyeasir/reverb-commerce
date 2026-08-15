@@ -35,11 +35,11 @@ export default function KawaiiAboutCta({ config }: KawaiiAboutRendererProps) {
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
         <div className="relative overflow-hidden border border-border bg-surface px-6 py-16 sm:px-10 sm:py-20 lg:px-14 lg:py-24">
           <div
-            className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-primary/15 blur-3xl"
+            className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-[9999px] bg-primary/15 blur-3xl"
             aria-hidden="true"
           />
           <div
-            className="pointer-events-none absolute -bottom-20 -left-20 size-64 rounded-full bg-primary/10 blur-3xl"
+            className="pointer-events-none absolute -bottom-20 -left-20 size-64 rounded-[9999px] bg-primary/10 blur-3xl"
             aria-hidden="true"
           />
           <Sparkles

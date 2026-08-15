@@ -15,6 +15,7 @@ import {
   DEFAULT_BANNER_STATS,
   type BannerStatItem,
 } from "@/type/db";
+import { useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { renderBannerTitle } from "@/utility/renderBannerTitle";
 
@@ -28,6 +29,7 @@ const PARTICLES = Array.from({ length: 18 });
 
 export default function Hero({ banners, description, stats }: HeroProps) {
   const [index, setIndex] = useState(0);
+  const reduceMotion = Boolean(useReducedMotion());
   const slides = banners.filter((b) => Boolean(b.title?.trim()));
   const count = slides.length;
   const multiple = count > 1;
@@ -44,12 +46,12 @@ export default function Hero({ banners, description, stats }: HeroProps) {
   );
 
   useEffect(() => {
-    if (!multiple) return;
+    if (!multiple || reduceMotion) return;
     const timer = setInterval(() => {
       setIndex((p) => (p + 1) % count);
     }, 7000);
     return () => clearInterval(timer);
-  }, [multiple, count, index]);
+  }, [multiple, count, reduceMotion]);
 
   useEffect(() => {
     if (index >= count) setIndex(0);
@@ -72,7 +74,10 @@ export default function Hero({ banners, description, stats }: HeroProps) {
 
       {/* Spotlight */}
       <div
-        className="pointer-events-none absolute left-1/2 top-1/2 h-[min(70vh,640px)] w-[min(70vh,640px)] -translate-x-1/2 -translate-y-1/2 animate-spotlight rounded-full md:h-[900px] md:w-[900px]"
+        className={cn(
+          "pointer-events-none absolute left-1/2 top-1/2 h-[min(70vh,640px)] w-[min(70vh,640px)] -translate-x-1/2 -translate-y-1/2 rounded-full md:h-[900px] md:w-[900px]",
+          !reduceMotion && "animate-spotlight",
+        )}
         style={{
           background:
             "radial-gradient(circle, rgb(var(--primary-rgb) / 0.22) 0%, rgb(var(--primary-rgb) / 0.06) 35%, transparent 65%)",
@@ -92,7 +97,9 @@ export default function Hero({ banners, description, stats }: HeroProps) {
               <div
                 key={slide.id}
                 className={cn(
-                  "absolute inset-0 transition-opacity duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                  "absolute inset-0",
+                  !reduceMotion &&
+                    "transition-opacity duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)]",
                   active ? "z-[1] opacity-100" : "z-0 opacity-0",
                 )}
                 aria-hidden={!active}
@@ -105,8 +112,10 @@ export default function Hero({ banners, description, stats }: HeroProps) {
                     priority={i === 0}
                     sizes="100vw"
                     className={cn(
-                      "object-cover object-center opacity-70 transition-transform duration-[7000ms] ease-out will-change-transform md:hidden",
-                      active ? "scale-105" : "scale-[1.02]",
+                      "object-cover object-center opacity-70 md:hidden",
+                      !reduceMotion &&
+                        "transition-transform duration-[7000ms] ease-out will-change-transform",
+                      !reduceMotion && (active ? "scale-105" : "scale-[1.02]"),
                     )}
                   />
                 ) : null}
@@ -118,8 +127,10 @@ export default function Hero({ banners, description, stats }: HeroProps) {
                     priority={i === 0}
                     sizes="64vw"
                     className={cn(
-                      "hidden object-cover object-center transition-transform duration-[7000ms] ease-out will-change-transform md:block",
-                      active ? "scale-105" : "scale-[1.02]",
+                      "hidden object-cover object-center md:block",
+                      !reduceMotion &&
+                        "transition-transform duration-[7000ms] ease-out will-change-transform",
+                      !reduceMotion && (active ? "scale-105" : "scale-[1.02]"),
                     )}
                   />
                 ) : null}
@@ -138,20 +149,21 @@ export default function Hero({ banners, description, stats }: HeroProps) {
         </div>
       </div>
 
-      {/* Floating particles */}
-      <div className="pointer-events-none absolute inset-0 z-[4]" aria-hidden>
-        {PARTICLES.map((_, i) => (
-          <span
-            key={i}
-            className="absolute bottom-0 h-1 w-1 animate-particle rounded-full bg-primary/60"
-            style={{
-              left: `${(i * 5.7) % 100}%`,
-              animationDuration: `${8 + (i % 6) * 2}s`,
-              animationDelay: `${-i * 0.7}s`,
-            }}
-          />
-        ))}
-      </div>
+      {!reduceMotion ? (
+        <div className="pointer-events-none absolute inset-0 z-[4]" aria-hidden>
+          {PARTICLES.map((_, i) => (
+            <span
+              key={i}
+              className="absolute bottom-0 h-1 w-1 animate-particle rounded-full bg-primary/60"
+              style={{
+                left: `${(i * 5.7) % 100}%`,
+                animationDuration: `${8 + (i % 6) * 2}s`,
+                animationDelay: `${-i * 0.7}s`,
+              }}
+            />
+          ))}
+        </div>
+      ) : null}
 
       {/* Content — copy + stats flow together; hero grows on short viewports instead of overlapping */}
       <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-[1600px] flex-col px-5 pb-4 pt-20 sm:px-6 sm:pb-6 sm:pt-24 md:px-10 md:pb-8 md:pt-28">
@@ -159,16 +171,27 @@ export default function Hero({ banners, description, stats }: HeroProps) {
           <div key={banner.id} className="max-w-3xl">
             {subtitle ? (
               <div
-                className="mb-3 inline-flex max-w-full animate-hero-in items-center gap-2.5 truncate rounded-full border border-border bg-surface/60 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground backdrop-blur-md sm:mb-4 sm:gap-3 sm:px-3.5 md:mb-6 md:px-4 md:py-1.5 md:text-[11px] md:tracking-[0.25em]"
+                className={cn(
+                  "mb-3 inline-flex max-w-full items-center gap-2.5 truncate rounded-full border border-border bg-surface/60 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground backdrop-blur-md sm:mb-4 sm:gap-3 sm:px-3.5 md:mb-6 md:px-4 md:py-1.5 md:text-[11px] md:tracking-[0.25em]",
+                  !reduceMotion && "animate-hero-in",
+                )}
                 style={{ animationDelay: "0.05s" }}
               >
-                <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-primary" />
+                <span
+                  className={cn(
+                    "h-1.5 w-1.5 shrink-0 rounded-full bg-primary",
+                    !reduceMotion && "animate-pulse",
+                  )}
+                />
                 <span className="truncate">{subtitle}</span>
               </div>
             ) : null}
 
             <h1
-              className="animate-hero-in font-display text-[clamp(2.35rem,9vw,5.75rem)] font-bold leading-[0.88] tracking-[-0.045em] text-foreground md:text-[clamp(3rem,8vw,6.5rem)]"
+              className={cn(
+                "font-display text-[clamp(2.35rem,9vw,5.75rem)] font-bold leading-[0.88] tracking-[-0.045em] text-foreground md:text-[clamp(3rem,8vw,6.5rem)]",
+                !reduceMotion && "animate-hero-in",
+              )}
               style={{ animationDelay: "0.12s" }}
             >
               {renderBannerTitle(title)}
@@ -176,7 +199,10 @@ export default function Hero({ banners, description, stats }: HeroProps) {
 
             {blurb ? (
               <p
-                className="mt-3 line-clamp-3 max-w-md animate-hero-in text-sm leading-relaxed text-muted-foreground sm:mt-4 sm:line-clamp-none md:mt-6 md:text-base"
+                className={cn(
+                  "mt-3 line-clamp-3 max-w-md text-sm leading-relaxed text-muted-foreground sm:mt-4 sm:line-clamp-none md:mt-6 md:text-base",
+                  !reduceMotion && "animate-hero-in",
+                )}
                 style={{ animationDelay: "0.22s" }}
               >
                 {blurb}
@@ -184,7 +210,10 @@ export default function Hero({ banners, description, stats }: HeroProps) {
             ) : null}
 
             <div
-              className="mt-5 flex w-full animate-hero-in flex-col gap-2.5 sm:mt-6 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center md:mt-8 md:gap-3"
+              className={cn(
+                "mt-5 flex w-full flex-col gap-2.5 sm:mt-6 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center md:mt-8 md:gap-3",
+                !reduceMotion && "animate-hero-in",
+              )}
               style={{ animationDelay: "0.32s" }}
             >
               <Link
@@ -205,7 +234,10 @@ export default function Hero({ banners, description, stats }: HeroProps) {
           </div>
 
           <div
-            className="flex min-w-0 animate-float-up flex-col gap-3 border-t border-border/80 pt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:pt-4 sm:tracking-[0.22em] md:pt-5 md:text-[11px]"
+            className={cn(
+              "flex min-w-0 flex-col gap-3 border-t border-border/80 pt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:pt-4 sm:tracking-[0.22em] md:pt-5 md:text-[11px]",
+              !reduceMotion && "animate-float-up",
+            )}
             style={{ animationDelay: "0.45s" }}
           >
             <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-4 gap-y-2 md:grid-cols-4 md:gap-x-10">

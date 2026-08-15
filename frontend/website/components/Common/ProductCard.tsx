@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Heart, Plus } from "lucide-react";
-import { toast } from "sonner";
 import ProductModal from "./ProductModal";
 import ImageLoader from "./ImageLoader";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
@@ -100,7 +99,7 @@ export default function ProductCard({
               onClick={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                const added = toggleItem({
+                toggleItem({
                   id,
                   title,
                   image,
@@ -108,11 +107,6 @@ export default function ProductCard({
                   currentPrice,
                   originalPrice,
                 });
-                toast.success(
-                  added
-                    ? productCardCopy.favoriteSavedToast
-                    : productCardCopy.favoriteRemovedToast,
-                );
               }}
               className={cn(
                 "absolute right-3 top-3 grid size-10 place-items-center border backdrop-blur-sm transition-colors sm:right-4 sm:top-4",
@@ -220,7 +214,7 @@ export default function ProductCard({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              const added = toggleItem({
+              toggleItem({
                 id,
                 title,
                 image,
@@ -228,9 +222,6 @@ export default function ProductCard({
                 currentPrice,
                 originalPrice,
               });
-              toast.success(
-                added ? "Saved to favorites" : "Removed from favorites",
-              );
             }}
             className={cn(
               "absolute right-2.5 top-2.5 grid size-11 place-items-center rounded-full border backdrop-blur-md transition sm:right-4 sm:top-4",
