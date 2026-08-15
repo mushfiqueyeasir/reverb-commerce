@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "assets": [
+    {
+      "file": "products/tee-model-portrait.webp",
+      "sourceTitle": "Man in t-shirt posing (Unsplash)",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Man_in_t-shirt_posing_(Unsplash).jpg",
+      "creator": "Mohammad Faruque / primitivestudios",
+      "license": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "modifications": "Cropped, resized, and converted to WebP."
+    },
+    {
+      "file": "products/streetwear-night.webp",
+      "sourceTitle": "Harajuku Fashion Street Snap (2018-01-08)",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Harajuku_Fashion_Street_Snap_(2018-01-08_19.04.01_by_Dick_Thomas_Johnson).jpg",
+      "creator": "Dick Thomas Johnson",
+      "license": "CC BY 2.0 Generic",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+      "modifications": "Cropped, resized, and converted to WebP."
+    },
+    {
+      "file": "products/black-oversized-streetwear.webp",
+      "sourceTitle": "Harajuku Fashion Street Snap (November 11, 2017)",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Harajuku_Fashion_Street_Snap_(November_11,_2017)_(46370503934).jpg",
+      "creator": "Dick Thomas Johnson",
+      "license": "CC BY 2.0 Generic",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+      "modifications": "Cropped, resized, and converted to WebP."
+    },
+    {
+      "file": "products/gothic-streetwear.webp",
+      "sourceTitle": "Harajuku Fashion Street Snap (October 09, 2017)",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Harajuku_Fashion_Street_Snap_(October_09,_2017)_(45924881654).jpg",
+      "creator": "Dick Thomas Johnson",
+      "license": "CC BY 2.0 Generic",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+      "modifications": "Cropped, resized, and converted to WebP."
+    },
+    {
+      "file": "products/vintage-motorcycle-rider.webp",
+      "sourceTitle": "Training motorraces Zandvoort, Drikus Veer weer bij zijn Jama",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Training_motorraces_Zandvoort,_Drikus_Veer_weer_bij_zijn_Jama,_Bestanddeelnr_907-1493.jpg",
+      "creator": "Harry Pot / Anefo, Nationaal Archief",
+      "license": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "modifications": "Cropped, resized, and converted to WebP."
+    }
+  ]
+}

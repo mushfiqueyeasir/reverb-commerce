@@ -45,6 +45,7 @@ export default async function ThemeDetailPage({
         themeName={theme.displayName}
         initialPrimary={primary}
         expectedVersion={workspace.draft?.version ?? 0}
+        isPublished={workspace.published.config.themeId === theme.id}
       />
     </div>
   );
