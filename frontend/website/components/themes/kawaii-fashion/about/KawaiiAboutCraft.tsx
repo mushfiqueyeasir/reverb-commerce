@@ -60,21 +60,25 @@ export default function KawaiiAboutCraft({
 
   return (
     <section
-      className="bg-background py-20 text-foreground sm:py-28 lg:py-36"
+      className="relative overflow-hidden bg-background py-16 text-foreground sm:py-24 lg:py-32"
       aria-labelledby={headingText ? headingId : undefined}
     >
-      <div className="mx-auto grid max-w-[1500px] gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:items-center lg:gap-16 lg:px-12">
-        <div>
+      <div
+        className="pointer-events-none absolute -left-24 top-1/3 size-72 rounded-full bg-primary/10 blur-3xl"
+        aria-hidden="true"
+      />
+      <div className="relative mx-auto grid max-w-[1600px] gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:gap-16 lg:px-10 xl:gap-24">
+        <div className="order-2 lg:order-1">
           {eyebrow ? (
-            <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
-              <span className="h-px w-8 bg-primary" aria-hidden="true" />
+            <p className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+              <span className="h-px w-7 bg-primary" aria-hidden="true" />
               {eyebrow}
             </p>
           ) : null}
           {firstLine || secondLine ? (
             <h2
               id={headingId}
-              className="mt-5 font-display text-[clamp(2.75rem,6vw,6rem)] font-semibold leading-[0.9] tracking-[-0.05em]"
+              className="text-balance font-display text-4xl font-semibold leading-[0.98] tracking-[-0.045em] sm:text-5xl lg:text-6xl"
             >
               {firstLine ? <span className="block">{firstLine}</span> : null}
               {secondLine ? (
@@ -89,38 +93,38 @@ export default function KawaiiAboutCraft({
             </h2>
           ) : null}
           {body ? (
-            <p className="mt-7 max-w-xl text-base leading-8 text-muted-foreground">
+            <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
               {body}
             </p>
           ) : null}
 
           {items.length > 0 ? (
-            <ul className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-md border border-border bg-border sm:grid-cols-3">
+            <ul className="mt-10 space-y-0 border-y border-border">
               {items.map((item, index) => {
                 const Icon = craftIcons[item.icon] || Layers;
                 return (
                   <li
                     key={`${item.label}-${index}`}
-                    className="min-h-40 bg-card p-5 transition-colors hover:bg-surface sm:p-6"
+                    className="grid grid-cols-[auto_1fr_auto] items-center gap-4 border-b border-border py-4 last:border-b-0 sm:gap-5 sm:py-5"
                   >
-                    <Icon className="size-5 text-primary" aria-hidden="true" />
-                    {item.label ? (
-                      <h3 className="mt-7 font-display text-lg font-semibold leading-tight">
-                        {item.label}
-                      </h3>
-                    ) : (
-                      <span
-                        className="mt-7 block font-display text-lg font-semibold leading-tight"
-                        aria-hidden="true"
-                      >
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                    )}
-                    {item.sub ? (
-                      <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                        {item.sub}
-                      </p>
-                    ) : null}
+                    <span className="grid size-11 place-items-center rounded-2xl bg-surface text-primary transition-transform group-hover:-rotate-3 motion-reduce:transition-none">
+                      <Icon className="size-5" aria-hidden="true" />
+                    </span>
+                    <div>
+                      {item.label ? (
+                        <h3 className="font-display text-lg font-semibold text-foreground">
+                          {item.label}
+                        </h3>
+                      ) : null}
+                      {item.sub ? (
+                        <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
+                          {item.sub}
+                        </p>
+                      ) : null}
+                    </div>
+                    <span className="text-[10px] font-semibold tracking-[0.18em] text-muted-foreground">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
                   </li>
                 );
               })}
@@ -128,46 +132,42 @@ export default function KawaiiAboutCraft({
           ) : null}
         </div>
 
-        <figure className="relative mx-auto aspect-[4/5] w-full max-w-2xl overflow-hidden rounded-md border border-border bg-surface">
-          {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={imageAlt || ""}
-              fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-            />
-          ) : (
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_65%_32%,color-mix(in_srgb,var(--primary)_24%,transparent),transparent_27%),linear-gradient(145deg,color-mix(in_srgb,var(--surface)_72%,#ded5ff),var(--card))]" />
-          )}
-          <div
-            className="absolute inset-0 bg-gradient-to-t from-foreground/25 via-transparent to-transparent"
-            aria-hidden="true"
-          />
-          {fabricLabel || fabricValue || fabricTag ? (
-            <figcaption className="absolute inset-x-4 bottom-4 rounded-sm border border-border bg-card/90 p-5 backdrop-blur-md sm:inset-x-6 sm:bottom-6 sm:p-6">
-              <div className="flex items-end justify-between gap-4">
-                <div>
-                  {fabricLabel ? (
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                      {fabricLabel}
-                    </p>
-                  ) : null}
-                  {fabricValue ? (
-                    <p className="mt-2 font-display text-2xl font-semibold">
-                      {fabricValue}
-                    </p>
+        {imageUrl ? (
+          <figure className="relative mx-auto order-1 w-full max-w-2xl lg:order-2 lg:mx-0">
+            <div className="relative aspect-[4/5] overflow-hidden border border-border bg-surface sm:aspect-[5/6]">
+              <Image
+                src={imageUrl}
+                alt={imageAlt || ""}
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
+              />
+            </div>
+            {fabricLabel || fabricValue || fabricTag ? (
+              <figcaption className="absolute -bottom-5 left-4 max-w-[85%] border border-border bg-card px-5 py-4 shadow-[0_18px_45px_color-mix(in_srgb,var(--foreground)_8%,transparent)] sm:-bottom-7 sm:left-7 sm:px-7 sm:py-5">
+                <div className="flex items-end justify-between gap-4">
+                  <div>
+                    {fabricLabel ? (
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
+                        {fabricLabel}
+                      </p>
+                    ) : null}
+                    {fabricValue ? (
+                      <p className="mt-1 font-display text-lg font-semibold text-foreground sm:text-xl">
+                        {fabricValue}
+                      </p>
+                    ) : null}
+                  </div>
+                  {fabricTag ? (
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                      {fabricTag}
+                    </span>
                   ) : null}
                 </div>
-                {fabricTag ? (
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
-                    {fabricTag}
-                  </span>
-                ) : null}
-              </div>
-            </figcaption>
-          ) : null}
-        </figure>
+              </figcaption>
+            ) : null}
+          </figure>
+        ) : null}
       </div>
     </section>
   );

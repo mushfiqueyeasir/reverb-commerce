@@ -49,29 +49,29 @@ export default function KawaiiAboutHero({
 
   return (
     <section
-      className="relative isolate overflow-hidden bg-background text-foreground"
+      className="relative overflow-hidden bg-background py-16 text-foreground sm:py-24 lg:py-32"
       aria-labelledby={headingText ? headingId : undefined}
     >
       <div
-        className="absolute inset-x-0 top-0 h-1/2 bg-[linear-gradient(135deg,var(--surface),color-mix(in_srgb,var(--surface)_72%,#d8ceff))]"
+        className="pointer-events-none absolute -left-24 top-1/4 size-72 rounded-full bg-primary/10 blur-3xl"
         aria-hidden="true"
       />
       <div
-        className="absolute -left-24 top-32 size-72 rounded-full bg-primary/10 blur-3xl"
+        className="pointer-events-none absolute -right-24 bottom-0 size-80 rounded-full bg-primary/10 blur-3xl"
         aria-hidden="true"
       />
-      <div className="relative mx-auto grid min-h-[720px] max-w-[1500px] items-center gap-12 px-5 py-20 sm:px-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(25rem,1.08fr)] lg:px-12 lg:py-24">
-        <div className="relative z-10 max-w-2xl lg:py-16">
+      <div className="relative mx-auto grid max-w-[1600px] gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:gap-16 lg:px-10 xl:gap-24">
+        <div className="relative max-w-2xl">
           {eyebrow ? (
-            <p className="mb-7 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.24em] text-primary">
-              <span className="h-px w-9 bg-primary" aria-hidden="true" />
+            <p className="mb-5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+              <span className="h-px w-7 bg-primary" aria-hidden="true" />
               {eyebrow}
             </p>
           ) : null}
           {firstLine || secondLine ? (
             <Heading
               id={headingId}
-              className="text-balance font-display text-[clamp(3.25rem,8vw,7.5rem)] font-semibold leading-[0.88] tracking-[-0.055em]"
+              className="text-balance font-display text-[clamp(3rem,7vw,6.5rem)] font-semibold leading-[0.9] tracking-[-0.05em]"
             >
               {firstLine ? <span className="block">{firstLine}</span> : null}
               {secondLine ? (
@@ -86,7 +86,7 @@ export default function KawaiiAboutHero({
             </Heading>
           ) : null}
           {subtitle ? (
-            <p className="mt-7 max-w-xl text-base leading-8 text-muted-foreground sm:text-lg">
+            <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
               {subtitle}
             </p>
           ) : null}
@@ -95,11 +95,11 @@ export default function KawaiiAboutHero({
               {primaryLabel ? (
                 <Link
                   href={primaryHref}
-                  className="group inline-flex min-h-12 items-center gap-3 rounded-sm bg-primary px-6 text-xs font-semibold uppercase tracking-[0.16em] text-primary-foreground transition-colors hover:bg-foreground hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background"
+                  className="group inline-flex min-h-12 items-center gap-4 bg-primary px-6 text-xs font-bold uppercase tracking-[0.18em] text-primary-foreground transition-colors hover:bg-foreground hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background motion-reduce:transition-none"
                 >
                   {primaryLabel}
                   <ArrowUpRight
-                    className="size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                    className="size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transition-none"
                     aria-hidden="true"
                   />
                 </Link>
@@ -107,22 +107,26 @@ export default function KawaiiAboutHero({
               {secondaryLabel ? (
                 <Link
                   href={secondaryHref}
-                  className="inline-flex min-h-12 items-center rounded-sm border border-border bg-card/80 px-6 text-xs font-semibold uppercase tracking-[0.16em] transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background"
+                  className="group inline-flex min-h-12 items-center border-b border-primary pb-1 text-xs font-semibold uppercase tracking-[0.18em] text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background motion-reduce:transition-none"
                 >
                   {secondaryLabel}
+                  <ArrowUpRight
+                    className="size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transition-none"
+                    aria-hidden="true"
+                  />
                 </Link>
               ) : null}
             </div>
           ) : null}
         </div>
 
-        <div className="relative mx-auto w-full max-w-2xl lg:mx-0 lg:justify-self-end">
-          <div
-            className="absolute -left-5 -top-5 h-2/3 w-2/3 bg-[color-mix(in_srgb,var(--surface)_68%,#d8ceff)] sm:-left-8 sm:-top-8"
-            aria-hidden="true"
-          />
-          <figure className="relative aspect-[4/5] overflow-hidden rounded-md border border-border bg-surface shadow-[0_24px_80px_rgb(var(--foreground-rgb)/0.08)] sm:ml-8">
-            {imageUrl ? (
+        {imageUrl ? (
+          <div className="relative mx-auto w-full max-w-2xl lg:mx-0 lg:justify-self-end">
+            <div
+              className="absolute -left-5 -top-5 h-2/3 w-2/3 bg-[color-mix(in_srgb,var(--surface)_68%,#d8ceff)] sm:-left-8 sm:-top-8"
+              aria-hidden="true"
+            />
+            <figure className="relative aspect-[4/5] overflow-hidden border border-border bg-surface sm:ml-8">
               <Image
                 src={imageUrl}
                 alt={imageAlt || ""}
@@ -131,19 +135,12 @@ export default function KawaiiAboutHero({
                 sizes="(max-width: 1024px) 100vw, 52vw"
                 className="object-cover"
               />
-            ) : (
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_24%,color-mix(in_srgb,var(--primary)_28%,transparent),transparent_32%),linear-gradient(145deg,var(--card),var(--surface))]" />
-            )}
-            <div
-              className="absolute inset-0 bg-gradient-to-t from-foreground/15 via-transparent to-transparent"
-              aria-hidden="true"
-            />
-          </figure>
-          <div
-            className="absolute -bottom-5 -right-3 h-28 w-32 border border-primary/35 bg-card/75 backdrop-blur-sm sm:-bottom-8 sm:-right-8 sm:h-36 sm:w-40"
-            aria-hidden="true"
-          />
-        </div>
+              <span className="absolute bottom-4 right-4 grid size-10 place-items-center bg-background/90 text-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                <ArrowUpRight className="size-4" aria-hidden="true" />
+              </span>
+            </figure>
+          </div>
+        ) : null}
       </div>
     </section>
   );
