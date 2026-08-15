@@ -1,41 +1,28 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AdminCard } from "@/components/admin/AdminCard";
 import { SortableList } from "@/components/admin/SortableList";
-import { FooterPreview } from "@/components/Common/Footer";
 import {
   FormActions,
   FormField,
   adminInputClass,
   adminTextareaClass,
 } from "@/components/admin/FormField";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  FOOTER_DESIGNS,
   isSafeChromeHref,
   normalizeFooterConfig,
   type FooterConfig,
   type FooterLink,
-  type FooterVariant,
 } from "@/lib/cms/siteChrome";
-import { cn } from "@/lib/utils";
-import { enableFooterDesign, saveFooter } from "./actions";
+import { saveFooter } from "./actions";
 
 export function FooterForm({ initialConfig }: { initialConfig: FooterConfig }) {
   const router = useRouter();
@@ -165,21 +152,6 @@ export function FooterForm({ initialConfig }: { initialConfig: FooterConfig }) {
     }));
   };
 
-  const enableDesign = (variant: FooterVariant) => {
-    startTransition(async () => {
-      const result = await enableFooterDesign(variant);
-      if (result.error) {
-        toast.error(result.error);
-        return;
-      }
-      setConfig((current) => ({ ...current, variant }));
-      toast.success(
-        `${variant === "classic" ? "Classic" : "Compact"} footer enabled`,
-      );
-      router.refresh();
-    });
-  };
-
   const save = () => {
     if (config.columns.some((column) => !column.title.trim())) {
       toast.error("Each footer column needs a title.");
@@ -208,26 +180,14 @@ export function FooterForm({ initialConfig }: { initialConfig: FooterConfig }) {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-3">
+      <div className="rounded-2xl border border-border bg-card p-5">
         <p className="text-sm text-muted-foreground">
-          Preview each footer design and enable the one you want to use. Only
-          one design can be enabled at a time.
+          The active theme controls the footer design. Manage content and links
+          here, or change the complete storefront package in Themes.
         </p>
-        <FooterDesignSelector
-          active={config.variant}
-          config={config}
-          pending={pending}
-          onEnable={enableDesign}
-        />
-      </div>
-
-      <div className="border-t border-border pt-6">
-        <h2 className="font-display text-xl font-semibold text-foreground">
-          Content
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Content is shared by every footer design.
-        </p>
+        <Button asChild variant="outline" size="sm" className="mt-4">
+          <Link href="/admin/themes">Open Themes</Link>
+        </Button>
       </div>
 
       <AdminCard
@@ -445,89 +405,6 @@ function LinkFields({
       >
         <Trash2 />
       </Button>
-    </div>
-  );
-}
-
-function FooterDesignSelector({
-  active,
-  config,
-  pending,
-  onEnable,
-}: {
-  active: FooterVariant;
-  config: FooterConfig;
-  pending: boolean;
-  onEnable: (variant: FooterVariant) => void;
-}) {
-  return (
-    <div className="space-y-2">
-      {FOOTER_DESIGNS.map((design) => {
-        const enabled = design.variant === active;
-        return (
-          <div
-            key={design.variant}
-            className={cn(
-              "flex flex-col gap-3 rounded-2xl border bg-card/80 p-4 sm:flex-row sm:items-center sm:justify-between",
-              enabled && "border-primary/50",
-            )}
-          >
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="font-display text-base font-semibold text-foreground">
-                  {design.title}
-                </p>
-                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
-                  v{design.version}
-                </span>
-                <Badge variant={enabled ? "success" : "secondary"}>
-                  {enabled ? "Enabled" : "Disabled"}
-                </Badge>
-              </div>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {design.description}
-              </p>
-            </div>
-            <div className="flex items-center justify-end gap-3 border-t border-border/60 pt-3 sm:border-0 sm:pt-0">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button type="button" variant="ghost" size="sm">
-                    <Eye /> Preview
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="w-[95vw] sm:max-w-[95vw]">
-                  <DialogHeader>
-                    <DialogTitle>{design.title}</DialogTitle>
-                    <DialogDescription>{design.description}</DialogDescription>
-                  </DialogHeader>
-                  <FooterDesignPreview
-                    config={{ ...config, variant: design.variant }}
-                  />
-                </DialogContent>
-              </Dialog>
-              <span className="text-xs font-medium text-muted-foreground">
-                {enabled ? "Enabled" : "Enable"}
-              </span>
-              <Switch
-                checked={enabled}
-                disabled={pending || enabled}
-                aria-label={`Enable ${design.title}`}
-                onCheckedChange={(checked) => {
-                  if (checked && !enabled) onEnable(design.variant);
-                }}
-              />
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function FooterDesignPreview({ config }: { config: FooterConfig }) {
-  return (
-    <div className="max-h-[70dvh] overflow-y-auto rounded-xl bg-background p-2 sm:p-5">
-      <FooterPreview config={config} />
     </div>
   );
 }

@@ -1,39 +1,26 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AdminCard } from "@/components/admin/AdminCard";
 import { SortableList } from "@/components/admin/SortableList";
-import Navbar from "@/components/Common/Header/Navbar";
 import {
   FormActions,
   FormField,
   adminInputClass,
 } from "@/components/admin/FormField";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import {
-  NAVBAR_DESIGNS,
   isSafeChromeHref,
   normalizeNavbarConfig,
   type NavbarConfig,
-  type NavbarVariant,
 } from "@/lib/cms/siteChrome";
-import { cn } from "@/lib/utils";
-import type { MenuType } from "@/type/menyType";
-import { enableNavbarDesign, saveNavbar } from "./actions";
+import { saveNavbar } from "./actions";
 
 export function NavbarForm({ initialConfig }: { initialConfig: NavbarConfig }) {
   const router = useRouter();
@@ -107,21 +94,6 @@ export function NavbarForm({ initialConfig }: { initialConfig: NavbarConfig }) {
     }));
   };
 
-  const enableDesign = (variant: NavbarVariant) => {
-    startTransition(async () => {
-      const result = await enableNavbarDesign(variant);
-      if (result.error) {
-        toast.error(result.error);
-        return;
-      }
-      setConfig((current) => ({ ...current, variant }));
-      toast.success(
-        `${variant === "classic" ? "Classic" : "Centered"} navbar enabled`,
-      );
-      router.refresh();
-    });
-  };
-
   const save = () => {
     const invalid = config.items.find(
       (item) => !item.label.trim() || !isSafeChromeHref(item.href),
@@ -143,26 +115,14 @@ export function NavbarForm({ initialConfig }: { initialConfig: NavbarConfig }) {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-3">
+      <div className="rounded-2xl border border-border bg-card p-5">
         <p className="text-sm text-muted-foreground">
-          Preview each navbar design and enable the one you want to use. Only
-          one design can be enabled at a time.
+          The active theme controls the navbar design. Manage links and labels
+          here, or change the complete storefront package in Themes.
         </p>
-        <NavbarDesignSelector
-          active={config.variant}
-          config={config}
-          pending={pending}
-          onEnable={enableDesign}
-        />
-      </div>
-
-      <div className="border-t border-border pt-6">
-        <h2 className="font-display text-xl font-semibold text-foreground">
-          Content
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Content is shared by every navbar design.
-        </p>
+        <Button asChild variant="outline" size="sm" className="mt-4">
+          <Link href="/admin/themes">Open Themes</Link>
+        </Button>
       </div>
 
       <AdminCard
@@ -294,136 +254,6 @@ export function NavbarForm({ initialConfig }: { initialConfig: NavbarConfig }) {
           Save navbar
         </Button>
       </FormActions>
-    </div>
-  );
-}
-
-function NavbarDesignSelector({
-  active,
-  config,
-  pending,
-  onEnable,
-}: {
-  active: NavbarVariant;
-  config: NavbarConfig;
-  pending: boolean;
-  onEnable: (variant: NavbarVariant) => void;
-}) {
-  return (
-    <div className="space-y-2">
-      {NAVBAR_DESIGNS.map((design) => {
-        const enabled = design.variant === active;
-        return (
-          <div
-            key={design.variant}
-            className={cn(
-              "flex flex-col gap-3 rounded-2xl border bg-card/80 p-4 sm:flex-row sm:items-center sm:justify-between",
-              enabled && "border-primary/50",
-            )}
-          >
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="font-display text-base font-semibold text-foreground">
-                  {design.title}
-                </p>
-                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
-                  v{design.version}
-                </span>
-                <Badge variant={enabled ? "success" : "secondary"}>
-                  {enabled ? "Enabled" : "Disabled"}
-                </Badge>
-              </div>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {design.description}
-              </p>
-            </div>
-            <div className="flex items-center justify-end gap-3 border-t border-border/60 pt-3 sm:border-0 sm:pt-0">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button type="button" variant="ghost" size="sm">
-                    <Eye /> Preview
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="w-[95vw] sm:max-w-[95vw]">
-                  <DialogHeader>
-                    <DialogTitle>{design.title}</DialogTitle>
-                    <DialogDescription>{design.description}</DialogDescription>
-                  </DialogHeader>
-                  <NavbarDesignPreview
-                    config={{ ...config, variant: design.variant }}
-                  />
-                </DialogContent>
-              </Dialog>
-              <span className="text-xs font-medium text-muted-foreground">
-                {enabled ? "Enabled" : "Enable"}
-              </span>
-              <Switch
-                checked={enabled}
-                disabled={pending || enabled}
-                aria-label={`Enable ${design.title}`}
-                onCheckedChange={(checked) => {
-                  if (checked && !enabled) onEnable(design.variant);
-                }}
-              />
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function NavbarDesignPreview({ config }: { config: NavbarConfig }) {
-  const menuData: MenuType[] = config.items.map((item) => ({
-    label: item.label,
-    href: item.href,
-    kind: item.kind === "categories" ? "categories" : "links",
-    items:
-      item.kind === "categories"
-        ? [
-            {
-              label: "All products",
-              href: "/product",
-              isDefault: true,
-            },
-            {
-              label: "Skincare",
-              href: "/product?category=skincare",
-              items: [
-                { label: "Cleansers", href: "/product?category=cleansers" },
-                { label: "Sunscreens", href: "/product?category=sunscreens" },
-              ],
-            },
-            {
-              label: "Makeup",
-              href: "/product?category=makeup",
-              items: [
-                { label: "Foundation", href: "/product?category=foundation" },
-                { label: "Lipstick", href: "/product?category=lipstick" },
-              ],
-            },
-          ]
-        : undefined,
-  }));
-  return (
-    <div className="overflow-hidden rounded-xl bg-background p-2 sm:p-5">
-      <Navbar
-        preview
-        menuData={menuData}
-        logoUrl={null}
-        storeName="Your Store"
-        config={config}
-      />
-      <div className="grid min-h-52 place-items-center bg-gradient-to-br from-primary/10 via-background to-background text-center">
-        <div>
-          <p className="font-display text-3xl font-semibold text-foreground">
-            Storefront preview
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            This uses your current navbar content and selected design.
-          </p>
-        </div>
-      </div>
     </div>
   );
 }

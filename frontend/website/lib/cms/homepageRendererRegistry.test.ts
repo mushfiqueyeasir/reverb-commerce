@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { HOMEPAGE_SECTION_TYPES } from "../../type/db";
 import {
   LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS,
+  V2_DESIGN_HOMEPAGE_RENDERER_PATHS,
   createHomepageRendererRegistry,
   resolveHomepageRenderer,
   resolveHomepageRendererId,
@@ -25,6 +26,32 @@ describe("homepage renderer registry", () => {
       "reviews-classic",
       "promo-classic",
       "richtext-classic",
+      "banner-classic",
+      "categories-classic",
+      "featured-classic",
+      "reviews-classic",
+      "promo-classic",
+      "richtext-classic",
+    ]);
+  });
+
+  it("provides a V2 Design dispatch path for all 14 section types", () => {
+    expect(Object.keys(V2_DESIGN_HOMEPAGE_RENDERER_PATHS)).toEqual(
+      HOMEPAGE_SECTION_TYPES,
+    );
+    expect(
+      HOMEPAGE_SECTION_TYPES.map(
+        (type) => V2_DESIGN_HOMEPAGE_RENDERER_PATHS[type],
+      ),
+    ).toEqual([
+      "banner-v2",
+      "categories-v2",
+      "featured-v2",
+      "featured-v2",
+      "featured-v2",
+      "reviews-v2",
+      "promo-v2",
+      "richtext-v2",
       "banner-v2",
       "categories-v2",
       "featured-v2",
@@ -40,7 +67,7 @@ describe("homepage renderer registry", () => {
         featured_v2: "theme-featured",
       }),
     ).toBe("theme-featured");
-    expect(resolveHomepageRendererId("reviews_v2", {})).toBe("reviews-v2");
+    expect(resolveHomepageRendererId("reviews_v2", {})).toBe("reviews-classic");
     expect(resolveHomepageRendererId("hero", {})).toBe("banner-classic");
     expect(resolveHomepageRendererId("video", {})).toBeNull();
   });
@@ -48,8 +75,8 @@ describe("homepage renderer registry", () => {
   it("combines theme renderers with safe Legacy Classic fallbacks", () => {
     const registry = createHomepageRendererRegistry(
       {
-        "featured-v2": "legacy-featured",
-        "reviews-v2": "legacy-reviews",
+        "featured-classic": "legacy-featured",
+        "reviews-classic": "legacy-reviews",
       },
       { "theme-featured": "theme-featured" },
     );

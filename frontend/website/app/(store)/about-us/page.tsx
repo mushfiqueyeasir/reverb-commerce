@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import AboutPageScreen from "@/components/AboutPage/AboutPageScreen";
+import { getStorefrontThemeManifest } from "@/lib/theme/manifest";
+import { readCurrentPublishedStorefrontTheme } from "@/lib/theme/store";
 import { generateMetadata as generateSeoMetadata } from "@/utility/generateMetadata";
 import { getSeoItem } from "@/utility/getSeoSettings";
 import { getAboutSections } from "@/utility/getAboutSections";
@@ -14,9 +16,19 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AboutUsPage() {
-  const sections = await getAboutSections();
+  const [sections, publishedTheme] = await Promise.all([
+    getAboutSections(),
+    readCurrentPublishedStorefrontTheme(),
+  ]);
+  const manifest = getStorefrontThemeManifest(
+    publishedTheme.config.themeId,
+    publishedTheme.config.themeVersion,
+  );
+  const themeSections = sections.filter((section) =>
+    manifest.slots.about.sectionTypes.includes(section.type),
+  );
   const imageUrls = Object.fromEntries(
-    sections.map((section) => {
+    themeSections.map((section) => {
       const path = section.config.image_path;
       if (typeof path !== "string" || !path.trim()) return [section.id, null];
       const url =
@@ -27,5 +39,11 @@ export default async function AboutUsPage() {
     }),
   );
 
-  return <AboutPageScreen sections={sections} imageUrls={imageUrls} />;
+  return (
+    <AboutPageScreen
+      sections={themeSections}
+      imageUrls={imageUrls}
+      rendererMapping={manifest.renderers.aboutSections}
+    />
+  );
 }

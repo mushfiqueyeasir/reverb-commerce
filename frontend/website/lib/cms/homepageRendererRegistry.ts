@@ -16,6 +16,23 @@ export const LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS = {
   reviews: "reviews-classic",
   promo: "promo-classic",
   richtext: "richtext-classic",
+  banner_v2: "banner-classic",
+  categories_v2: "categories-classic",
+  featured_v2: "featured-classic",
+  reviews_v2: "reviews-classic",
+  promo_v2: "promo-classic",
+  richtext_v2: "richtext-classic",
+} as const satisfies Record<HomepageSectionType, string>;
+
+export const V2_DESIGN_HOMEPAGE_RENDERER_PATHS = {
+  banner: "banner-v2",
+  categories: "categories-v2",
+  deals: "featured-v2",
+  new_arrivals: "featured-v2",
+  featured: "featured-v2",
+  reviews: "reviews-v2",
+  promo: "promo-v2",
+  richtext: "richtext-v2",
   banner_v2: "banner-v2",
   categories_v2: "categories-v2",
   featured_v2: "featured-v2",

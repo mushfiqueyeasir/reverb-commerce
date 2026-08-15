@@ -5,10 +5,12 @@ import { requireAdminSession, isAdmin } from "@/lib/admin/auth";
 import { writeAuditLog } from "@/lib/admin/auditLog";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
+  createDefaultStorefrontThemeConfig,
   getStorefrontThemeManifest,
   normalizeStorefrontThemeConfigWithResult,
   resolveStorefrontThemeTokens,
   STOREFRONT_CONTENT_REFERENCES,
+  STOREFRONT_THEME_REGISTRY,
   type StorefrontThemeConfig,
 } from "@/lib/theme/manifest";
 
@@ -46,9 +48,89 @@ function resultRevision(data: unknown): number | undefined {
   return Number.isSafeInteger(revision) ? revision : undefined;
 }
 
+function normalizePrimary(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().toLowerCase();
+  return /^#[0-9a-f]{6}$/.test(normalized) ? normalized : null;
+}
+
 function revalidatePublishedTheme() {
   revalidatePath("/admin/themes");
+  revalidatePath("/admin/homepage");
+  revalidatePath("/admin/about");
+  revalidatePath("/about-us");
   revalidatePath("/", "layout");
+}
+
+export async function applyStorefrontTheme(input: {
+  themeId: string;
+  primary: string;
+  expectedVersion: number;
+}): Promise<ThemeActionResult> {
+  const session = await requireAdminSession();
+  if (!isAdmin(session.role)) {
+    return { error: "Only administrators can apply themes." };
+  }
+
+  const versionError = validateVersion(input?.expectedVersion);
+  if (versionError) return { error: versionError };
+  const manifest =
+    typeof input?.themeId === "string"
+      ? STOREFRONT_THEME_REGISTRY[input.themeId]
+      : undefined;
+  if (!manifest || manifest.id !== input.themeId) {
+    return { error: "Choose a valid storefront theme." };
+  }
+  const primary = normalizePrimary(input.primary);
+  if (!primary) {
+    return { error: "Choose a valid six-digit primary color." };
+  }
+
+  const candidate = createDefaultStorefrontThemeConfig(manifest);
+  candidate.tokenOverrides = { palette: { primary } };
+  const normalized = normalizeStorefrontThemeConfigWithResult(candidate);
+  if (
+    normalized.usedFallback ||
+    normalized.errors.length > 0 ||
+    normalized.config.themeId !== manifest.id ||
+    normalized.config.themeVersion !== manifest.version ||
+    normalized.config.tokenOverrides.palette?.primary !== primary
+  ) {
+    return { error: "Theme configuration is invalid." };
+  }
+
+  const config = normalized.config;
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("apply_theme", {
+    p_expected_version: input.expectedVersion,
+    p_theme_key: manifest.id,
+    p_schema_version: config.schemaVersion,
+    p_manifest: { id: manifest.id, version: manifest.version },
+    p_design_config: {
+      tokenOverrides: config.tokenOverrides,
+      resolvedTokens: resolveStorefrontThemeTokens(config),
+      contentReferences: STOREFRONT_CONTENT_REFERENCES,
+    },
+  });
+  if (error) return { error: actionError(error) };
+
+  const revision = resultRevision(data);
+  await writeAuditLog({
+    actor: session,
+    action: "publish",
+    entity: "storefront_theme",
+    entityId: manifest.id,
+    summary: `Applied and published ${manifest.id} storefront theme`,
+    metadata: {
+      themeId: manifest.id,
+      primary,
+      expectedVersion: input.expectedVersion,
+      revision,
+    },
+  });
+  revalidatePublishedTheme();
+  revalidatePath(`/admin/themes/${manifest.id}`);
+  return { revision };
 }
 
 export async function saveStorefrontThemeDraft(input: {
@@ -67,19 +149,24 @@ export async function saveStorefrontThemeDraft(input: {
       error: `Theme configuration is invalid. ${normalized.errors.join(" ")}`,
     };
   }
+  const primary = normalized.config.tokenOverrides.palette?.primary;
+  const config: StorefrontThemeConfig = {
+    ...normalized.config,
+    tokenOverrides: primary ? { palette: { primary } } : {},
+  };
   const manifest = getStorefrontThemeManifest(
-    normalized.config.themeId,
-    normalized.config.themeVersion,
+    config.themeId,
+    config.themeVersion,
   );
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("save_theme_draft", {
     p_expected_version: input.expectedVersion,
     p_theme_key: manifest.id,
-    p_schema_version: normalized.config.schemaVersion,
+    p_schema_version: config.schemaVersion,
     p_manifest: { id: manifest.id, version: manifest.version },
     p_design_config: {
-      tokenOverrides: normalized.config.tokenOverrides,
-      resolvedTokens: resolveStorefrontThemeTokens(normalized.config),
+      tokenOverrides: config.tokenOverrides,
+      resolvedTokens: resolveStorefrontThemeTokens(config),
       contentReferences: STOREFRONT_CONTENT_REFERENCES,
     },
   });

@@ -20,12 +20,17 @@ import AboutStoryV2 from "@/components/AboutPage/V2/AboutStoryV2";
 import AboutValuesV2 from "@/components/AboutPage/V2/AboutValuesV2";
 import {
   getAboutSectionFamily,
-  getAboutSectionVersion,
   type AboutCraftItem,
+  type AboutSectionFamily,
   type AboutSectionRow,
   type AboutStatItem,
   type AboutValueItem,
 } from "@/lib/cms/aboutSections";
+import {
+  resolveAboutRenderer,
+  type AboutRendererIdMapping,
+  type AboutRendererRegistry,
+} from "@/lib/cms/aboutRendererRegistry";
 
 const CRAFT_ICONS: Record<string, LucideIcon> = {
   Layers,
@@ -35,6 +40,26 @@ const CRAFT_ICONS: Record<string, LucideIcon> = {
   Sparkles,
   Award,
 };
+
+type AboutRendererTarget = {
+  family: AboutSectionFamily;
+  version: 1 | 2;
+};
+
+const ABOUT_RENDERERS = {
+  "hero-v1": { family: "hero", version: 1 },
+  "stats-v1": { family: "stats", version: 1 },
+  "story-v1": { family: "story", version: 1 },
+  "values-v1": { family: "values", version: 1 },
+  "craft-v1": { family: "craft", version: 1 },
+  "cta-v1": { family: "cta", version: 1 },
+  "hero-v2": { family: "hero", version: 2 },
+  "stats-v2": { family: "stats", version: 2 },
+  "story-v2": { family: "story", version: 2 },
+  "values-v2": { family: "values", version: 2 },
+  "craft-v2": { family: "craft", version: 2 },
+  "cta-v2": { family: "cta", version: 2 },
+} satisfies AboutRendererRegistry<AboutRendererTarget>;
 
 function cfgStr(config: Record<string, unknown>, key: string, fallback = "") {
   const v = config[key];
@@ -469,13 +494,19 @@ function renderSection(
   imageUrls: Partial<Record<string, string | null>>,
   preview: boolean,
   primaryHeroId: string | undefined,
+  rendererMapping: AboutRendererIdMapping | undefined,
 ) {
   const config = section.config ?? {};
   const sectionImageUrl = imageUrls[section.id];
-  const family = getAboutSectionFamily(section.type);
-  const isV2 = getAboutSectionVersion(section.type) === 2;
+  const renderer = resolveAboutRenderer(
+    section.type,
+    ABOUT_RENDERERS,
+    rendererMapping,
+  );
+  if (!renderer) return null;
+  const isV2 = renderer.version === 2;
 
-  switch (family) {
+  switch (renderer.family) {
     case "hero": {
       const headingLevel = section.id === primaryHeroId ? "h1" : "h2";
       return isV2 ? (
@@ -540,10 +571,12 @@ export default function AboutPageScreen({
   sections,
   imageUrls = {},
   preview = false,
+  rendererMapping,
 }: {
   sections: AboutSectionRow[];
   imageUrls?: Partial<Record<string, string | null>>;
   preview?: boolean;
+  rendererMapping?: AboutRendererIdMapping;
 }) {
   const primaryHeroId = sections.find(
     (section) => getAboutSectionFamily(section.type) === "hero",
@@ -553,7 +586,13 @@ export default function AboutPageScreen({
     <div className="pb-24">
       {sections.map((section) => (
         <Fragment key={section.id}>
-          {renderSection(section, imageUrls, preview, primaryHeroId)}
+          {renderSection(
+            section,
+            imageUrls,
+            preview,
+            primaryHeroId,
+            rendererMapping,
+          )}
         </Fragment>
       ))}
     </div>

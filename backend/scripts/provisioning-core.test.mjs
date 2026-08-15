@@ -623,6 +623,31 @@ test("restricts theme writes to atomic optimistic admin RPCs", () => {
   assert.match(migration, /notify pgrst, 'reload schema'/);
 });
 
+test("applies themes atomically through one RPC", () => {
+  const migration = readFileSync(
+    join(
+      import.meta.dirname,
+      "..",
+      "supabase",
+      "migrations",
+      "0041_atomic_theme_apply.sql",
+    ),
+    "utf8",
+  );
+
+  assert.doesNotMatch(migration, /--/);
+  assert.match(
+    migration,
+    /create or replace function public\.apply_theme\([\s\S]*security definer[\s\S]*set search_path = public/,
+  );
+  assert.match(migration, /public\.save_theme_draft\(/);
+  assert.match(migration, /public\.publish_theme_draft\(v_draft_version\)/);
+  assert.match(
+    migration,
+    /grant execute on function public\.apply_theme\(bigint, text, integer, jsonb, jsonb\)[\s\S]*to authenticated, service_role/,
+  );
+});
+
 test("checks migration store identity before schema reconciliation", () => {
   const script = readFileSync(
     join(import.meta.dirname, "migrate-client.mjs"),

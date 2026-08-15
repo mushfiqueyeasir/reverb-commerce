@@ -12,7 +12,7 @@ export default async function FooterAdminPage() {
     <div>
       <PageHeader
         title="Footer"
-        description="Choose the storefront footer design and manage its content and links."
+        description="Manage footer content and links shared by the active storefront theme."
       />
       <FooterForm initialConfig={cms.footer} />
     </div>

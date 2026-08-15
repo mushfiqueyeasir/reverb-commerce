@@ -12,6 +12,8 @@ import {
 } from "@/lib/cms/homepageSections";
 import { parseHomepageStoryConfig } from "@/lib/cms/homepageStory";
 import { sanitizeCmsHtml } from "@/lib/html/sanitize";
+import { getStorefrontThemeManifest } from "@/lib/theme/manifest";
+import { readCurrentPublishedStorefrontTheme } from "@/lib/theme/store";
 import { readCmsBlob, tableExists, writeCmsBlob } from "@/lib/cms/jsonStore";
 
 export interface SectionInput {
@@ -306,17 +308,27 @@ export async function reorderSections(
     return { error: "You do not have permission to do this." };
   }
 
-  const rows = await listSections();
+  const [rows, publishedTheme] = await Promise.all([
+    listSections(),
+    readCurrentPublishedStorefrontTheme(),
+  ]);
+  const manifest = getStorefrontThemeManifest(
+    publishedTheme.config.themeId,
+    publishedTheme.config.themeVersion,
+  );
+  const themeRows = rows.filter((row) =>
+    manifest.slots.homepage.sectionTypes.includes(row.type),
+  );
   if (
-    orderedIds.length !== rows.length ||
-    new Set(orderedIds).size !== rows.length ||
-    !orderedIds.every((id) => rows.some((r) => r.id === id))
+    orderedIds.length !== themeRows.length ||
+    new Set(orderedIds).size !== themeRows.length ||
+    !orderedIds.every((id) => themeRows.some((row) => row.id === id))
   ) {
     return { error: "Invalid section order." };
   }
 
   const now = new Date().toISOString();
-  const byId = new Map(rows.map((r) => [r.id, r]));
+  const byId = new Map(themeRows.map((row) => [row.id, row]));
   const next = orderedIds.map((id, index) => ({
     ...byId.get(id)!,
     sort: index,
@@ -334,7 +346,8 @@ export async function reorderSections(
     }
   } else {
     const cms = await readCmsBlob();
-    cms.homepage_sections = next;
+    const reordered = new Map(next.map((row) => [row.id, row]));
+    cms.homepage_sections = rows.map((row) => reordered.get(row.id) ?? row);
     const res = await writeCmsBlob(cms);
     if (res.error) return { error: res.error };
   }

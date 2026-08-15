@@ -3,7 +3,7 @@ import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import AppToaster from "@/components/Common/AppToaster";
 import ThemeStyle from "@/components/Common/ThemeStyle";
-import { isLightPalette, normalizePalette } from "@/lib/theme/palette";
+import { isLightPalette } from "@/lib/theme/palette";
 import { resolveStorefrontThemeTokens } from "@/lib/theme/manifest";
 import { readCurrentPublishedStorefrontTheme } from "@/lib/theme/store";
 import { generateMetadata as generateSeoMetadata } from "@/utility/generateMetadata";
@@ -59,9 +59,7 @@ export default async function RootLayout({
     getSiteSettings(),
     readCurrentPublishedStorefrontTheme(),
   ]);
-  const palette = publishedTheme.isFallback
-    ? normalizePalette(settings.palette)
-    : resolveStorefrontThemeTokens(publishedTheme.config).palette;
+  const palette = resolveStorefrontThemeTokens(publishedTheme.config).palette;
   const light = isLightPalette(palette);
 
   return (

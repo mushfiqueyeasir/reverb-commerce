@@ -33,7 +33,8 @@ export async function getHomepageSections(): Promise<HomepageSection[]> {
         .from("homepage_sections")
         .select("*")
         .eq("active", true)
-        .order("sort", { ascending: true });
+        .order("sort", { ascending: true })
+        .order("created_at", { ascending: true });
 
       if (!error) {
         return normalizeHomepageSections((data ?? []) as HomepageSectionRow[], {

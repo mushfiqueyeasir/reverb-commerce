@@ -20,6 +20,8 @@ export const DEFAULT_PALETTE: ThemePalette = {
   border: "#2a2a2a",
 };
 
+export type ThemePaletteOverrides = Partial<Pick<ThemePalette, "primary">>;
+
 export interface PalettePreset {
   id: string;
   name: string;
@@ -135,16 +137,11 @@ function normalizeHex(value: unknown, fallback: string): string {
   return v.toLowerCase();
 }
 
-export function normalizePaletteOverrides(raw: unknown): Partial<ThemePalette> {
+export function normalizePaletteOverrides(raw: unknown): ThemePaletteOverrides {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
-  const source = raw as Record<string, unknown>;
-  const overrides: Partial<ThemePalette> = {};
-  for (const key of Object.keys(DEFAULT_PALETTE) as (keyof ThemePalette)[]) {
-    const value = source[key];
-    if (typeof value !== "string" || !HEX_RE.test(value.trim())) continue;
-    overrides[key] = normalizeHex(value, DEFAULT_PALETTE[key]);
-  }
-  return overrides;
+  const primary = (raw as Record<string, unknown>).primary;
+  if (typeof primary !== "string" || !HEX_RE.test(primary.trim())) return {};
+  return { primary: normalizeHex(primary, DEFAULT_PALETTE.primary) };
 }
 
 export function normalizePalette(raw: unknown): ThemePalette {
@@ -257,48 +254,13 @@ export function paletteToCssVars(
 }
 
 export const PALETTE_FIELDS: {
-  key: keyof ThemePalette;
+  key: keyof ThemePaletteOverrides;
   label: string;
   hint: string;
 }[] = [
   {
     key: "primary",
-    label: "Accent",
-    hint: "Buttons, links, highlights",
-  },
-  {
-    key: "primaryForeground",
-    label: "Accent text",
-    hint: "Text on accent buttons",
-  },
-  {
-    key: "background",
-    label: "Background",
-    hint: "Page base color",
-  },
-  {
-    key: "surface",
-    label: "Surface",
-    hint: "Secondary panels",
-  },
-  {
-    key: "card",
-    label: "Card",
-    hint: "Cards and elevated blocks",
-  },
-  {
-    key: "foreground",
-    label: "Text",
-    hint: "Main body text",
-  },
-  {
-    key: "mutedForeground",
-    label: "Muted text",
-    hint: "Labels and supporting copy",
-  },
-  {
-    key: "border",
-    label: "Border",
-    hint: "Lines and outlines",
+    label: "Primary",
+    hint: "The accent color used for buttons, links, and highlights",
   },
 ];

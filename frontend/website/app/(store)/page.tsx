@@ -45,10 +45,13 @@ export default async function HomePage() {
     publishedTheme.config.themeId,
     publishedTheme.config.themeVersion,
   );
+  const themeSections = sections.filter((section) =>
+    manifest.slots.homepage.sectionTypes.includes(section.type),
+  );
 
   return (
     <HomepageRenderer
-      sections={sections}
+      sections={themeSections}
       data={{
         banners,
         bannersV2,

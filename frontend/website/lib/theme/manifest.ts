@@ -1,10 +1,19 @@
 import type { HomepageSectionType } from "../../type/db";
-import { LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS } from "../cms/homepageRendererRegistry";
+import type { AboutSectionType } from "../cms/aboutSections";
+import {
+  LEGACY_CLASSIC_ABOUT_RENDERER_PATHS,
+  V2_DESIGN_ABOUT_RENDERER_PATHS,
+} from "../cms/aboutRendererRegistry";
+import {
+  LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS,
+  V2_DESIGN_HOMEPAGE_RENDERER_PATHS,
+} from "../cms/homepageRendererRegistry";
 import {
   DEFAULT_PALETTE,
   normalizePalette,
   normalizePaletteOverrides,
   type ThemePalette,
+  type ThemePaletteOverrides,
 } from "./palette";
 
 export const STOREFRONT_THEME_SCHEMA_VERSION = 1 as const;
@@ -24,6 +33,11 @@ export const STOREFRONT_CONTENT_REFERENCES = {
     relation: "homepage_sections",
     orderBy: ["sort", "created_at"],
   },
+  about: {
+    relation: "site_settings",
+    selector: { id: 1 },
+    path: ["socials", "_cms", "about_sections"],
+  },
 } as const;
 
 export interface ThemeSemanticTokens {
@@ -31,7 +45,7 @@ export interface ThemeSemanticTokens {
 }
 
 export interface ThemeTokenOverrides {
-  palette?: Partial<ThemePalette>;
+  palette?: ThemePaletteOverrides;
 }
 
 export interface ThemeSlotCompatibility {
@@ -52,16 +66,22 @@ export interface StorefrontThemeManifest {
     navbar: string;
     footer: string;
     homepageSections: Record<HomepageSectionType, string>;
+    aboutSections: Record<AboutSectionType, string>;
   };
   compatibility: {
     storefrontApiVersion: number;
     homepageSectionVersions: readonly number[];
+    aboutSectionVersions: readonly number[];
   };
   slots: {
     navbar: ThemeSlotCompatibility;
     footer: ThemeSlotCompatibility;
     homepage: ThemeSlotCompatibility & {
       sectionTypes: readonly HomepageSectionType[];
+      allowsRepeatedSections: boolean;
+    };
+    about: ThemeSlotCompatibility & {
+      sectionTypes: readonly AboutSectionType[];
       allowsRepeatedSections: boolean;
     };
   };
@@ -71,6 +91,36 @@ const LEGACY_HOMEPAGE_RENDERERS: Record<HomepageSectionType, string> = {
   ...LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS,
 };
 
+const LEGACY_ABOUT_RENDERERS: Record<AboutSectionType, string> = {
+  ...LEGACY_CLASSIC_ABOUT_RENDERER_PATHS,
+};
+
+const V2_HOMEPAGE_RENDERERS: Record<HomepageSectionType, string> = {
+  ...V2_DESIGN_HOMEPAGE_RENDERER_PATHS,
+};
+
+const V2_ABOUT_RENDERERS: Record<AboutSectionType, string> = {
+  ...V2_DESIGN_ABOUT_RENDERER_PATHS,
+};
+
+export const THEME_HOMEPAGE_SECTION_TYPES: readonly HomepageSectionType[] = [
+  "banner",
+  "featured",
+  "categories",
+  "richtext",
+  "reviews",
+  "promo",
+];
+
+export const THEME_ABOUT_SECTION_TYPES: readonly AboutSectionType[] = [
+  "hero",
+  "stats",
+  "story",
+  "values",
+  "craft",
+  "cta",
+];
+
 export const LEGACY_CLASSIC_THEME: StorefrontThemeManifest = {
   id: "legacy-classic",
   schemaVersion: STOREFRONT_THEME_SCHEMA_VERSION,
@@ -78,16 +128,18 @@ export const LEGACY_CLASSIC_THEME: StorefrontThemeManifest = {
   displayName: "Legacy Classic",
   category: "Classic storefront",
   description:
-    "The current Reverb storefront with full compatibility for every homepage section.",
+    "The classic Reverb storefront package with complete homepage and About coverage.",
   defaultTokens: { palette: { ...DEFAULT_PALETTE } },
   renderers: {
     navbar: "legacy-classic.navbar",
     footer: "legacy-classic.footer",
     homepageSections: LEGACY_HOMEPAGE_RENDERERS,
+    aboutSections: LEGACY_ABOUT_RENDERERS,
   },
   compatibility: {
     storefrontApiVersion: 1,
     homepageSectionVersions: [1, 2],
+    aboutSectionVersions: [1, 2],
   },
   slots: {
     navbar: {
@@ -104,17 +156,76 @@ export const LEGACY_CLASSIC_THEME: StorefrontThemeManifest = {
       rendererId: "legacy-classic.homepage",
       required: true,
       accepts: ["homepage-section-v1", "homepage-section-v2"],
-      sectionTypes: Object.keys(
-        LEGACY_HOMEPAGE_RENDERERS,
-      ) as HomepageSectionType[],
+      sectionTypes: THEME_HOMEPAGE_SECTION_TYPES,
+      allowsRepeatedSections: false,
+    },
+    about: {
+      rendererId: "legacy-classic.about",
+      required: true,
+      accepts: ["about-section-v1", "about-section-v2"],
+      sectionTypes: THEME_ABOUT_SECTION_TYPES,
       allowsRepeatedSections: false,
     },
   },
 };
 
-const INSTALLED_STOREFRONT_THEME_VERSIONS = [LEGACY_CLASSIC_THEME] as const;
+export const V2_DESIGN_THEME: StorefrontThemeManifest = {
+  id: "v2-design",
+  schemaVersion: STOREFRONT_THEME_SCHEMA_VERSION,
+  version: 1,
+  displayName: "V2 Design",
+  category: "V2 storefront",
+  description:
+    "The V2 Reverb storefront package with complete homepage and About coverage.",
+  defaultTokens: { palette: { ...DEFAULT_PALETTE } },
+  renderers: {
+    navbar: "v2-design.navbar",
+    footer: "v2-design.footer",
+    homepageSections: V2_HOMEPAGE_RENDERERS,
+    aboutSections: V2_ABOUT_RENDERERS,
+  },
+  compatibility: {
+    storefrontApiVersion: 1,
+    homepageSectionVersions: [1, 2],
+    aboutSectionVersions: [1, 2],
+  },
+  slots: {
+    navbar: {
+      rendererId: "v2-design.navbar",
+      required: true,
+      accepts: ["classic", "centered"],
+    },
+    footer: {
+      rendererId: "v2-design.footer",
+      required: true,
+      accepts: ["classic", "compact"],
+    },
+    homepage: {
+      rendererId: "v2-design.homepage",
+      required: true,
+      accepts: ["homepage-section-v1", "homepage-section-v2"],
+      sectionTypes: THEME_HOMEPAGE_SECTION_TYPES,
+      allowsRepeatedSections: false,
+    },
+    about: {
+      rendererId: "v2-design.about",
+      required: true,
+      accepts: ["about-section-v1", "about-section-v2"],
+      sectionTypes: THEME_ABOUT_SECTION_TYPES,
+      allowsRepeatedSections: false,
+    },
+  },
+};
 
-export const AVAILABLE_STOREFRONT_THEMES = [LEGACY_CLASSIC_THEME] as const;
+const INSTALLED_STOREFRONT_THEME_VERSIONS = [
+  LEGACY_CLASSIC_THEME,
+  V2_DESIGN_THEME,
+] as const;
+
+export const AVAILABLE_STOREFRONT_THEMES = [
+  LEGACY_CLASSIC_THEME,
+  V2_DESIGN_THEME,
+] as const;
 
 export const STOREFRONT_THEME_REGISTRY: Readonly<
   Record<string, StorefrontThemeManifest>
@@ -220,7 +331,7 @@ export function normalizeStorefrontThemeConfigWithResult(
   if (Object.keys(raw).some((key) => !configKeys.has(key))) {
     errors.push("Theme configuration contains unsupported fields.");
   }
-  let palette: Partial<ThemePalette> | undefined;
+  let palette: ThemePaletteOverrides | undefined;
   if (raw.tokenOverrides !== undefined) {
     if (!isObject(raw.tokenOverrides)) {
       errors.push("Theme token overrides must be an object.");
@@ -286,10 +397,11 @@ export function resolveStorefrontThemeTokens(
     config.themeId,
     config.themeVersion,
   );
+  const overrides = normalizePaletteOverrides(config.tokenOverrides.palette);
   return {
     palette: normalizePalette({
       ...manifest.defaultTokens.palette,
-      ...config.tokenOverrides.palette,
+      primary: overrides.primary ?? manifest.defaultTokens.palette.primary,
     }),
   };
 }

@@ -120,6 +120,16 @@ function configStringArray(
   ];
 }
 
+export function selectHomepageCategoryIds(
+  config: Record<string, unknown>,
+  preview = false,
+  useLiveBindingsInPreview = false,
+): string[] | null {
+  return preview && !useLiveBindingsInPreview
+    ? null
+    : configStringArray(config, "category_ids");
+}
+
 function configBoolean(
   config: Record<string, unknown>,
   key: string,
@@ -155,11 +165,21 @@ function configMarquee(config: Record<string, unknown>): string[] {
   return parsed.length ? parsed : DEFAULT_BANNER_MARQUEE;
 }
 
+export function selectHomepageBannerData(
+  sectionType: HomepageSectionType,
+  data: Pick<HomepageRendererData, "banners" | "bannersV2">,
+): Banner[] {
+  if (sectionType === "banner") return data.banners;
+  if (sectionType === "banner_v2") return data.bannersV2;
+  return [];
+}
+
 function BannerClassicRenderer({
   section,
   data,
 }: HomepageSectionRendererProps) {
-  if (data.banners.length === 0) return null;
+  const banners = selectHomepageBannerData(section.type, data);
+  if (banners.length === 0) return null;
   const config = section.config;
   const description =
     configString(config, "description") ?? DEFAULT_BANNER_DESCRIPTION;
@@ -167,7 +187,7 @@ function BannerClassicRenderer({
   return (
     <>
       <Hero
-        banners={data.banners}
+        banners={banners}
         description={description}
         stats={configStats(config)}
       />
@@ -183,10 +203,11 @@ function BannerV2Renderer({
   data,
   primaryBannerId,
 }: HomepageSectionRendererProps) {
-  if (data.bannersV2.length === 0) return null;
+  const banners = selectHomepageBannerData(section.type, data);
+  if (banners.length === 0) return null;
   return (
     <BannerV2
-      banners={data.bannersV2}
+      banners={banners}
       description={
         configString(section.config, "description") ??
         DEFAULT_BANNER_DESCRIPTION
@@ -212,11 +233,11 @@ function CategoriesClassicRenderer({
       eyebrow={configString(config, "eyebrow")}
       ctaLabel={configString(config, "cta_label")}
       ctaHref={configString(config, "cta_url") ?? "/product"}
-      categoryIds={
-        preview && !useLiveBindingsInPreview
-          ? null
-          : configStringArray(config, "category_ids")
-      }
+      categoryIds={selectHomepageCategoryIds(
+        config,
+        preview,
+        useLiveBindingsInPreview,
+      )}
     />
   );
 }
@@ -225,6 +246,7 @@ function CategoriesV2Renderer({
   section,
   data,
   preview,
+  useLiveBindingsInPreview,
 }: HomepageSectionRendererProps) {
   if (data.categories.length === 0) return null;
   const config = section.config;
@@ -236,6 +258,11 @@ function CategoriesV2Renderer({
       eyebrow={configString(config, "eyebrow")}
       ctaLabel={configString(config, "cta_label")}
       ctaHref={configString(config, "cta_url") ?? "/product"}
+      categoryIds={selectHomepageCategoryIds(
+        config,
+        preview,
+        useLiveBindingsInPreview,
+      )}
       limit={optionalConfigLimit(config)}
       preview={preview}
     />
@@ -392,14 +419,9 @@ export function getPrimaryHomepageBannerId(
   sections: readonly HomepageRendererSection[],
   data: Pick<HomepageRendererData, "banners" | "bannersV2">,
 ): string | undefined {
-  return (
-    (data.banners.length > 0
-      ? sections.find((section) => section.type === "banner")?.id
-      : undefined) ??
-    (data.bannersV2.length > 0
-      ? sections.find((section) => section.type === "banner_v2")?.id
-      : undefined)
-  );
+  return sections.find(
+    (section) => selectHomepageBannerData(section.type, data).length > 0,
+  )?.id;
 }
 
 export function renderHomepageSection(

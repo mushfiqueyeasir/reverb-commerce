@@ -12,7 +12,7 @@ export default async function NavbarAdminPage() {
     <div>
       <PageHeader
         title="Navbar"
-        description="Choose the storefront navbar design and manage its navigation content."
+        description="Manage navigation content shared by the active storefront theme."
       />
       <NavbarForm initialConfig={cms.navbar} />
     </div>

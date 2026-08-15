@@ -20,6 +20,7 @@ export interface CategoryV2Props {
   eyebrow?: string | null;
   ctaLabel?: string | null;
   ctaHref?: string;
+  categoryIds?: string[] | null;
   limit?: number;
   preview?: boolean;
 }
@@ -41,6 +42,30 @@ function categoryHref(category: Category) {
     : `/product?category=${encodeURIComponent(slug)}`;
 }
 
+export function selectCategoryV2Items(
+  categories: readonly Category[],
+  categoryIds?: readonly string[] | null,
+  limit?: number,
+): Category[] {
+  const eligibleCategories = categories.filter(
+    (category) => category.isDefault || !category.parentId,
+  );
+  const byId = new Map(
+    eligibleCategories.map((category) => [category._id, category]),
+  );
+  const selectedCategories = categoryIds
+    ? categoryIds
+        .map((categoryId) => byId.get(categoryId))
+        .filter((category): category is Category => Boolean(category))
+    : eligibleCategories;
+  return selectedCategories.slice(
+    0,
+    typeof limit === "number"
+      ? Math.max(0, Math.floor(limit))
+      : selectedCategories.length,
+  );
+}
+
 export default function CategoryV2({
   categories,
   title,
@@ -48,19 +73,16 @@ export default function CategoryV2({
   eyebrow,
   ctaLabel,
   ctaHref = "/product",
+  categoryIds,
   limit,
   preview = false,
 }: CategoryV2Props) {
   const reduceMotion = Boolean(useReducedMotion()) || preview;
   const headingId = useId();
-  const rootCategories = categories.filter(
-    (category) => category.isDefault || !category.parentId,
-  );
-  const visibleCategories = rootCategories.slice(
-    0,
-    typeof limit === "number"
-      ? Math.max(0, Math.floor(limit))
-      : rootCategories.length,
+  const visibleCategories = selectCategoryV2Items(
+    categories,
+    categoryIds,
+    limit,
   );
 
   if (visibleCategories.length === 0) return null;

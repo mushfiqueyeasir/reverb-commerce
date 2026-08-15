@@ -2,12 +2,48 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_PALETTE,
   KAWAII_WHITE_PALETTE,
+  PALETTE_FIELDS,
   PALETTE_PRESETS,
   getPalettePresets,
   isLightPalette,
   normalizePalette,
+  normalizePaletteOverrides,
   paletteToCssVars,
 } from "./palette";
+
+describe("palette overrides", () => {
+  it("exposes only Primary as the editable accent", () => {
+    expect(PALETTE_FIELDS).toEqual([
+      {
+        key: "primary",
+        label: "Primary",
+        hint: "The accent color used for buttons, links, and highlights",
+      },
+    ]);
+  });
+
+  it("normalizes primary and drops every other key", () => {
+    expect(
+      normalizePaletteOverrides({
+        primary: " #F0C ",
+        primaryForeground: "#ffffff",
+        background: "#ffffff",
+        surface: "#ffffff",
+        card: "#ffffff",
+        foreground: "#ffffff",
+        mutedForeground: "#ffffff",
+        border: "#ffffff",
+      }),
+    ).toEqual({ primary: "#ff00cc" });
+  });
+
+  it.each([null, [], "#ffffff", { primary: "invalid" }])(
+    "drops malformed primary overrides %#",
+    (raw) => {
+      expect(normalizePaletteOverrides(raw)).toEqual({});
+    },
+  );
+});
 
 describe("getPalettePresets", () => {
   it("keeps the default palette first and unchanged", () => {
