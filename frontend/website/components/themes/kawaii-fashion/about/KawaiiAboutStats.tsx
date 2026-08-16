@@ -32,7 +32,7 @@ export default function KawaiiAboutStats({ config }: KawaiiAboutRendererProps) {
               <dt className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
                 {item.label || String(index + 1).padStart(2, "0")}
               </dt>
-              <dd className="break-words font-display text-[clamp(2rem,4.5vw,4rem)] font-semibold leading-none tracking-[-0.05em] text-foreground">
+              <dd className="break-words font-display text-[clamp(1.5rem,4vw,3rem)] font-semibold leading-none tracking-[-0.05em] text-foreground">
                 {item.value}
               </dd>
               <span className="h-px w-8 bg-primary" aria-hidden="true" />

@@ -50,7 +50,7 @@ export default function AboutStatsV2({
                     {String(index + 1).padStart(2, "0")}
                   </span>
                 </div>
-                <dd className="break-words font-display text-[clamp(1.8rem,4vw,4.25rem)] font-semibold leading-[0.88] tracking-[-0.055em]">
+                <dd className="break-words font-display text-[clamp(1.5rem,3.5vw,3.5rem)] font-semibold leading-[0.88] tracking-[-0.055em]">
                   {item.value}
                 </dd>
                 <div
