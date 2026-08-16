@@ -1,4 +1,10 @@
-import type { AiAdvisorMessage } from "@/type/aiAdvisorType";
+import {
+  AI_ADVISOR_USER_MESSAGE_MAX_LENGTH,
+  type AiAdvisorMessage,
+} from "../type/aiAdvisorType";
+
+const AI_ADVISOR_ASSISTANT_MESSAGE_MAX_LENGTH = 5_000;
+const AI_ADVISOR_MAX_MESSAGES = 101;
 
 export interface ModelAdvisorResponse {
   message: string;
@@ -214,7 +220,13 @@ ${JSON.stringify(catalog)}`;
 export function parseAdvisorMessages(
   value: unknown,
 ): AiAdvisorMessage[] | null {
-  if (!Array.isArray(value) || value.length < 1) return null;
+  if (
+    !Array.isArray(value) ||
+    value.length < 1 ||
+    value.length > AI_ADVISOR_MAX_MESSAGES
+  ) {
+    return null;
+  }
 
   const messages: AiAdvisorMessage[] = [];
 
@@ -226,7 +238,11 @@ export function parseAdvisorMessages(
     if (typeof rawContent !== "string") return null;
 
     const content = rawContent.trim();
-    if (!content) return null;
+    const maxLength =
+      role === "user"
+        ? AI_ADVISOR_USER_MESSAGE_MAX_LENGTH
+        : AI_ADVISOR_ASSISTANT_MESSAGE_MAX_LENGTH;
+    if (!content || content.length > maxLength) return null;
     messages.push({ role, content });
   }
 

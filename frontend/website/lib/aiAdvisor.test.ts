@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { AI_ADVISOR_USER_MESSAGE_MAX_LENGTH } from "../type/aiAdvisorType";
 import {
   buildAdvisorSystemPrompt,
   buildInventoryOverview,
@@ -38,13 +39,32 @@ describe("AI advisor inventory prompt", () => {
 });
 
 describe("AI advisor input", () => {
-  it("accepts an unrestricted conversation ending with the shopper", () => {
+  it("accepts a conversation ending with a shopper message at the limit", () => {
     const messages = Array.from({ length: 20 }, (_, index) => ({
       role: index % 2 === 0 ? ("assistant" as const) : ("user" as const),
-      content: "x".repeat(1_000),
+      content: "x".repeat(AI_ADVISOR_USER_MESSAGE_MAX_LENGTH),
     }));
 
     expect(parseAdvisorMessages(messages)).toHaveLength(20);
+  });
+
+  it("rejects oversized shopper messages and conversations", () => {
+    expect(
+      parseAdvisorMessages([
+        {
+          role: "user",
+          content: "x".repeat(AI_ADVISOR_USER_MESSAGE_MAX_LENGTH + 1),
+        },
+      ]),
+    ).toBeNull();
+    expect(
+      parseAdvisorMessages(
+        Array.from({ length: 102 }, () => ({
+          role: "user",
+          content: "Question",
+        })),
+      ),
+    ).toBeNull();
   });
 
   it("rejects invalid roles and conversations not ending with the shopper", () => {

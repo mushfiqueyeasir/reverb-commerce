@@ -14,10 +14,11 @@ import {
 import ImageLoader from "@/components/Common/ImageLoader";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
 import { cn } from "@/lib/utils";
-import type {
-  AiAdvisorMessage,
-  AiAdvisorRecommendation,
-  AiAdvisorResponse,
+import {
+  AI_ADVISOR_USER_MESSAGE_MAX_LENGTH,
+  type AiAdvisorMessage,
+  type AiAdvisorRecommendation,
+  type AiAdvisorResponse,
 } from "@/type/aiAdvisorType";
 
 const GREETING: AiAdvisorMessage = {
@@ -32,6 +33,55 @@ const STARTERS = [
   "Show products within my budget",
 ];
 
+const DAILY_CHAT_LIMIT = 50;
+const CHAT_LIMIT_WINDOW_MS = 24 * 60 * 60 * 1_000;
+const CHAT_USAGE_STORAGE_KEY = "ai-advisor-usage:v1";
+
+interface ChatUsage {
+  count: number;
+  resetAt: number | null;
+}
+
+const EMPTY_CHAT_USAGE: ChatUsage = { count: 0, resetAt: null };
+
+function readChatUsage(): ChatUsage | null {
+  try {
+    const stored = localStorage.getItem(CHAT_USAGE_STORAGE_KEY);
+    if (!stored) return EMPTY_CHAT_USAGE;
+
+    const parsed = JSON.parse(stored) as Partial<ChatUsage>;
+    if (
+      !Number.isInteger(parsed.count) ||
+      typeof parsed.count !== "number" ||
+      parsed.count < 0 ||
+      (parsed.resetAt !== null && typeof parsed.resetAt !== "number")
+    ) {
+      localStorage.removeItem(CHAT_USAGE_STORAGE_KEY);
+      return EMPTY_CHAT_USAGE;
+    }
+
+    if (parsed.resetAt === null || parsed.resetAt <= Date.now()) {
+      localStorage.removeItem(CHAT_USAGE_STORAGE_KEY);
+      return EMPTY_CHAT_USAGE;
+    }
+
+    return {
+      count: Math.min(parsed.count, DAILY_CHAT_LIMIT),
+      resetAt: parsed.resetAt,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeChatUsage(usage: ChatUsage) {
+  try {
+    localStorage.setItem(CHAT_USAGE_STORAGE_KEY, JSON.stringify(usage));
+  } catch {
+    return;
+  }
+}
+
 interface ConversationItem extends AiAdvisorMessage {
   recommendations?: AiAdvisorRecommendation[];
 }
@@ -45,6 +95,7 @@ export default function AiShoppingAssistant({
   const [messages, setMessages] = useState<ConversationItem[]>([GREETING]);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
+  const [chatUsage, setChatUsage] = useState<ChatUsage>(EMPTY_CHAT_USAGE);
   const endRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -56,9 +107,49 @@ export default function AiShoppingAssistant({
     return () => abortRef.current?.abort();
   }, []);
 
+  useEffect(() => {
+    const refreshChatUsage = () => {
+      setChatUsage(readChatUsage() ?? EMPTY_CHAT_USAGE);
+    };
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === CHAT_USAGE_STORAGE_KEY || event.key === null) {
+        refreshChatUsage();
+      }
+    };
+
+    refreshChatUsage();
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
+
+  useEffect(() => {
+    if (chatUsage.resetAt === null) return;
+
+    const timer = window.setTimeout(
+      () => setChatUsage(readChatUsage() ?? EMPTY_CHAT_USAGE),
+      Math.max(0, chatUsage.resetAt - Date.now()),
+    );
+    return () => window.clearTimeout(timer);
+  }, [chatUsage.resetAt]);
+
   const sendMessage = async (content: string) => {
     const cleanContent = content.trim();
-    if (!cleanContent || pending) return;
+    const currentUsage = readChatUsage() ?? chatUsage;
+    if (
+      !cleanContent ||
+      cleanContent.length > AI_ADVISOR_USER_MESSAGE_MAX_LENGTH ||
+      pending ||
+      currentUsage.count >= DAILY_CHAT_LIMIT
+    ) {
+      return;
+    }
+
+    const nextUsage: ChatUsage = {
+      count: currentUsage.count + 1,
+      resetAt: currentUsage.resetAt ?? Date.now() + CHAT_LIMIT_WINDOW_MS,
+    };
+    writeChatUsage(nextUsage);
+    setChatUsage(nextUsage);
 
     const userMessage: ConversationItem = {
       role: "user",
@@ -139,6 +230,15 @@ export default function AiShoppingAssistant({
   };
 
   const hasStarted = messages.some((message) => message.role === "user");
+  const remainingChats = Math.max(0, DAILY_CHAT_LIMIT - chatUsage.count);
+  const resetLabel = chatUsage.resetAt
+    ? new Date(chatUsage.resetAt).toLocaleString(undefined, {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : null;
 
   return (
     <div className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col">
@@ -189,7 +289,8 @@ export default function AiShoppingAssistant({
                   key={starter}
                   type="button"
                   onClick={() => void sendMessage(starter)}
-                  className="group flex min-w-0 items-center gap-4 border-b border-border px-1 py-4 text-left transition last:border-b-0 hover:text-primary sm:min-h-28 sm:flex-col sm:items-start sm:justify-between sm:border-b-0 sm:border-r sm:px-5 sm:py-5 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0"
+                  disabled={pending || remainingChats === 0}
+                  className="group flex min-w-0 items-center gap-4 border-b border-border px-1 py-4 text-left transition last:border-b-0 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-28 sm:flex-col sm:items-start sm:justify-between sm:border-b-0 sm:border-r sm:px-5 sm:py-5 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0"
                 >
                   <span className="font-mono text-[9px] tracking-[0.22em] text-muted-foreground">
                     0{index + 1}
@@ -280,9 +381,15 @@ export default function AiShoppingAssistant({
                 event.currentTarget.form?.requestSubmit();
               }
             }}
-            placeholder="Tell me what product you need..."
+            placeholder={
+              remainingChats === 0
+                ? "Daily chat limit reached"
+                : "Tell me what product you need..."
+            }
             rows={1}
-            disabled={pending}
+            maxLength={AI_ADVISOR_USER_MESSAGE_MAX_LENGTH}
+            disabled={pending || remainingChats === 0}
+            aria-describedby="ai-advisor-usage"
             className="max-h-28 min-h-11 min-w-0 flex-1 resize-none bg-transparent px-2 py-3 text-sm leading-5 outline-none placeholder:text-muted-foreground/70 disabled:opacity-60 sm:text-base"
           />
           <span className="mb-3 hidden items-center gap-1 font-mono text-[8px] uppercase tracking-wider text-muted-foreground lg:inline-flex">
@@ -290,7 +397,7 @@ export default function AiShoppingAssistant({
           </span>
           <button
             type="submit"
-            disabled={pending || !input.trim()}
+            disabled={pending || remainingChats === 0 || !input.trim()}
             aria-label="Send message"
             className="grid size-11 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground transition hover:scale-[1.04] disabled:cursor-not-allowed disabled:opacity-30 sm:size-12"
           >
@@ -301,9 +408,19 @@ export default function AiShoppingAssistant({
             )}
           </button>
         </form>
-        <p className="mt-2 font-mono text-[8px] uppercase tracking-[0.16em] text-muted-foreground/60">
-          Website knowledge + live inventory / Confirm details before purchase
-        </p>
+        <div
+          id="ai-advisor-usage"
+          className="mt-2 flex items-center justify-between gap-3 font-mono text-[8px] uppercase tracking-[0.16em] text-muted-foreground/60"
+          aria-live="polite"
+        >
+          <span>
+            {remainingChats} of {DAILY_CHAT_LIMIT} chats left
+            {resetLabel ? ` / Resets ${resetLabel}` : ""}
+          </span>
+          <span>
+            {input.length}/{AI_ADVISOR_USER_MESSAGE_MAX_LENGTH}
+          </span>
+        </div>
       </footer>
     </div>
   );

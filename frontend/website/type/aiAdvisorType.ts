@@ -1,3 +1,5 @@
+export const AI_ADVISOR_USER_MESSAGE_MAX_LENGTH = 1_000;
+
 export interface AiAdvisorMessage {
   role: "user" | "assistant";
   content: string;
