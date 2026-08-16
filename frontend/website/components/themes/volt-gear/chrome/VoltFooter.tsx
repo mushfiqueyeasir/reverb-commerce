@@ -83,6 +83,10 @@ export default function VoltFooter({
         preview && "rounded-xl border [&_a]:pointer-events-none",
       )}
     >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent"
+      />
       <div className="mx-auto max-w-[1600px] px-5 pb-10 pt-16 sm:px-6 md:px-10 md:pb-14 md:pt-24">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-16">
           <div className="max-w-sm">
@@ -126,7 +130,7 @@ export default function VoltFooter({
                 {settings.contact_email ? (
                   <a
                     href={`mailto:${settings.contact_email}`}
-                    className="flex items-center gap-2.5 transition-colors hover:text-primary"
+                    className="flex items-center gap-2.5 transition-colors hover:text-primary-readable"
                   >
                     <Mail className="size-4 shrink-0" />
                     {settings.contact_email}
@@ -135,7 +139,7 @@ export default function VoltFooter({
                 {settings.contact_phone ? (
                   <a
                     href={`tel:${settings.contact_phone}`}
-                    className="flex items-center gap-2.5 transition-colors hover:text-primary"
+                    className="flex items-center gap-2.5 transition-colors hover:text-primary-readable"
                   >
                     <Phone className="size-4 shrink-0" />
                     {settings.contact_phone}
@@ -196,7 +200,7 @@ export default function VoltFooter({
             href="https://www.reverbsolution.com/"
             target="_blank"
             rel="noopener noreferrer"
-            className="self-start transition-colors hover:text-primary sm:self-auto"
+            className="self-start transition-colors hover:text-primary-readable sm:self-auto"
           >
             Developed by Reverb Solution
           </Link>
@@ -213,8 +217,7 @@ function VoltFooterLink({
   item: FooterLink;
   pathname: string;
 }) {
-  const active =
-    item.href.startsWith("/") && isActivePath(pathname, item.href);
+  const active = item.href.startsWith("/") && isActivePath(pathname, item.href);
   const external = isExternalChromeHref(item.href);
   return (
     <li>
@@ -226,7 +229,7 @@ function VoltFooterLink({
         className={cn(
           "text-sm transition-all duration-200",
           active
-            ? "font-medium text-primary"
+            ? "font-medium text-primary-readable"
             : "text-muted-foreground hover:translate-x-0.5 hover:text-foreground",
         )}
       >

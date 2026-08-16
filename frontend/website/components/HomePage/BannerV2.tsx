@@ -206,7 +206,7 @@ export default function BannerV2({
               }}
             >
               <V2Reveal delay={0.05} y={18} initiallyVisible>
-                <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.32em] text-primary sm:mb-5 sm:text-[11px]">
+                <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.32em] text-primary-readable sm:mb-5 sm:text-[11px]">
                   Designed for the everyday
                 </p>
               </V2Reveal>

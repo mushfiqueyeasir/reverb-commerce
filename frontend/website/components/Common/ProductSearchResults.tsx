@@ -124,7 +124,7 @@ export default function ProductSearchResults({
                 </span>
               </div>
               <div className="mt-1 flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider">
-                <span className="text-primary">
+                <span className="text-primary-readable">
                   {format(product.currentPrice)}
                 </span>
                 {product.originalPrice > product.currentPrice && (

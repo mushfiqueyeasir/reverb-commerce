@@ -185,7 +185,7 @@ export default function ProductFilters({
 
   const sectionLabel = (icon: ReactNode, label: string, count = 0) => (
     <div className="mb-3 flex items-center gap-2">
-      <span className="flex size-7 items-center justify-center rounded-full bg-primary/10 text-primary">
+      <span className="flex size-7 items-center justify-center rounded-full bg-primary/10 text-primary-readable">
         {icon}
       </span>
       <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-foreground">
@@ -369,7 +369,7 @@ export default function ProductFilters({
       <div className="sticky top-32 space-y-7 rounded-2xl border border-border bg-card/60 p-5 shadow-sm">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-            <span className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <span className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary-readable">
               <SlidersHorizontal className="size-4" />
             </span>
             Filters

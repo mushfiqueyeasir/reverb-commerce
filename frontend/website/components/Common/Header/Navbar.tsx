@@ -130,7 +130,7 @@ export default function Navbar({
               const linkClass = cn(
                 "group relative text-[13px] font-medium uppercase tracking-[0.2em] transition",
                 active
-                  ? "text-primary"
+                  ? "text-primary-readable"
                   : "text-foreground/80 hover:text-foreground",
               );
               const underlineClass = cn(
@@ -209,7 +209,7 @@ export default function Navbar({
               className={cn(
                 "relative grid size-11 place-items-center rounded-full transition hover:bg-foreground/5",
                 isActivePath(pathname, "/wishlist")
-                  ? "text-primary"
+                  ? "text-primary-readable"
                   : "text-foreground/80 hover:text-foreground",
               )}
             >
@@ -217,7 +217,7 @@ export default function Navbar({
                 className={cn(
                   "h-4 w-4",
                   (wishlistCount > 0 || isActivePath(pathname, "/wishlist")) &&
-                    "fill-primary text-primary",
+                    "fill-primary text-primary-readable",
                 )}
               />
               {wishlistCount > 0 && (
@@ -235,7 +235,7 @@ export default function Navbar({
               className={cn(
                 "relative grid size-11 place-items-center rounded-full transition hover:bg-foreground/5",
                 isActivePath(pathname, "/cart")
-                  ? "text-primary"
+                  ? "text-primary-readable"
                   : "text-foreground/80 hover:text-foreground",
               )}
             >
@@ -313,7 +313,7 @@ function MenuLinkItem({
       asChild
       className={cn(
         "cursor-pointer rounded-lg px-3 py-2.5 text-[13px] font-medium focus:bg-foreground/5 focus:text-foreground",
-        active ? "bg-primary/10 text-primary" : "text-foreground/80",
+        active ? "bg-primary/10 text-primary-readable" : "text-foreground/80",
         className,
       )}
     >
@@ -382,7 +382,7 @@ export function CategoryMegaMenu({
     >
       <div className="flex items-center justify-between gap-5 border-b border-border px-6 py-5">
         <div>
-          <div className="flex items-center gap-2 text-primary">
+          <div className="flex items-center gap-2 text-primary-readable">
             <Grid2X2 className="size-4" />
             <span className="font-mono text-[10px] uppercase tracking-[0.24em]">
               {copy.collectionsLabel}
@@ -428,7 +428,7 @@ export function CategoryMegaMenu({
                       className={cn(
                         "min-w-0 flex-1 truncate text-sm font-medium",
                         active || selected
-                          ? "text-primary"
+                          ? "text-primary-readable"
                           : "text-foreground/75",
                       )}
                     >
@@ -555,7 +555,7 @@ function CompactCategoryMenu({
                 <span
                   className={cn(
                     "min-w-0 flex-1 text-sm font-medium",
-                    active ? "text-primary" : "text-foreground",
+                    active ? "text-primary-readable" : "text-foreground",
                   )}
                 >
                   {group.label}

@@ -107,7 +107,7 @@ export default function CheckoutOrderSummary({
         {appliedPromo ? (
           <div className="flex items-center justify-between rounded-xl border border-primary/40 bg-primary/10 px-3 py-2.5 text-sm">
             <span className="inline-flex items-center gap-2 font-medium">
-              <Tag className="size-3.5 text-primary" />
+              <Tag className="size-3.5 text-primary-readable" />
               {appliedPromo.code} · {appliedPromo.percent}% off
             </span>
             <button
@@ -155,7 +155,7 @@ export default function CheckoutOrderSummary({
           <span>{format(subtotal)}</span>
         </div>
         {discount > 0 ? (
-          <div className="flex justify-between text-sm text-primary">
+          <div className="flex justify-between text-sm text-primary-readable">
             <span>Promo ({appliedPromo?.percent}%)</span>
             <span>-{format(discount)}</span>
           </div>

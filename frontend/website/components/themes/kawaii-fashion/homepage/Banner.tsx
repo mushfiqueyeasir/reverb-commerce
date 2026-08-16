@@ -149,7 +149,7 @@ export default function KawaiiFashionBanner({
           </div>
           <div className="py-8 sm:py-12 lg:py-16">
             {subtitle ? (
-              <p className="mb-5 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-primary">
+              <p className="mb-5 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-primary-readable">
                 <span
                   className="size-1.5 rounded-full bg-primary"
                   aria-hidden="true"

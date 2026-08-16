@@ -97,9 +97,7 @@ function getConfig() {
     throw new Error("ALIAS_URL must differ from SITE_URL");
   const releaseSha = optional(
     "RELEASE_SHA",
-    deployMode === "upload"
-      ? spawnGitHead(repositoryRoot, "RELEASE_SHA")
-      : "",
+    deployMode === "upload" ? spawnGitHead(repositoryRoot, "RELEASE_SHA") : "",
   ).toLowerCase();
   if (!/^[0-9a-f]{40}$/.test(releaseSha))
     throw new Error("RELEASE_SHA must be a full Git commit SHA");
@@ -147,7 +145,10 @@ function getConfig() {
       "SUBSCRIPTION_TRACKER_PROJECT_ID must be a 24-character hexadecimal ID",
     );
   }
-  if (config.supabaseProjectRef && !/^[a-z]{20}$/.test(config.supabaseProjectRef)) {
+  if (
+    config.supabaseProjectRef &&
+    !/^[a-z]{20}$/.test(config.supabaseProjectRef)
+  ) {
     throw new Error("SUPABASE_PROJECT_REF must be a 20-letter project ref");
   }
   if (config.mode === "provision" && config.supabaseProjectRef) {
@@ -1040,6 +1041,12 @@ async function waitForDomain(config, projectId, hostname) {
       );
       if (result?.misconfigured === false) return;
     } catch (error) {
+      if (error instanceof HttpError && [401, 403].includes(error.status)) {
+        console.log(
+          `Skipping DNS verification for ${hostname} (token lacks domain-config scope).`,
+        );
+        return;
+      }
       if (
         !(error instanceof HttpError) ||
         ![400, 404, 409].includes(error.status)

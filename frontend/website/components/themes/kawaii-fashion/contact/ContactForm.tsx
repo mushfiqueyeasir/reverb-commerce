@@ -22,13 +22,13 @@ export function KawaiiContactForm({
       />
       <div className="relative mx-auto grid max-w-[1600px] gap-12 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(24rem,1.1fr)] lg:gap-16 lg:px-10 xl:gap-24">
         <div className="max-w-2xl">
-          <p className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+          <p className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary-readable">
             <span className="h-px w-7 bg-primary" aria-hidden="true" />
             We&apos;re here to help
           </p>
           <h1 className="text-balance font-display text-[clamp(2.75rem,7vw,6rem)] font-semibold leading-[0.9] tracking-[-0.05em]">
             Get in touch
-            <span className="block font-normal italic text-primary">
+            <span className="block font-normal italic text-primary-readable">
               with us
             </span>
           </h1>
@@ -144,7 +144,7 @@ function ContactRow({
 }) {
   return (
     <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4 border-b border-border py-4 last:border-b-0 sm:gap-5 sm:py-5">
-      <span className="grid size-11 place-items-center rounded-2xl bg-surface text-primary">
+      <span className="grid size-11 place-items-center rounded-2xl bg-surface text-primary-readable">
         {icon}
       </span>
       <dt className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">

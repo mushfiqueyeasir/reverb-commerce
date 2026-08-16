@@ -21,7 +21,7 @@ export interface CurrencySettings {
 }
 
 export const DEFAULT_CURRENCY_SETTINGS: CurrencySettings = {
-  enabled: ["USD", "BDT", "INR"],
+  enabled: ["BDT"],
   default: "BDT",
 };
 
@@ -31,18 +31,22 @@ export function getCurrencyMeta(code: string): CurrencyOption {
   );
 }
 
+/**
+ * Only one currency is ever active at a time: the default. The enabled list
+ * mirrors the single active currency so the rest of the store never sees a
+ * multi-currency configuration.
+ */
 export function normalizeCurrencySettings(
   raw?: Partial<CurrencySettings> | null,
 ): CurrencySettings {
-  const enabled = (raw?.enabled ?? DEFAULT_CURRENCY_SETTINGS.enabled).filter(
-    (c): c is CurrencyCode =>
-      SUPPORTED_CURRENCIES.some((opt) => opt.code === c),
-  );
-  const unique = Array.from(new Set(enabled.length ? enabled : ["BDT"]));
+  const requested =
+    raw?.default ?? raw?.enabled?.[0] ?? DEFAULT_CURRENCY_SETTINGS.default;
   const def = (
-    unique.includes(raw?.default as CurrencyCode) ? raw!.default : unique[0]
+    SUPPORTED_CURRENCIES.some((opt) => opt.code === requested)
+      ? requested
+      : DEFAULT_CURRENCY_SETTINGS.default
   ) as CurrencyCode;
-  return { enabled: unique as CurrencyCode[], default: def };
+  return { enabled: [def], default: def };
 }
 
 export function formatMoney(value: number, symbolOrCode: string = "৳"): string {

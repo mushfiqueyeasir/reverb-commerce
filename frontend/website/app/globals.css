@@ -29,6 +29,7 @@
   --theme-radius-full: 9999px;
 
   --primary: var(--accent-coral);
+  --primary-readable: #ff5c70;
   --primary-foreground: #050505;
   --secondary: var(--surface);
   --secondary-foreground: var(--foreground);
@@ -94,6 +95,7 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-readable: var(--primary-readable);
   --color-primary: var(--primary);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);

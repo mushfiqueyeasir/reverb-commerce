@@ -136,7 +136,7 @@ function TabLink({
       className={cn(
         "flex h-full w-full flex-col items-center justify-center gap-0.5 transition",
         active
-          ? "text-primary"
+          ? "text-primary-readable"
           : "text-muted-foreground active:text-foreground",
       )}
     >

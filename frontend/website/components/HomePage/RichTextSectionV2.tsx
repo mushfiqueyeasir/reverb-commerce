@@ -252,7 +252,7 @@ export default function RichTextSectionV2({
                       ) : null}
                     </span>
                     {story.imageTag ? (
-                      <span className="shrink-0 font-mono text-[9px] uppercase tracking-[0.2em] text-primary sm:text-[10px]">
+                      <span className="shrink-0 font-mono text-[9px] uppercase tracking-[0.2em] text-primary-readable sm:text-[10px]">
                         {story.imageTag}
                       </span>
                     ) : null}
@@ -281,7 +281,7 @@ export default function RichTextSectionV2({
 
                 {content ? (
                   <div
-                    className={`space-y-5 text-sm leading-7 text-muted-foreground [&_a]:text-primary [&_a]:underline [&_h1]:text-2xl [&_h1]:text-foreground [&_h2]:text-xl [&_h2]:text-foreground [&_h3]:text-lg [&_h3]:text-foreground [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-3 [&_strong]:text-foreground [&_ul]:list-disc [&_ul]:pl-5 sm:text-base sm:leading-8 ${supportingText ? "mt-8" : ""}`}
+                    className={`space-y-5 text-sm leading-7 text-muted-foreground [&_a]:text-primary-readable [&_a]:underline [&_h1]:text-2xl [&_h1]:text-foreground [&_h2]:text-xl [&_h2]:text-foreground [&_h3]:text-lg [&_h3]:text-foreground [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-3 [&_strong]:text-foreground [&_ul]:list-disc [&_ul]:pl-5 sm:text-base sm:leading-8 ${supportingText ? "mt-8" : ""}`}
                     dangerouslySetInnerHTML={{ __html: content }}
                   />
                 ) : null}
@@ -311,7 +311,7 @@ export default function RichTextSectionV2({
                           >
                             <div className="flex items-start justify-between gap-3">
                               <Icon
-                                className="size-4 text-primary transition-transform duration-300 group-hover:scale-110"
+                                className="size-4 text-primary-readable transition-transform duration-300 group-hover:scale-110"
                                 aria-hidden="true"
                               />
                               <span className="font-mono text-[8px] tracking-[0.2em] text-muted-foreground">
@@ -335,7 +335,7 @@ export default function RichTextSectionV2({
                 {linkLabel ? (
                   <Link
                     href={linkHref}
-                    className="group mt-9 inline-flex min-h-12 items-center gap-4 border-b border-foreground pb-1 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-foreground transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background"
+                    className="group mt-9 inline-flex min-h-12 items-center gap-4 border-b border-foreground pb-1 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-foreground transition-colors hover:border-primary hover:text-primary-readable focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background"
                   >
                     {linkLabel}
                     <span className="grid size-9 place-items-center bg-primary text-primary-foreground transition-transform group-hover:-translate-y-1 group-hover:translate-x-1">

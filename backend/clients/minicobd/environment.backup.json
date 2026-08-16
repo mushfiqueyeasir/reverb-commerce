@@ -1,0 +1,16 @@
+{
+  "formatVersion": 2,
+  "purpose": "Non-secret environment inventory. Privileged credentials intentionally remain blank.",
+  "clientId": "minicobd",
+  "sources": {
+    "frontend/website/.env.minicobd": {
+      "SUPABASE_URL": "https://mvbzrkamyehnrfssanye.supabase.co",
+      "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12Ynpya2FteWVobnJmc3NhbnllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTg2NTYsImV4cCI6MjEwMjQ3NDY1Nn0.W866_mNeZBvlRL8LXJoO64UHhDkwJwnLrC7nS7F9BY8",
+      "SUPABASE_SERVICE_ROLE_KEY": "",
+      "SUPABASE_ACCESS_TOKEN": "",
+      "SITE_URL": "https://www.minicobd.com",
+      "SECURITY_ENABLED": "true",
+      "SUBSCRIPTION_TRACKER_PROJECT_ID": "6a81ff831b3c06f8d907728f"
+    }
+  }
+}

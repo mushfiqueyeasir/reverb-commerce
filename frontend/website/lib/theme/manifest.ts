@@ -15,6 +15,8 @@ import {
 import {
   DEFAULT_PALETTE,
   KAWAII_WHITE_PALETTE,
+  MINICO_BURGUNDY_PALETTE,
+  accessiblePrimaryForeground,
   normalizePalette,
   normalizePaletteOverrides,
   type ThemePalette,
@@ -98,7 +100,7 @@ export interface StorefrontThemeAdminConfig {
 }
 
 export interface StorefrontThemePreviewConfig {
-  fixture: "tee-drop" | "kawaii-fashion";
+  fixture: "tee-drop" | "kawaii-fashion" | "volt-gear";
   storeName: string;
   contactEmail: string;
   contactPhone: string;
@@ -215,12 +217,12 @@ export const LEGACY_CLASSIC_SHAPE: ThemeShapeTokens = {
 
 export const VOLT_GEAR_SHAPE: ThemeShapeTokens = {
   radius: {
-    sm: "12px",
-    md: "16px",
-    lg: "24px",
-    xl: "28px",
-    "2xl": "40px",
-    "3xl": "48px",
+    sm: "0px",
+    md: "0px",
+    lg: "0px",
+    xl: "0px",
+    "2xl": "0px",
+    "3xl": "0px",
     full: "9999px",
   },
 };
@@ -332,27 +334,27 @@ export const VOLT_GEAR_THEME: StorefrontThemeManifest = {
   description:
     "A dark, premium storefront for phone cases, covers, chargers, and everyday gadget accessories.",
   defaultTokens: {
-    palette: { ...DEFAULT_PALETTE },
+    palette: { ...MINICO_BURGUNDY_PALETTE },
     shape: VOLT_GEAR_SHAPE,
   },
   productCardVariant: "default",
   admin: {
-    browserAddress: "voltgear.store",
+    browserAddress: "minicobd.com",
     homepageSectionLabels: {},
     featuredLimit: null,
     maxMosaicCategories: 4,
     kawaiiLabels: false,
   },
   preview: {
-    fixture: "tee-drop",
-    storeName: "Volt Gear",
-    contactEmail: "hello@voltgear.store",
+    fixture: "volt-gear",
+    storeName: "MiniCo.",
+    contactEmail: "support@minicobd.com",
     contactPhone: "+880 1700-000000",
-    freeShippingThreshold: 1500,
-    announcementText: null,
-    announcementUrl: null,
+    freeShippingThreshold: 1000,
+    announcementText: "Free delivery across Bangladesh on orders over ৳1,000",
+    announcementUrl: "/product",
     footerDescription:
-      "Tough phone cases, fast chargers, and everyday gadget gear engineered to keep up with your device.",
+      "Trendy mobile covers, chargers, and everyday gadget accessories from MiniCo.",
   },
   renderers: {
     navbar: "volt-gear.navbar",
@@ -549,9 +551,7 @@ export const STOREFRONT_THEME_ID_ALIASES: Readonly<Record<string, string>> = {
   "v2-design": "volt-gear",
 };
 
-export function resolveStorefrontThemeId(
-  themeId: unknown,
-): string | undefined {
+export function resolveStorefrontThemeId(themeId: unknown): string | undefined {
   if (typeof themeId !== "string" || !themeId.trim()) return undefined;
   const trimmed = themeId.trim();
   return STOREFRONT_THEME_ID_ALIASES[trimmed] ?? trimmed;
@@ -745,10 +745,14 @@ export function resolveStorefrontThemeTokens(
     config.themeVersion,
   );
   const overrides = normalizePaletteOverrides(config.tokenOverrides.palette);
+  const primary = overrides.primary ?? manifest.defaultTokens.palette.primary;
   return {
     palette: normalizePalette({
       ...manifest.defaultTokens.palette,
-      primary: overrides.primary ?? manifest.defaultTokens.palette.primary,
+      primary,
+      primaryForeground: overrides.primary
+        ? accessiblePrimaryForeground(primary)
+        : manifest.defaultTokens.palette.primaryForeground,
     }),
     shape: {
       radius: { ...manifest.defaultTokens.shape.radius },

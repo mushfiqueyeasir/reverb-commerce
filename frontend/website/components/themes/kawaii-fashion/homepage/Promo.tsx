@@ -16,6 +16,8 @@ interface KawaiiFashionPromoProps {
   imageEyebrow?: string | null;
   imageTitle?: string | null;
   ctaFallbackLabel?: string | null;
+  imageUrl?: string | null;
+  imageAlt?: string | null;
 }
 
 export default function KawaiiFashionPromo({
@@ -30,9 +32,14 @@ export default function KawaiiFashionPromo({
   imageEyebrow,
   imageTitle,
   ctaFallbackLabel,
+  imageUrl,
+  imageAlt,
 }: KawaiiFashionPromoProps) {
   const heading = title?.trim() || promotion.title?.trim();
   if (!heading) return null;
+
+  const bannerImage = imageUrl ?? promotion.imageUrl;
+  const bannerAlt = imageAlt?.trim() || heading;
 
   const description = subtitle?.trim() || promotion.description?.trim();
   const href = safeKawaiiHref(ctaHref || promotion.ctaUrl, "/product");
@@ -57,7 +64,7 @@ export default function KawaiiFashionPromo({
             {normalizedKicker || normalizedLimitedLabel ? (
               <div className="relative flex items-center justify-between gap-4">
                 {normalizedKicker ? (
-                  <p className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-primary sm:text-[11px]">
+                  <p className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-readable sm:text-[11px]">
                     <Sparkles className="size-4" aria-hidden="true" />
                     {normalizedKicker}
                   </p>
@@ -71,7 +78,7 @@ export default function KawaiiFashionPromo({
             ) : null}
             <div className="relative py-12">
               {discount ? (
-                <p className="mb-5 font-display text-6xl font-semibold leading-none tracking-[-0.06em] text-primary sm:text-7xl lg:text-8xl">
+                <p className="mb-5 font-display text-6xl font-semibold leading-none tracking-[-0.06em] text-primary-readable sm:text-7xl lg:text-8xl">
                   {discount}%
                   {normalizedDiscountSuffix ? (
                     <span className="ml-2 align-middle text-sm font-semibold uppercase tracking-[0.2em] text-foreground">
@@ -104,10 +111,10 @@ export default function KawaiiFashionPromo({
           </div>
 
           <div className="relative min-h-[420px] overflow-hidden bg-card lg:min-h-full">
-            {promotion.imageUrl ? (
+            {bannerImage ? (
               <Image
-                src={promotion.imageUrl}
-                alt=""
+                src={bannerImage}
+                alt={bannerAlt}
                 fill
                 sizes="(max-width: 1024px) 100vw, 58vw"
                 className="object-cover transition-transform duration-700 hover:scale-[1.02] motion-reduce:transition-none"
@@ -119,7 +126,7 @@ export default function KawaiiFashionPromo({
             {normalizedImageEyebrow || normalizedImageTitle ? (
               <div className="absolute bottom-5 left-5 border border-background/70 bg-background/90 px-4 py-3 backdrop-blur-sm sm:bottom-8 sm:left-8">
                 {normalizedImageEyebrow ? (
-                  <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-primary">
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-primary-readable">
                     {normalizedImageEyebrow}
                   </p>
                 ) : null}

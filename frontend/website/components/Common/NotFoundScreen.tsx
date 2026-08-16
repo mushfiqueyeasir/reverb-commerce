@@ -132,7 +132,7 @@ export default function NotFoundScreen({
           >
             This drop
             <br />
-            doesn&apos;t <span className="text-primary">exist</span>
+            doesn&apos;t <span className="text-primary-readable">exist</span>
           </h1>
 
           <p
@@ -163,7 +163,7 @@ export default function NotFoundScreen({
             </Link>
             <Link
               href={secondaryHref}
-              className="group inline-flex items-center gap-2.5 rounded-full border border-border bg-transparent px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-foreground transition hover:border-primary hover:text-primary md:px-8 md:py-3.5 md:text-[13px]"
+              className="group inline-flex items-center gap-2.5 rounded-full border border-border bg-transparent px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-foreground transition hover:border-primary hover:text-primary-readable md:px-8 md:py-3.5 md:text-[13px]"
             >
               <ShoppingBag className="size-3.5 opacity-70" />
               {secondaryLabel}
@@ -181,7 +181,7 @@ export default function NotFoundScreen({
               <span>{footerNote || `${storeName} · Page not found`}</span>
               <Link
                 href="/contact-us"
-                className="transition hover:text-primary"
+                className="transition hover:text-primary-readable"
               >
                 Need help?
               </Link>

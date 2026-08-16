@@ -130,7 +130,7 @@ export default function Footer({ settings, preview = false }: FooterProps) {
           {settings.contact_email ? (
             <a
               href={`mailto:${settings.contact_email}`}
-              className="flex items-center gap-2 transition hover:text-primary"
+              className="flex items-center gap-2 transition hover:text-primary-readable"
             >
               <Mail className="size-3.5 shrink-0" />
               {settings.contact_email}
@@ -139,7 +139,7 @@ export default function Footer({ settings, preview = false }: FooterProps) {
           {settings.contact_phone ? (
             <a
               href={`tel:${settings.contact_phone}`}
-              className="flex items-center gap-2 transition hover:text-primary"
+              className="flex items-center gap-2 transition hover:text-primary-readable"
             >
               <Phone className="size-3.5 shrink-0" />
               {settings.contact_phone}
@@ -227,7 +227,7 @@ export default function Footer({ settings, preview = false }: FooterProps) {
             href="https://www.reverbsolution.com/"
             target="_blank"
             rel="noopener noreferrer"
-            className="self-end transition hover:text-primary sm:self-auto"
+            className="self-end transition hover:text-primary-readable sm:self-auto"
           >
             Developed by Reverb Solution
           </Link>
@@ -268,8 +268,8 @@ function Col({
                 className={cn(
                   "text-sm transition",
                   active
-                    ? "font-medium text-primary"
-                    : "text-foreground/80 hover:text-primary",
+                    ? "font-medium text-primary-readable"
+                    : "text-foreground/80 hover:text-primary-readable",
                 )}
               >
                 {item.label}

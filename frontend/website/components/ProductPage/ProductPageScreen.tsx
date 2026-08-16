@@ -39,7 +39,7 @@ export default function ProductPageScreen({
   return (
     <section className="mx-auto max-w-[1600px] px-5 pb-24 pt-8 sm:px-6 sm:pt-12 md:px-10 md:pt-20">
       <div className="mb-8 border-b border-border pb-6 sm:mb-10 sm:pb-8">
-        <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">
+        <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary-readable">
           The Collection
         </p>
         <h1 className="mt-3 font-display text-4xl font-bold tracking-tight sm:text-5xl md:text-7xl">

@@ -102,7 +102,9 @@ export default function AboutHeroV2({
                     <span className="block">{firstLine}</span>
                   ) : null}
                   {secondLine ? (
-                    <span className="block text-primary">{secondLine}</span>
+                    <span className="block text-primary-readable">
+                      {secondLine}
+                    </span>
                   ) : null}
                 </Heading>
               </V2Reveal>
@@ -140,7 +142,7 @@ export default function AboutHeroV2({
                     {secondaryLabel ? (
                       <Link
                         href={secondaryHref}
-                        className="inline-flex min-h-12 items-center border border-foreground/45 px-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background sm:px-6 sm:text-[11px]"
+                        className="inline-flex min-h-12 items-center border border-foreground/45 px-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground transition-colors hover:border-primary hover:text-primary-readable focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background sm:px-6 sm:text-[11px]"
                       >
                         {secondaryLabel}
                       </Link>
@@ -157,7 +159,7 @@ export default function AboutHeroV2({
           <span className="flex items-center gap-3 text-foreground">
             Continue
             <ArrowDownRight
-              className="size-4 text-primary"
+              className="size-4 text-primary-readable"
               aria-hidden="true"
             />
           </span>

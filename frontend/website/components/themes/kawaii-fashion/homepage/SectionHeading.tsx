@@ -42,7 +42,7 @@ export default function SectionHeading({
         <div className="max-w-3xl">
           {normalizedEyebrow ? (
             <p
-              className={`mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary ${
+              className={`mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary-readable ${
                 centered ? "justify-center" : ""
               }`}
             >
@@ -73,7 +73,7 @@ export default function SectionHeading({
       {normalizedCtaLabel ? (
         <Link
           href={safeKawaiiHref(ctaHref, "/product")}
-          className="group inline-flex min-h-11 w-fit shrink-0 items-center gap-2 border-b border-primary pb-1 text-xs font-semibold uppercase tracking-[0.18em] text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background motion-reduce:transition-none"
+          className="group inline-flex min-h-11 w-fit shrink-0 items-center gap-2 border-b border-primary pb-1 text-xs font-semibold uppercase tracking-[0.18em] text-foreground transition-colors hover:text-primary-readable focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background motion-reduce:transition-none"
         >
           {normalizedCtaLabel}
           <ArrowUpRight

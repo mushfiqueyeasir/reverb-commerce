@@ -181,7 +181,7 @@ function ReviewCard({
             />
           </div>
         ) : (
-          <span className="grid size-14 shrink-0 place-items-center rounded-full bg-surface text-primary">
+          <span className="grid size-14 shrink-0 place-items-center rounded-full bg-surface text-primary-readable">
             <Quote className="size-5" aria-hidden="true" />
           </span>
         )}
@@ -204,7 +204,7 @@ function ReviewCard({
       <figcaption className="mt-6 shrink-0 border-t border-border pt-5">
         {rating !== null ? (
           <div
-            className="flex gap-1 text-primary"
+            className="flex gap-1 text-primary-readable"
             aria-label={ratingLabel}
             aria-hidden={ratingLabel ? undefined : true}
           >

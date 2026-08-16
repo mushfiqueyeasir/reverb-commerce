@@ -129,7 +129,7 @@ export default function ProductInfo({ product, stock }: ProductInfoProps) {
 
   return (
     <div className="space-y-6">
-      <p className="text-xs font-medium uppercase tracking-[0.24em] text-primary">
+      <p className="text-xs font-medium uppercase tracking-[0.24em] text-primary-readable">
         {storeName}
       </p>
       <h1 className="font-display text-3xl leading-tight tracking-tight text-foreground lg:text-4xl">
@@ -165,7 +165,7 @@ export default function ProductInfo({ product, stock }: ProductInfoProps) {
               <button
                 type="button"
                 onClick={() => setSizeGuideOpen(true)}
-                className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground underline-offset-4 transition hover:text-primary hover:underline"
+                className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground underline-offset-4 transition hover:text-primary-readable hover:underline"
               >
                 <Ruler className="size-3.5" />
                 Size chart
@@ -241,7 +241,9 @@ export default function ProductInfo({ product, stock }: ProductInfoProps) {
           </button>
         </div>
         {selectedVariant && maxQuantity > 0 && maxQuantity <= 5 && (
-          <p className="text-xs text-primary">Only {maxQuantity} left</p>
+          <p className="text-xs text-primary-readable">
+            Only {maxQuantity} left
+          </p>
         )}
         {selectedVariant && maxQuantity === 0 && (
           <p className="text-xs text-red-500">Out of stock</p>
@@ -298,8 +300,8 @@ export default function ProductInfo({ product, stock }: ProductInfoProps) {
           className={cn(
             "inline-flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3.5 text-sm font-medium transition-colors duration-200",
             isFavorite
-              ? "border-primary bg-primary/10 text-primary"
-              : "border-border text-foreground hover:border-primary hover:text-primary",
+              ? "border-primary bg-primary/10 text-primary-readable"
+              : "border-border text-foreground hover:border-primary hover:text-primary-readable",
           )}
         >
           <Heart className={cn("size-4", isFavorite && "fill-current")} />

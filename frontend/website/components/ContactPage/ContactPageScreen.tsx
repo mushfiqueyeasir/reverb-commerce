@@ -101,7 +101,7 @@ export default function ContactPageScreen({ layout }: ContactPageScreenProps) {
   return (
     <section className="mx-auto max-w-3xl px-6 pb-24 pt-24 md:px-10 md:pt-36">
       <div className="mb-10 lg:mb-14">
-        <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">
+        <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary-readable">
           We&apos;re here to help
         </p>
         <h1 className="mt-3 font-display text-4xl font-bold tracking-tight sm:text-5xl">

@@ -36,9 +36,9 @@ function Calendar({
         month: "relative flex w-full flex-col gap-2",
         nav: "hidden",
         button_previous:
-          "absolute left-0 top-0 z-20 inline-flex size-8 items-center justify-center rounded-full text-foreground transition-colors hover:bg-primary/10 hover:text-primary aria-disabled:pointer-events-none aria-disabled:opacity-40",
+          "absolute left-0 top-0 z-20 inline-flex size-8 items-center justify-center rounded-full text-foreground transition-colors hover:bg-primary/10 hover:text-primary-readable aria-disabled:pointer-events-none aria-disabled:opacity-40",
         button_next:
-          "absolute right-0 top-0 z-20 inline-flex size-8 items-center justify-center rounded-full text-foreground transition-colors hover:bg-primary/10 hover:text-primary aria-disabled:pointer-events-none aria-disabled:opacity-40",
+          "absolute right-0 top-0 z-20 inline-flex size-8 items-center justify-center rounded-full text-foreground transition-colors hover:bg-primary/10 hover:text-primary-readable aria-disabled:pointer-events-none aria-disabled:opacity-40",
         month_caption:
           "pointer-events-none flex h-8 w-full items-center justify-center px-10",
         caption_label:
@@ -108,11 +108,11 @@ function CalendarDayButton({
       data-day={day.date.toLocaleDateString()}
       className={cn(
         "mx-auto flex size-8 items-center justify-center rounded-full text-sm font-medium outline-none transition-colors",
-        "text-foreground hover:bg-primary/12 hover:text-primary",
+        "text-foreground hover:bg-primary/12 hover:text-primary-readable",
         "focus-visible:ring-2 focus-visible:ring-primary/40",
         modifiers.today &&
           !selected &&
-          "bg-primary/15 text-primary hover:bg-primary/20",
+          "bg-primary/15 text-primary-readable hover:bg-primary/20",
         selected &&
           "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
         modifiers.outside && "text-muted-foreground",

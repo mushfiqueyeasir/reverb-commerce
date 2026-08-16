@@ -16,28 +16,32 @@ REM  production deployment, custom domain) using the Vercel file upload API
 REM  instead of a Git source.
 REM =====================================================================
 
-cd /d "%~dp0"
+cd /d "%~dp0.."
 
 if not exist "backend\package.json" (
   echo Error: run this script from the repository root. >&2
+  pause
   exit /b 1
 )
 
 where node >nul 2>nul
 if errorlevel 1 (
   echo Error: Node.js is required but was not found on PATH. >&2
+  pause
   exit /b 1
 )
 
 where git >nul 2>nul
 if errorlevel 1 (
   echo Error: Git is required but was not found on PATH. >&2
+  pause
   exit /b 1
 )
 
 set /p "SITE_URL=Store domain (for example https://www.example.com): "
 if "%SITE_URL%"=="" (
   echo Error: store domain is required. >&2
+  pause
   exit /b 1
 )
 
@@ -46,12 +50,14 @@ set /p "SUBSCRIPTION_TRACKER_PROJECT_ID=Subscription tracker project ID (optiona
 set /p "SUPABASE_ACCESS_TOKEN=Supabase access token (sbp_...): "
 if "%SUPABASE_ACCESS_TOKEN%"=="" (
   echo Error: Supabase access token is required. >&2
+  pause
   exit /b 1
 )
 
 set /p "VERCEL_TOKEN=Vercel access token: "
 if "%VERCEL_TOKEN%"=="" (
   echo Error: Vercel access token is required. >&2
+  pause
   exit /b 1
 )
 
@@ -66,25 +72,13 @@ if "%BOOTSTRAP_ADMIN_PASSWORD%"=="" (
   echo Save this password now; it will not be shown again.
 )
 
-set /p "PROVISION_MODE=Provision mode [provision/resume] (default: provision): "
-if "%PROVISION_MODE%"=="" set "PROVISION_MODE=provision"
-if /i not "%PROVISION_MODE%"=="provision" if /i not "%PROVISION_MODE%"=="resume" (
-  echo Error: provision mode must be provision or resume. >&2
-  exit /b 1
-)
-
+set "PROVISION_MODE=provision"
 set "SUPABASE_PROJECT_REF="
-if /i "%PROVISION_MODE%"=="resume" (
-  set /p "SUPABASE_PROJECT_REF=Supabase project ref to resume (20 letters): "
-  if "!SUPABASE_PROJECT_REF!"=="" (
-    echo Error: resume mode requires the Supabase project ref. >&2
-    exit /b 1
-  )
-)
 
 for /f "delims=" %%s in ('git rev-parse HEAD') do set "RELEASE_SHA=%%s"
 if "%RELEASE_SHA%"=="" (
   echo Error: unable to resolve the current Git commit. >&2
+  pause
   exit /b 1
 )
 
@@ -101,6 +95,7 @@ if not exist "backend\node_modules" (
   if errorlevel 1 (
     popd
     echo Error: npm ci failed. >&2
+    pause
     exit /b 1
   )
   popd
@@ -125,6 +120,7 @@ popd
 if not "%PROVISION_EXIT%"=="0" (
   echo.
   echo Deployment failed with exit code %PROVISION_EXIT%. >&2
+  pause
   exit /b %PROVISION_EXIT%
 )
 
@@ -136,5 +132,7 @@ echo   - frontend\website\.env.<client-id>
 echo   - .client-secrets\<client-id>.env
 echo The client-id is derived from the store domain (see backend\clients\).
 echo Run frontend dev with:  cd frontend\website ^&^& npm run dev:client -- <client-id>
+echo.
+pause
 endlocal
 exit /b 0

@@ -48,7 +48,7 @@ export default function KawaiiAboutCta({ config }: KawaiiAboutRendererProps) {
           />
           <div className="relative max-w-4xl">
             {eyebrow ? (
-              <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+              <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary-readable">
                 <span className="h-px w-7 bg-primary" aria-hidden="true" />
                 {eyebrow}
               </p>
@@ -87,7 +87,7 @@ export default function KawaiiAboutCta({ config }: KawaiiAboutRendererProps) {
                 {secondaryLabel ? (
                   <Link
                     href={secondaryHref}
-                    className="group inline-flex min-h-12 items-center gap-2 border-b border-primary pb-1 text-xs font-semibold uppercase tracking-[0.18em] text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-surface motion-reduce:transition-none"
+                    className="group inline-flex min-h-12 items-center gap-2 border-b border-primary pb-1 text-xs font-semibold uppercase tracking-[0.18em] text-foreground transition-colors hover:text-primary-readable focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-surface motion-reduce:transition-none"
                   >
                     {secondaryLabel}
                     <ArrowUpRight

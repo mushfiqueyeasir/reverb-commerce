@@ -108,7 +108,7 @@ export default function KawaiiFashionStory({
             {imageLabel || imageValue ? (
               <figcaption className="absolute -bottom-5 left-4 max-w-[80%] border border-border bg-card px-5 py-4 shadow-[0_18px_45px_color-mix(in_srgb,var(--foreground)_8%,transparent)] sm:-bottom-7 sm:left-7 sm:px-7 sm:py-5">
                 {imageLabel ? (
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-readable">
                     {imageLabel}
                   </p>
                 ) : null}
@@ -125,7 +125,7 @@ export default function KawaiiFashionStory({
         {hasCopy ? (
           <div className="pt-5 lg:pt-0">
             {normalizedEyebrow ? (
-              <p className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+              <p className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary-readable">
                 <span className="h-px w-7 bg-primary" aria-hidden="true" />
                 {normalizedEyebrow}
               </p>
@@ -142,7 +142,7 @@ export default function KawaiiFashionStory({
             ) : null}
             {body ? (
               <div
-                className="mt-5 max-w-xl space-y-4 text-sm leading-7 text-muted-foreground [&_a]:font-semibold [&_a]:text-primary [&_a]:underline [&_h1]:text-2xl [&_h1]:text-foreground [&_h2]:text-xl [&_h2]:text-foreground [&_h3]:text-lg [&_h3]:text-foreground [&_ol]:list-decimal [&_ol]:pl-5 [&_strong]:text-foreground [&_ul]:list-disc [&_ul]:pl-5 sm:text-base"
+                className="mt-5 max-w-xl space-y-4 text-sm leading-7 text-muted-foreground [&_a]:font-semibold [&_a]:text-primary-readable [&_a]:underline [&_h1]:text-2xl [&_h1]:text-foreground [&_h2]:text-xl [&_h2]:text-foreground [&_h3]:text-lg [&_h3]:text-foreground [&_ol]:list-decimal [&_ol]:pl-5 [&_strong]:text-foreground [&_ul]:list-disc [&_ul]:pl-5 sm:text-base"
                 dangerouslySetInnerHTML={{ __html: body }}
               />
             ) : null}
@@ -156,7 +156,7 @@ export default function KawaiiFashionStory({
                       key={service.id}
                       className="grid grid-cols-[auto_1fr_auto] items-center gap-4 border-b border-border py-4 last:border-b-0 sm:gap-5 sm:py-5"
                     >
-                      <span className="grid size-10 place-items-center bg-surface text-primary">
+                      <span className="grid size-10 place-items-center bg-surface text-primary-readable">
                         <Icon className="size-4" aria-hidden="true" />
                       </span>
                       <div>

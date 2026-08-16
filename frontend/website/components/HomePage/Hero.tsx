@@ -225,7 +225,7 @@ export default function Hero({ banners, description, stats }: HeroProps) {
               </Link>
               <Link
                 href="/product"
-                className="group inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-full border border-border bg-transparent px-6 text-[12px] font-semibold uppercase tracking-[0.18em] text-foreground transition hover:border-primary hover:text-primary sm:h-auto sm:w-auto sm:justify-start sm:py-3 md:px-8 md:py-3.5 md:text-[13px]"
+                className="group inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-full border border-border bg-transparent px-6 text-[12px] font-semibold uppercase tracking-[0.18em] text-foreground transition hover:border-primary hover:text-primary-readable sm:h-auto sm:w-auto sm:justify-start sm:py-3 md:px-8 md:py-3.5 md:text-[13px]"
               >
                 Explore New Drop
                 <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />

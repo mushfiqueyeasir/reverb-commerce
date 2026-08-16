@@ -147,7 +147,7 @@ export const DEFAULT_NAVBAR: NavbarConfig = {
     primaryNavigationAriaLabel: "Primary navigation",
     desktopSearchAriaLabel: "Search products",
     desktopFavoritesAriaLabel: "Favorites",
-    desktopBagAriaLabel: "Shopping bag",
+    desktopBagAriaLabel: "Cart",
     homeLinkAriaLabelTemplate: "{storeName} home",
     shopAllTemplate: "Shop all {label}",
     collectionsCountTemplate: "{count} collections",

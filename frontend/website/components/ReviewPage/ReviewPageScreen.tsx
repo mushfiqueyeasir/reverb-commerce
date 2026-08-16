@@ -38,14 +38,16 @@ export default function ReviewPageScreen({
 
         <div className="relative grid items-end gap-10 border-b border-border pb-12 lg:grid-cols-[minmax(0,1fr)_22rem] lg:pb-16">
           <div>
-            <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.32em] text-primary sm:text-[11px]">
+            <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.32em] text-primary-readable sm:text-[11px]">
               <span className="h-px w-10 bg-primary" />
               Customer stories
             </div>
             <h1 className="mt-5 max-w-5xl font-display text-[clamp(3.4rem,9vw,8.5rem)] font-bold leading-[0.82] tracking-[-0.065em] text-foreground">
               Used daily.
               <br />
-              <span className="italic text-primary">Rated honestly.</span>
+              <span className="italic text-primary-readable">
+                Rated honestly.
+              </span>
             </h1>
             <p className="mt-7 max-w-xl text-base leading-7 text-muted-foreground md:text-lg md:leading-8">
               Real experiences and the products customers keep reaching for. No
@@ -59,7 +61,7 @@ export default function ReviewPageScreen({
                 <span className="font-display text-4xl font-bold tracking-tight sm:text-5xl">
                   {averageRating ? averageRating.toFixed(1) : "—"}
                 </span>
-                <Star className="mb-1.5 size-5 fill-primary text-primary" />
+                <Star className="mb-1.5 size-5 fill-primary text-primary-readable" />
               </div>
               <div className="mt-2 font-mono text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
                 Community rating
@@ -79,7 +81,7 @@ export default function ReviewPageScreen({
         {reviews.length > 0 ? (
           <div className="mt-8 flex items-center gap-3 font-mono text-[9px] uppercase tracking-[0.28em] text-muted-foreground sm:text-[10px]">
             Scroll for the field notes
-            <ArrowDown className="size-3.5 animate-bounce text-primary" />
+            <ArrowDown className="size-3.5 animate-bounce text-primary-readable" />
           </div>
         ) : null}
       </section>
@@ -87,7 +89,7 @@ export default function ReviewPageScreen({
       <section className="mx-auto mt-16 max-w-[1600px] px-6 md:mt-24 md:px-10">
         <div className="mb-10 flex flex-col gap-5 border-b border-border pb-7 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary">
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary-readable">
               The community archive
             </p>
             <h2 className="mt-3 font-display text-4xl font-bold tracking-tight sm:text-5xl">

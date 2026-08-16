@@ -63,7 +63,7 @@ export default function KawaiiAboutHero({
       <div className="relative mx-auto grid max-w-[1600px] gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:gap-16 lg:px-10 xl:gap-24">
         <div className="relative max-w-2xl">
           {eyebrow ? (
-            <p className="mb-5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+            <p className="mb-5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary-readable">
               <span className="h-px w-7 bg-primary" aria-hidden="true" />
               {eyebrow}
             </p>
@@ -75,7 +75,7 @@ export default function KawaiiAboutHero({
             >
               {firstLine ? <span className="block">{firstLine}</span> : null}
               {secondLine ? (
-                <span className="block font-normal italic text-primary">
+                <span className="block font-normal italic text-primary-readable">
                   {secondLine}
                 </span>
               ) : null}
@@ -107,7 +107,7 @@ export default function KawaiiAboutHero({
               {secondaryLabel ? (
                 <Link
                   href={secondaryHref}
-                  className="group inline-flex min-h-12 items-center border-b border-primary pb-1 text-xs font-semibold uppercase tracking-[0.18em] text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background motion-reduce:transition-none"
+                  className="group inline-flex min-h-12 items-center border-b border-primary pb-1 text-xs font-semibold uppercase tracking-[0.18em] text-foreground transition-colors hover:text-primary-readable focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background motion-reduce:transition-none"
                 >
                   {secondaryLabel}
                   <ArrowUpRight

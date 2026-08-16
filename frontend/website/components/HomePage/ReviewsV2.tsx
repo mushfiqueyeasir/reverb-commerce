@@ -72,7 +72,7 @@ export default function ReviewsV2({
 
   const panelTransition = reduceMotion
     ? { duration: 0.01 }
-    : { type: "spring", bounce: 0, duration: 0.45 } as const;
+    : ({ type: "spring", bounce: 0, duration: 0.45 } as const);
 
   return (
     <section className="relative isolate overflow-hidden py-20 sm:py-28 lg:py-36">
@@ -81,7 +81,7 @@ export default function ReviewsV2({
       <div className="relative mx-auto max-w-[1600px] px-5 sm:px-6 lg:px-10">
         <V2Reveal className="mb-10 grid gap-7 sm:mb-14 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
           <div>
-            <p className="mb-5 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.3em] text-primary sm:text-[11px]">
+            <p className="mb-5 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.3em] text-primary-readable sm:text-[11px]">
               <span className="h-px w-10 bg-primary" aria-hidden="true" />
               {eyebrow || "Community screening"}
             </p>
@@ -97,7 +97,7 @@ export default function ReviewsV2({
           {ctaLabel ? (
             <Link
               href={ctaHref}
-              className="group inline-flex min-h-12 w-fit items-center gap-3 border-b border-primary pb-1 font-mono text-[10px] uppercase tracking-[0.24em] text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background sm:text-[11px]"
+              className="group inline-flex min-h-12 w-fit items-center gap-3 border-b border-primary pb-1 font-mono text-[10px] uppercase tracking-[0.24em] text-foreground transition-colors hover:text-primary-readable focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background sm:text-[11px]"
             >
               {ctaLabel}
               <ArrowUpRight
@@ -109,7 +109,7 @@ export default function ReviewsV2({
         </V2Reveal>
 
         <V2Reveal delay={0.1}>
-          <div className="overflow-hidden rounded-[1.75rem] border border-border bg-card shadow-[0_30px_100px_rgb(0_0_0/0.28)] sm:rounded-[2.5rem]">
+          <div className="overflow-hidden border border-border bg-card shadow-[0_30px_100px_rgb(0_0_0/0.28)]">
             <div
               id={panelId}
               role="tabpanel"
@@ -163,9 +163,9 @@ export default function ReviewsV2({
                       <div className="absolute inset-0 grid place-items-center overflow-hidden">
                         <V2Aurora className="opacity-90" />
                         <V2Grid className="opacity-20" />
-                        <div className="relative flex size-36 items-center justify-center rounded-full border border-primary/30 bg-primary/10 sm:size-52">
+                        <div className="relative flex size-36 items-center justify-center border border-primary/30 bg-primary/10 sm:size-52">
                           <Quote
-                            className="size-16 text-primary sm:size-24"
+                            className="size-16 text-primary-readable sm:size-24"
                             strokeWidth={0.9}
                             aria-hidden="true"
                           />
@@ -202,7 +202,7 @@ export default function ReviewsV2({
                       aria-hidden="true"
                     />
                     <Quote
-                      className="relative size-10 text-primary sm:size-14"
+                      className="relative size-10 text-primary-readable sm:size-14"
                       strokeWidth={1}
                       aria-hidden="true"
                     />
@@ -222,7 +222,7 @@ export default function ReviewsV2({
                       </div>
                       <div>
                         <div
-                          className="flex gap-1 text-primary"
+                          className="flex gap-1 text-primary-readable"
                           aria-label={`${rating.toFixed(1)} out of 5 stars`}
                         >
                           {Array.from({ length: 5 }).map((_, index) => (
@@ -253,8 +253,7 @@ export default function ReviewsV2({
                   const isSelected = index === activeIndex;
                   const image = review.image?.trim();
                   const name =
-                    review.customerName?.trim() ||
-                    `Community ${index + 1}`;
+                    review.customerName?.trim() || `Community ${index + 1}`;
                   const reviewRating = Math.min(
                     5,
                     Math.max(0, review.rating ?? 5),
@@ -291,7 +290,7 @@ export default function ReviewsV2({
                             className="object-cover transition-transform duration-500 group-hover:scale-105"
                           />
                         ) : (
-                          <span className="grid size-full place-items-center bg-primary/10 text-primary">
+                          <span className="grid size-full place-items-center bg-primary/10 text-primary-readable">
                             <Quote
                               className="size-6"
                               strokeWidth={1.2}

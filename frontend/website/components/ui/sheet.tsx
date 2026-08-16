@@ -60,7 +60,7 @@ const SheetContent = React.forwardRef<
       <DialogPrimitive.Close
         type="button"
         aria-label="Close menu"
-        className="absolute right-3 top-3 z-50 grid size-11 place-items-center rounded-full border border-border bg-card text-foreground shadow-sm transition hover:border-primary hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none"
+        className="absolute right-3 top-3 z-50 grid size-11 place-items-center rounded-full border border-border bg-card text-foreground shadow-sm transition hover:border-primary hover:text-primary-readable focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none"
       >
         <X className="size-5" strokeWidth={2.25} />
         <span className="sr-only">Close</span>

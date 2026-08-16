@@ -60,7 +60,7 @@ function SpotlightMedia({ product }: { product: TransformedProduct }) {
     return (
       <div className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_50%_38%,rgb(var(--v2-primary-rgb)/0.2),transparent_36%),linear-gradient(145deg,var(--card),var(--surface))]">
         <div className="flex flex-col items-center gap-4 text-center text-muted-foreground">
-          <span className="grid size-20 place-items-center rounded-full border border-primary/30 bg-background/70 text-primary backdrop-blur-sm">
+          <span className="grid size-20 place-items-center border border-primary/30 bg-background/70 text-primary-readable backdrop-blur-sm">
             <Sparkles className="size-8" aria-hidden="true" />
           </span>
           <span className="font-mono text-[10px] uppercase tracking-[0.24em]">
@@ -122,7 +122,7 @@ function SupportingProduct({
           Look {String(index + 2).padStart(2, "0")} / {availability}
         </span>
         {discount > 0 ? (
-          <span className="text-primary">{discount}% off</span>
+          <span className="text-primary-readable">{discount}% off</span>
         ) : null}
       </div>
       <ProductCard
@@ -196,7 +196,7 @@ export default function FeaturedProductsV2({
             {ctaLabel ? (
               <Link
                 href={ctaHref}
-                className="group inline-flex min-h-11 items-center gap-3 border-b border-foreground pb-1 font-mono text-[11px] uppercase tracking-[0.22em] transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background"
+                className="group inline-flex min-h-11 items-center gap-3 border-b border-foreground pb-1 font-mono text-[11px] uppercase tracking-[0.22em] transition-colors hover:border-primary hover:text-primary-readable focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background"
               >
                 {ctaLabel}
                 <ArrowUpRight
@@ -210,7 +210,7 @@ export default function FeaturedProductsV2({
 
         <div className="grid gap-8 lg:grid-cols-12 lg:gap-10 xl:gap-14">
           <motion.div
-            className="group relative min-h-[560px] overflow-hidden rounded-[2rem] border border-border bg-surface sm:min-h-[720px] lg:col-span-8 lg:min-h-[780px]"
+            className="group relative min-h-[560px] overflow-hidden border border-border bg-surface sm:min-h-[720px] lg:col-span-8 lg:min-h-[780px]"
             initial={false}
             whileHover={reduceMotion ? undefined : "hover"}
           >
@@ -228,10 +228,10 @@ export default function FeaturedProductsV2({
               aria-label={`View ${spotlight.title}`}
             />
             <div className="pointer-events-none absolute inset-x-5 top-5 z-20 flex items-center justify-between gap-4 sm:inset-x-8 sm:top-8">
-              <span className="rounded-full border border-border bg-background/80 px-4 py-2 font-mono text-[9px] uppercase tracking-[0.22em] text-foreground backdrop-blur-md sm:text-[10px]">
+              <span className="border border-border bg-background/80 px-4 py-2 font-mono text-[9px] uppercase tracking-[0.22em] text-foreground backdrop-blur-md sm:text-[10px]">
                 Spotlight / 01
               </span>
-              <span className="rounded-full border border-border bg-background/80 px-4 py-2 font-mono text-[9px] uppercase tracking-[0.22em] text-foreground backdrop-blur-md sm:text-[10px]">
+              <span className="border border-border bg-background/80 px-4 py-2 font-mono text-[9px] uppercase tracking-[0.22em] text-foreground backdrop-blur-md sm:text-[10px]">
                 {availability}
               </span>
             </div>
@@ -272,7 +272,7 @@ export default function FeaturedProductsV2({
                     className={
                       availability === "Sold out"
                         ? "text-muted-foreground"
-                        : "text-primary"
+                        : "text-primary-readable"
                     }
                   >
                     {availability}
@@ -287,7 +287,7 @@ export default function FeaturedProductsV2({
 
             <Link
               href={spotlight.href}
-              className="group mt-12 flex min-h-14 items-center justify-between rounded-full bg-primary px-6 text-xs font-semibold uppercase tracking-[0.18em] text-primary-foreground transition-colors hover:bg-foreground hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background"
+              className="group mt-12 flex min-h-14 items-center justify-between bg-primary px-6 text-xs font-semibold uppercase tracking-[0.18em] text-primary-foreground transition-colors hover:bg-foreground hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background"
             >
               {availability === "Sold out" ? "View details" : "View product"}
               <ArrowRight
@@ -305,7 +305,7 @@ export default function FeaturedProductsV2({
               initiallyVisible={preview}
             >
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.26em] text-primary">
+                <p className="font-mono text-[10px] uppercase tracking-[0.26em] text-primary-readable">
                   Continue the runway
                 </p>
                 <h3 className="mt-2 font-display text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">

@@ -37,7 +37,7 @@ export default function FeaturedProducts({
                   {title.includes(".") && (
                     <>
                       .{" "}
-                      <span className="text-primary">
+                      <span className="text-primary-readable">
                         {title.split(".").slice(1).join(".").trim() ||
                           "Worn everywhere."}
                       </span>
@@ -46,7 +46,8 @@ export default function FeaturedProducts({
                 </>
               ) : (
                 <>
-                  Built <span className="text-primary">different.</span>
+                  Built{" "}
+                  <span className="text-primary-readable">different.</span>
                   <br />
                   Worn everywhere.
                 </>

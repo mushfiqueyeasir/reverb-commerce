@@ -72,7 +72,7 @@ export default function RichTextSection({
                         ) : null}
                       </div>
                       {story.imageTag ? (
-                        <div className="shrink-0 font-mono text-xs text-primary">
+                        <div className="shrink-0 font-mono text-xs text-primary-readable">
                           {story.imageTag}
                         </div>
                       ) : null}
@@ -99,7 +99,7 @@ export default function RichTextSection({
               ) : null}
               {body ? (
                 <div
-                  className="prose prose-sm mt-6 max-w-md text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-a:text-primary"
+                  className="prose prose-sm mt-6 max-w-md text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-a:text-primary-readable"
                   dangerouslySetInnerHTML={{ __html: body }}
                 />
               ) : null}
@@ -112,7 +112,7 @@ export default function RichTextSection({
                         key={card.id}
                         className="group rounded-2xl border border-border bg-card p-5 transition hover:border-primary/40 hover:bg-card/80"
                       >
-                        <Icon className="h-5 w-5 text-primary transition-transform group-hover:scale-110" />
+                        <Icon className="h-5 w-5 text-primary-readable transition-transform group-hover:scale-110" />
                         <div className="mt-4 font-display text-lg font-semibold tracking-tight">
                           {card.label}
                         </div>
@@ -127,7 +127,7 @@ export default function RichTextSection({
               {ctaLabel ? (
                 <Link
                   href={ctaHref || "/product"}
-                  className="mt-8 inline-flex min-h-11 w-fit items-center rounded-full border border-border px-5 text-sm font-medium transition hover:border-primary hover:text-primary"
+                  className="mt-8 inline-flex min-h-11 w-fit items-center rounded-full border border-border px-5 text-sm font-medium transition hover:border-primary hover:text-primary-readable"
                 >
                   {ctaLabel} →
                 </Link>
@@ -142,7 +142,7 @@ export default function RichTextSection({
   return (
     <section className="mx-auto max-w-3xl px-6 py-24 text-center md:px-10">
       {eyebrow || subtitle ? (
-        <span className="mb-3 inline-block font-mono text-[11px] uppercase tracking-[0.28em] text-primary">
+        <span className="mb-3 inline-block font-mono text-[11px] uppercase tracking-[0.28em] text-primary-readable">
           {eyebrow || subtitle}
         </span>
       ) : null}
@@ -153,14 +153,14 @@ export default function RichTextSection({
       ) : null}
       {body ? (
         <div
-          className="prose prose-sm mx-auto mt-5 max-w-none text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-a:text-primary md:prose-base"
+          className="prose prose-sm mx-auto mt-5 max-w-none text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-a:text-primary-readable md:prose-base"
           dangerouslySetInnerHTML={{ __html: body }}
         />
       ) : null}
       {ctaLabel ? (
         <Link
           href={ctaHref || "/product"}
-          className="mt-7 inline-flex min-h-11 items-center rounded-full border border-border px-5 text-sm font-medium transition hover:border-primary hover:text-primary"
+          className="mt-7 inline-flex min-h-11 items-center rounded-full border border-border px-5 text-sm font-medium transition hover:border-primary hover:text-primary-readable"
         >
           {ctaLabel} →
         </Link>

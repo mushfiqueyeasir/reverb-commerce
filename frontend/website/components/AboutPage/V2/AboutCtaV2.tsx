@@ -123,7 +123,7 @@ export default function AboutCtaV2({
                   {secondaryLabel ? (
                     <Link
                       href={secondaryHref}
-                      className="group inline-flex min-h-14 items-center gap-4 rounded-full border border-foreground/35 bg-background/20 px-6 text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground backdrop-blur-md transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-card sm:px-8 sm:text-[11px]"
+                      className="group inline-flex min-h-14 items-center gap-4 rounded-full border border-foreground/35 bg-background/20 px-6 text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground backdrop-blur-md transition-colors hover:border-primary hover:text-primary-readable focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-card sm:px-8 sm:text-[11px]"
                     >
                       {secondaryLabel}
                       <ArrowUpRight
@@ -139,7 +139,7 @@ export default function AboutCtaV2({
 
           <div className="flex items-end justify-between gap-5 border-b border-foreground/25 pb-4 font-mono text-[9px] uppercase tracking-[0.26em] text-muted-foreground sm:text-[10px]">
             <span>Step through / Begin here</span>
-            <span className="text-primary">Portal active</span>
+            <span className="text-primary-readable">Portal active</span>
           </div>
         </div>
       </div>

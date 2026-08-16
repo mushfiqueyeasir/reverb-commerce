@@ -40,7 +40,7 @@ export default function CheckoutPageScreen({
           </p>
           <Link
             href="/product"
-            className="font-medium text-primary underline-offset-4 hover:underline"
+            className="font-medium text-primary-readable underline-offset-4 hover:underline"
           >
             Continue shopping
           </Link>

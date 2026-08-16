@@ -49,12 +49,12 @@ export default function KawaiiFashionAiSearch({
         <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch">
           <div className="px-6 py-10 sm:px-10 sm:py-14 lg:px-14 lg:py-16">
             {normalizedPillLabel ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-primary-readable">
                 <Sparkles className="size-3" aria-hidden="true" />
                 {normalizedPillLabel}
               </span>
             ) : null}
-            <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+            <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary-readable">
               {normalizedEyebrow}
             </p>
             <h2

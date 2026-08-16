@@ -40,7 +40,7 @@ const BUCKETS = [
 const MIN_AGE_MS = 24 * 60 * 60 * 1000;
 
 /** Seed / code-default assets — keep even if not currently referenced in DB. */
-const PROTECTED_PREFIXES = ["lovable/", "store-template/"];
+const PROTECTED_PREFIXES = ["lovable/", "store-template/", "minicobd/"];
 
 const DELETE_BATCH = 100;
 const LIST_PAGE = 1000;

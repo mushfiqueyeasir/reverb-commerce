@@ -254,7 +254,7 @@ export default function AiShoppingAssistant({
           <button
             type="button"
             onClick={restart}
-            className="inline-flex shrink-0 items-center gap-2 font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground transition hover:text-primary"
+            className="inline-flex shrink-0 items-center gap-2 font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground transition hover:text-primary-readable"
           >
             <RotateCcw className="size-3.5" />
             Reset brief
@@ -269,12 +269,14 @@ export default function AiShoppingAssistant({
         {!hasStarted ? (
           <div className="flex min-h-full flex-col justify-center py-8 sm:py-12 lg:py-16">
             <div className="max-w-4xl">
-              <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-primary">
+              <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-primary-readable">
                 02 / Ask the store expert
               </p>
               <h2 className="mt-3 max-w-3xl font-display text-[clamp(2.5rem,7vw,6.5rem)] font-bold leading-[0.88] tracking-[-0.055em]">
                 What would you
-                <span className="block text-primary">like to know?</span>
+                <span className="block text-primary-readable">
+                  like to know?
+                </span>
               </h2>
               <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
                 Describe what you need, your preferences, concern, or budget.
@@ -290,13 +292,13 @@ export default function AiShoppingAssistant({
                   type="button"
                   onClick={() => void sendMessage(starter)}
                   disabled={pending || remainingChats === 0}
-                  className="group flex min-w-0 items-center gap-4 border-b border-border px-1 py-4 text-left transition last:border-b-0 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-28 sm:flex-col sm:items-start sm:justify-between sm:border-b-0 sm:border-r sm:px-5 sm:py-5 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0"
+                  className="group flex min-w-0 items-center gap-4 border-b border-border px-1 py-4 text-left transition last:border-b-0 hover:text-primary-readable disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-28 sm:flex-col sm:items-start sm:justify-between sm:border-b-0 sm:border-r sm:px-5 sm:py-5 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0"
                 >
                   <span className="font-mono text-[9px] tracking-[0.22em] text-muted-foreground">
                     0{index + 1}
                   </span>
                   <span className="flex w-full min-w-0 items-end justify-between gap-3">
-                    <span className="text-sm leading-5 text-foreground transition group-hover:text-primary">
+                    <span className="text-sm leading-5 text-foreground transition group-hover:text-primary-readable">
                       {starter}
                     </span>
                     <ArrowRight className="size-4 shrink-0 transition-transform group-hover:translate-x-1" />
@@ -320,7 +322,7 @@ export default function AiShoppingAssistant({
                     "mb-2 font-mono text-[9px] uppercase tracking-[0.24em]",
                     message.role === "user"
                       ? "text-right text-muted-foreground"
-                      : "text-primary",
+                      : "text-primary-readable",
                   )}
                 >
                   {message.role === "user" ? "Your question" : "Store expert"}
@@ -356,7 +358,7 @@ export default function AiShoppingAssistant({
 
         {pending && (
           <div className="mb-8 flex items-center gap-3 border-l-2 border-primary py-3 pl-5 font-mono text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
-            <LoaderCircle className="size-4 animate-spin text-primary" />
+            <LoaderCircle className="size-4 animate-spin text-primary-readable" />
             Checking the active inventory
           </div>
         )}
@@ -470,9 +472,9 @@ function RecommendationCard({
           <h3 className="font-display text-sm font-semibold lg:text-base lg:text-white">
             {product.title}
           </h3>
-          <ArrowUpRight className="size-4 shrink-0 text-muted-foreground transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary lg:text-white" />
+          <ArrowUpRight className="size-4 shrink-0 text-muted-foreground transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary-readable lg:text-white" />
         </div>
-        <p className="mt-1 font-mono text-xs font-medium text-primary">
+        <p className="mt-1 font-mono text-xs font-medium text-primary-readable">
           {formatPrice(product.currentPrice)}
         </p>
         <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground lg:text-white/65">

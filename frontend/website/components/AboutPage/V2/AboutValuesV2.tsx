@@ -80,7 +80,7 @@ export default function AboutValuesV2({
                 ease: [0.22, 1, 0.36, 1],
               }}
             >
-              <span className="font-mono text-[10px] tracking-[0.25em] text-primary sm:pt-1">
+              <span className="font-mono text-[10px] tracking-[0.25em] text-primary-readable sm:pt-1">
                 / {String(index + 1).padStart(2, "0")}
               </span>
               <h3 className="font-display text-3xl font-semibold leading-none tracking-[-0.045em] sm:text-4xl lg:text-5xl">

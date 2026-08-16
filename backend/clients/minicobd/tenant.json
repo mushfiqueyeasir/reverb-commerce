@@ -1,0 +1,20 @@
+{
+  "$schema": "../../../ops/schemas/tenant-manifest.schema.json",
+  "id": "minicobd",
+  "displayName": "Minico BD",
+  "status": "onboarding",
+  "domains": {
+    "production": "https://www.minicobd.com",
+    "aliases": []
+  },
+  "vercel": {
+    "projectName": "store-minicobd",
+    "rootDirectory": "frontend/website",
+    "productionBranch": "main"
+  },
+  "supabase": {
+    "projectRef": "mvbzrkamyehnrfssanye",
+    "url": "https://mvbzrkamyehnrfssanye.supabase.co",
+    "schemaVersion": "0045"
+  }
+}

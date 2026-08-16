@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { HardDrive, Loader2, MailCheck, Save } from "lucide-react";
+import { Check, HardDrive, Loader2, MailCheck, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -246,19 +245,12 @@ export function SettingsForm({
   );
 
   const toggleCurrency = (code: CurrencyCode, on: boolean) => {
-    setEnabledCurrencies((prev) => {
-      const next = on
-        ? Array.from(new Set([...prev, code]))
-        : prev.filter((c) => c !== code);
-      if (!next.length) {
-        toast.error("Keep at least one currency enabled.");
-        return prev;
-      }
-      if (!next.includes(defaultCurrency)) {
-        setDefaultCurrency(next[0]);
-      }
-      return next;
-    });
+    if (!on) {
+      toast.error("Keep at least one currency active.");
+      return;
+    }
+    setEnabledCurrencies([code]);
+    setDefaultCurrency(code);
   };
 
   const onSave = () => {
@@ -378,8 +370,9 @@ export function SettingsForm({
       }
 
       const bkash = payments.providers.bkash;
+      const bkashEnabled = bkash.enabled && defaultCurrency === "BDT";
       const bkashRes = await saveBkashSettings({
-        enabled: bkash.enabled,
+        enabled: bkashEnabled,
         sandbox: bkash.sandbox,
         username: orNull(bkash.username),
         password: bkash.password.trim() ? bkash.password : null,
@@ -522,9 +515,6 @@ export function SettingsForm({
               <TabsTrigger value="brand" className={subTabTriggerClass}>
                 Brand
               </TabsTrigger>
-              <TabsTrigger value="colors" className={subTabTriggerClass}>
-                Colors
-              </TabsTrigger>
               <TabsTrigger value="contact" className={subTabTriggerClass}>
                 Contact
               </TabsTrigger>
@@ -581,22 +571,6 @@ export function SettingsForm({
                   preview="wide"
                 />
               </FormField>
-            </TabsContent>
-
-            <TabsContent value="colors" className="mt-0 space-y-6">
-              <div className="rounded-2xl border border-border bg-card p-6">
-                <p className="font-display text-lg font-semibold text-foreground">
-                  Colors are managed by your published theme
-                </p>
-                <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-                  Open Themes to edit the private draft palette, preview it with
-                  current store content, publish it, or restore an earlier
-                  revision.
-                </p>
-                <Button asChild className="mt-5">
-                  <Link href="/admin/themes">Open Themes</Link>
-                </Button>
-              </div>
             </TabsContent>
 
             <TabsContent value="contact" className="mt-0 space-y-5">
@@ -678,71 +652,93 @@ export function SettingsForm({
 
             <TabsContent value="currency" className="mt-0 space-y-5">
               <p className="text-sm text-muted-foreground">
-                Enable currencies and pick the store default.
+                Activate one store currency. Only the active currency is used
+                across the storefront and checkout.
               </p>
-              <div className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {SUPPORTED_CURRENCIES.map((c) => {
-                  const enabled = enabledCurrencies.includes(c.code);
-                  const isDefault = defaultCurrency === c.code;
+                  const active = defaultCurrency === c.code;
                   return (
-                    <div
+                    <label
                       key={c.code}
                       className={cn(
-                        "flex flex-col gap-3 rounded-2xl border px-4 py-4 sm:flex-row sm:items-center sm:justify-between",
-                        enabled
-                          ? "border-border bg-card/60"
-                          : "border-border/60 opacity-70",
+                        "group relative cursor-pointer overflow-hidden rounded-2xl border p-4 transition-all duration-200 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+                        active
+                          ? "border-transparent bg-gradient-to-br from-primary/20 via-primary/10 to-transparent shadow-[0_10px_30px_-12px_rgb(var(--primary-rgb)/0.5)] ring-1 ring-primary/40"
+                          : "border-border bg-card/60 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-card hover:shadow-md",
                       )}
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="grid size-10 place-items-center rounded-full bg-white/5 font-mono text-xs text-muted-foreground">
+                      <input
+                        type="radio"
+                        name="active-currency"
+                        checked={active}
+                        onChange={() => toggleCurrency(c.code, true)}
+                        className="sr-only"
+                      />
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 transition-opacity duration-200",
+                          active && "opacity-100",
+                        )}
+                      />
+                      <div className="relative flex items-center gap-3">
+                        <span
+                          className={cn(
+                            "grid size-12 shrink-0 place-items-center rounded-xl font-mono text-lg font-semibold transition-colors duration-200",
+                            active
+                              ? "bg-primary text-primary-foreground shadow-[0_4px_14px_rgb(var(--primary-rgb)/0.4)]"
+                              : "bg-foreground/5 text-muted-foreground group-hover:bg-foreground/10 group-hover:text-foreground",
+                          )}
+                        >
                           {c.flag}
                         </span>
-                        <div>
-                          <p className="font-medium text-foreground">
+                        <span className="min-w-0">
+                          <span
+                            className={cn(
+                              "block truncate font-semibold transition-colors duration-200",
+                              active ? "text-primary" : "text-foreground",
+                            )}
+                          >
                             {c.code}{" "}
-                            <span className="text-muted-foreground">
-                              ({c.symbol})
+                            <span className="font-mono text-muted-foreground">
+                              {c.symbol}
                             </span>
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {c.label}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <input
-                            type="radio"
-                            name="default-currency"
-                            checked={isDefault}
-                            disabled={!enabled}
-                            onChange={() => setDefaultCurrency(c.code)}
-                            className="accent-primary"
-                          />
-                          Default
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs uppercase tracking-wider text-muted-foreground">
-                            {enabled ? "On" : "Off"}
                           </span>
-                          <Switch
-                            checked={enabled}
-                            onCheckedChange={(on) => toggleCurrency(c.code, on)}
-                          />
-                        </div>
+                          <span className="block truncate text-xs text-muted-foreground">
+                            {c.label}
+                          </span>
+                        </span>
                       </div>
-                    </div>
+                      <span
+                        className={cn(
+                          "absolute right-3 top-3 flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider transition-all duration-200",
+                          active
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "bg-foreground/5 text-muted-foreground opacity-0 group-hover:opacity-100",
+                        )}
+                      >
+                        {active ? (
+                          <>
+                            <Check className="size-3" /> Active
+                          </>
+                        ) : (
+                          "Set active"
+                        )}
+                      </span>
+                    </label>
                   );
                 })}
               </div>
               <p className="text-xs text-muted-foreground">
-                Active default:{" "}
-                <span className="text-foreground">
-                  {defaultCurrency} ·{" "}
+                Active currency:{" "}
+                <span className="font-semibold text-foreground">
+                  {defaultCurrency}{" "}
                   {SUPPORTED_CURRENCIES.find((c) => c.code === defaultCurrency)
                     ?.symbol ?? ""}
                 </span>
+                . bKash is only available while the Bangladeshi Taka (BDT) is
+                active.
               </p>
             </TabsContent>
 

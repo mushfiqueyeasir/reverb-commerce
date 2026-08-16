@@ -30,7 +30,7 @@ export default function KawaiiAboutValues({
       <div className="relative mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
         <div className="max-w-3xl">
           {eyebrow ? (
-            <p className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+            <p className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary-readable">
               <span className="h-px w-7 bg-primary" aria-hidden="true" />
               {eyebrow}
             </p>
@@ -56,7 +56,7 @@ export default function KawaiiAboutValues({
               className="group flex min-h-72 flex-col border border-border bg-card p-7 transition-colors hover:border-primary/45 sm:p-8"
             >
               <div className="flex items-center justify-between gap-4">
-                <span className="grid size-11 place-items-center rounded-2xl bg-primary/10 text-primary transition-transform group-hover:-rotate-3 group-hover:scale-105 motion-reduce:transition-none">
+                <span className="grid size-11 place-items-center rounded-2xl bg-primary/10 text-primary-readable transition-transform group-hover:-rotate-3 group-hover:scale-105 motion-reduce:transition-none">
                   <Sparkles className="size-5" aria-hidden="true" />
                 </span>
                 <span className="text-xs font-semibold tracking-[0.18em] text-muted-foreground">

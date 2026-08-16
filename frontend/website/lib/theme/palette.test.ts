@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  accessiblePrimaryForeground,
   DEFAULT_PALETTE,
   KAWAII_WHITE_PALETTE,
+  MINICO_BURGUNDY_PALETTE,
   PALETTE_FIELDS,
   PALETTE_PRESETS,
   getPalettePresets,
@@ -9,6 +11,7 @@ import {
   normalizePalette,
   normalizePaletteOverrides,
   paletteToCssVars,
+  relativeLuminance,
 } from "./palette";
 
 describe("palette overrides", () => {
@@ -43,6 +46,12 @@ describe("palette overrides", () => {
       expect(normalizePaletteOverrides(raw)).toEqual({});
     },
   );
+
+  it("chooses a contrast-safe foreground for primary fills", () => {
+    expect(accessiblePrimaryForeground("#ff5c70")).toBe("#050505");
+    expect(accessiblePrimaryForeground("#660c23")).toBe("#ffffff");
+    expect(accessiblePrimaryForeground("#767676")).toBe("#ffffff");
+  });
 });
 
 describe("getPalettePresets", () => {
@@ -69,7 +78,6 @@ describe("getPalettePresets", () => {
 
   it("keeps the global presets unchanged for other themes", () => {
     expect(getPalettePresets("legacy-classic")).toEqual(PALETTE_PRESETS);
-    expect(getPalettePresets("volt-gear")).toEqual(PALETTE_PRESETS);
     expect(PALETTE_PRESETS.some((preset) => preset.id === "daylight")).toBe(
       true,
     );
@@ -83,5 +91,21 @@ describe("getPalettePresets", () => {
     expect(variables["--primary"]).toBe("#f9287a");
     expect(variables["--background"]).toBe("#ffffff");
     expect(variables["--surface"]).toBe("#fff5f8");
+  });
+
+  it("derives readable small-text accents without changing brand fills", () => {
+    const variables = paletteToCssVars(MINICO_BURGUNDY_PALETTE);
+    const accentLuminance = relativeLuminance(variables["--primary-readable"]);
+    const backgroundLuminance = relativeLuminance(variables["--background"]);
+    const contrast =
+      (Math.max(accentLuminance, backgroundLuminance) + 0.05) /
+      (Math.min(accentLuminance, backgroundLuminance) + 0.05);
+
+    expect(variables["--primary"]).toBe("#660c23");
+    expect(variables["--primary-readable"]).not.toBe(variables["--primary"]);
+    expect(contrast).toBeGreaterThanOrEqual(4.5);
+    expect(paletteToCssVars(DEFAULT_PALETTE)["--primary-readable"]).toBe(
+      DEFAULT_PALETTE.primary,
+    );
   });
 });

@@ -6,6 +6,8 @@ import { KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS } from "../cms/homepageRendererR
 import {
   DEFAULT_PALETTE,
   KAWAII_WHITE_PALETTE,
+  MINICO_BURGUNDY_PALETTE,
+  accessiblePrimaryForeground,
   relativeLuminance,
 } from "./palette";
 import {
@@ -115,7 +117,9 @@ describe("storefront theme manifest", () => {
     expect(VOLT_GEAR_THEME.displayName).toBe("Volt Gear");
     expect(VOLT_GEAR_THEME.id).toBe("volt-gear");
     expect(LEGACY_CLASSIC_THEME.defaultTokens.palette).toEqual(DEFAULT_PALETTE);
-    expect(VOLT_GEAR_THEME.defaultTokens.palette).toEqual(DEFAULT_PALETTE);
+    expect(VOLT_GEAR_THEME.defaultTokens.palette).toEqual(
+      MINICO_BURGUNDY_PALETTE,
+    );
     expect(KAWAII_FASHION_THEME.defaultTokens.palette).toEqual({
       ...KAWAII_WHITE_PALETTE,
       primaryForeground: "#050505",
@@ -325,6 +329,7 @@ describe("normalizeStorefrontThemeConfig", () => {
       expect(tokens.palette).toEqual({
         ...theme.defaultTokens.palette,
         primary: "#123456",
+        primaryForeground: accessiblePrimaryForeground("#123456"),
       });
       expect(tokens.shape).toEqual(theme.defaultTokens.shape);
     },

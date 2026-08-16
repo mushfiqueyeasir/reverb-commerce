@@ -270,8 +270,8 @@ function DesktopMenu({
   const className = cn(
     "relative shrink-0 whitespace-nowrap py-2 text-xs font-semibold uppercase tracking-[0.14em] transition after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-center after:bg-primary after:transition-transform",
     active
-      ? "text-primary after:scale-x-100"
-      : "text-foreground/75 after:scale-x-0 hover:text-primary hover:after:scale-x-100",
+      ? "text-primary-readable after:scale-x-100"
+      : "text-foreground/75 after:scale-x-0 hover:text-primary-readable hover:after:scale-x-100",
   );
   const children = menu.items?.filter((item) => isSafeChromeHref(item.href));
 
@@ -314,7 +314,7 @@ function DesktopMenu({
           <DropdownMenuItem asChild className="rounded-xl p-0">
             <Link
               href={menu.href}
-              className="flex items-center justify-between rounded-xl bg-primary/10 px-4 py-3 text-sm font-semibold text-primary outline-none transition hover:bg-primary/15"
+              className="flex items-center justify-between rounded-xl bg-primary/10 px-4 py-3 text-sm font-semibold text-primary-readable outline-none transition hover:bg-primary/15"
             >
               <span>
                 {interpolateChromeTemplate(
@@ -353,7 +353,7 @@ function CategoryLink({
       <Link
         href={item.href}
         {...externalLinkProps(item.href)}
-        className="group flex min-h-20 flex-col justify-end rounded-xl border border-transparent bg-surface px-3 py-3 text-sm font-medium text-foreground outline-none transition hover:border-primary/30 hover:text-primary"
+        className="group flex min-h-20 flex-col justify-end rounded-xl border border-transparent bg-surface px-3 py-3 text-sm font-medium text-foreground outline-none transition hover:border-primary/30 hover:text-primary-readable"
       >
         <span>{item.label}</span>
         {item.items?.length ? (
@@ -384,7 +384,7 @@ function ActionButton({
       type="button"
       aria-label={label}
       onClick={onClick}
-      className="grid size-10 place-items-center rounded-full text-foreground/75 transition hover:bg-surface hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="grid size-10 place-items-center rounded-full text-foreground/75 transition hover:bg-surface hover:text-primary-readable focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       {children}
     </button>
@@ -412,8 +412,8 @@ function ActionLink({
       aria-label={label}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "relative grid size-10 place-items-center rounded-full transition hover:bg-surface hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        active ? "text-primary" : "text-foreground/75",
+        "relative grid size-10 place-items-center rounded-full transition hover:bg-surface hover:text-primary-readable focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        active ? "text-primary-readable" : "text-foreground/75",
       )}
     >
       {children}
@@ -480,7 +480,7 @@ function KawaiiMobileBottomNav({
           type="button"
           aria-label={copy.mobileSearchAriaLabel}
           onClick={onSearchOpen}
-          className="flex h-full flex-col items-center justify-center gap-1 text-muted-foreground transition active:text-primary"
+          className="flex h-full flex-col items-center justify-center gap-1 text-muted-foreground transition active:text-primary-readable"
         >
           <Search className="size-5" />
           <span className="text-[10px] font-medium">
@@ -516,7 +516,9 @@ function MobileTab({
       aria-current={active ? "page" : undefined}
       className={cn(
         "flex h-full flex-col items-center justify-center gap-1 text-[10px] font-medium transition",
-        active ? "text-primary" : "text-muted-foreground active:text-primary",
+        active
+          ? "text-primary-readable"
+          : "text-muted-foreground active:text-primary-readable",
       )}
     >
       <span

@@ -119,7 +119,7 @@ function AdminNavList({
                         className={cn(
                           "flex min-h-11 items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm font-medium transition-colors",
                           active
-                            ? "bg-primary/15 text-primary"
+                            ? "bg-primary text-white"
                             : "text-sidebar-foreground hover:bg-foreground/5 hover:text-foreground",
                           compact && "justify-center px-2",
                         )}

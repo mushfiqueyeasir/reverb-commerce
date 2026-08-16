@@ -39,6 +39,17 @@ export const KAWAII_WHITE_PALETTE: ThemePalette = {
   border: "#f2d9e2",
 };
 
+export const MINICO_BURGUNDY_PALETTE: ThemePalette = {
+  primary: "#660c23",
+  primaryForeground: "#fff7f8",
+  background: "#080406",
+  surface: "#130b0e",
+  card: "#1a0f13",
+  foreground: "#f6efed",
+  mutedForeground: "#a08f90",
+  border: "#2f1f24",
+};
+
 export const PALETTE_PRESETS: PalettePreset[] = [
   {
     id: "default",
@@ -104,7 +115,19 @@ export const PALETTE_PRESETS: PalettePreset[] = [
 ];
 
 export function getPalettePresets(themeId: string): PalettePreset[] {
-  if (themeId !== "kawaii-fashion") return PALETTE_PRESETS;
+  if (themeId !== "kawaii-fashion" && themeId !== "volt-gear") {
+    return PALETTE_PRESETS;
+  }
+  if (themeId === "volt-gear") {
+    return [
+      {
+        id: "minico-burgundy",
+        name: "MiniCo Burgundy",
+        palette: { ...MINICO_BURGUNDY_PALETTE },
+      },
+      ...PALETTE_PRESETS.slice(1).filter((preset) => preset.id !== "daylight"),
+    ];
+  }
   return [
     PALETTE_PRESETS[0],
     {
@@ -185,6 +208,58 @@ export function isLightPalette(
   return relativeLuminance(normalizePalette(palette).background) > 0.45;
 }
 
+/**
+ * Pick a readable foreground for a primary accent: white on dark accents,
+ * near-black on light accents.
+ */
+export function accessiblePrimaryForeground(primary: string): string {
+  const primaryLuminance = relativeLuminance(primary);
+  const darkLuminance = relativeLuminance("#050505");
+  const darkContrast =
+    (Math.max(primaryLuminance, darkLuminance) + 0.05) /
+    (Math.min(primaryLuminance, darkLuminance) + 0.05);
+  const lightContrast = 1.05 / (primaryLuminance + 0.05);
+  return darkContrast >= lightContrast ? "#050505" : "#ffffff";
+}
+
+function mixHex(a: string, b: string, t: number): string {
+  const parse = (hex: string) => {
+    const n = Number.parseInt(normalizeHex(hex, "#000000").slice(1), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  };
+  const [ar, ag, ab] = parse(a);
+  const [br, bg, bb] = parse(b);
+  const mix = (x: number, y: number) => Math.round(x + (y - x) * t);
+  const toHex = (v: number) => v.toString(16).padStart(2, "0");
+  return `#${toHex(mix(ar, br))}${toHex(mix(ag, bg))}${toHex(mix(ab, bb))}`;
+}
+
+function contrastRatio(l1: number, l2: number): number {
+  const [hi, lo] = l1 >= l2 ? [l1, l2] : [l2, l1];
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+function readablePrimaryAccent(primary: string, background?: string): string {
+  const accent = normalizeHex(primary, DEFAULT_PALETTE.primary);
+  const bg = normalizeHex(background, DEFAULT_PALETTE.background);
+  if (contrastRatio(relativeLuminance(accent), relativeLuminance(bg)) >= 4.5) {
+    return accent;
+  }
+  const target = relativeLuminance(bg) > 0.45 ? "#000000" : "#ffffff";
+  let t = 0;
+  let candidate = accent;
+  while (t < 1) {
+    t += 0.05;
+    candidate = mixHex(accent, target, t);
+    if (
+      contrastRatio(relativeLuminance(candidate), relativeLuminance(bg)) >= 4.5
+    ) {
+      break;
+    }
+  }
+  return candidate;
+}
+
 /** CSS custom properties applied on `:root` for the whole app. */
 export function paletteToCssVars(
   palette: ThemePalette,
@@ -204,6 +279,7 @@ export function paletteToCssVars(
     "--accent-coral": p.primary,
     "--border-soft": p.border,
     "--primary": p.primary,
+    "--primary-readable": readablePrimaryAccent(p.primary, p.background),
     "--primary-rgb": primaryRgb,
     "--foreground-rgb": foregroundRgb,
     "--background-rgb": backgroundRgb,

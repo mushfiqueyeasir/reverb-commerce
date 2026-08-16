@@ -254,6 +254,30 @@ export async function saveSection(
     }
     config.category_ids = categoryIds;
   }
+  if (current.type === "promo") {
+    const imagePath = config.image_path;
+    if (
+      imagePath != null &&
+      (typeof imagePath !== "string" ||
+        imagePath.includes("..") ||
+        imagePath.length > 500)
+    ) {
+      return { error: "Promotion banner image path is invalid." };
+    }
+    const imageAlt = config.image_alt;
+    if (
+      imageAlt != null &&
+      (typeof imageAlt !== "string" || imageAlt.trim().length > 500)
+    ) {
+      return { error: "Promotion banner image alt text is too long." };
+    }
+    config.image_path =
+      typeof imagePath === "string" && imagePath.trim()
+        ? imagePath.trim()
+        : null;
+    config.image_alt =
+      typeof imageAlt === "string" && imageAlt.trim() ? imageAlt.trim() : null;
+  }
   if (current.type === "richtext" || current.type === "richtext_v2") {
     if (config.cards != null && !Array.isArray(config.cards)) {
       return { error: "Story cards must be an ordered list." };

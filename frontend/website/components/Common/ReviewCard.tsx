@@ -12,7 +12,7 @@ interface ReviewCardProps {
 function Rating({ rating }: { rating: number }) {
   return (
     <div
-      className="flex items-center gap-0.5 text-primary"
+      className="flex items-center gap-0.5 text-primary-readable"
       aria-label={`${rating} out of 5 stars`}
     >
       {Array.from({ length: 5 }).map((_, index) => (
@@ -20,7 +20,9 @@ function Rating({ rating }: { rating: number }) {
           key={index}
           className={cn(
             "size-3.5",
-            index < rating ? "fill-primary text-primary" : "text-border",
+            index < rating
+              ? "fill-primary text-primary-readable"
+              : "text-border",
           )}
         />
       ))}
@@ -97,14 +99,14 @@ export default function ReviewCard({
           <div>
             <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
               {name}
-              <BadgeCheck className="size-3.5 text-primary" />
+              <BadgeCheck className="size-3.5 text-primary-readable" />
             </div>
             <div className="mt-1 font-mono text-[8px] uppercase tracking-[0.22em] text-muted-foreground">
               Verified community review
             </div>
           </div>
           <Quote
-            className="size-7 shrink-0 text-primary/70"
+            className="size-7 shrink-0 text-primary-readable"
             strokeWidth={1.5}
           />
         </footer>

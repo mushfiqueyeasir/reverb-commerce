@@ -9,7 +9,7 @@ import {
   ChevronDown,
   Heart,
   Search,
-  ShoppingBag,
+  ShoppingCart,
   Sparkles,
   Zap,
 } from "lucide-react";
@@ -106,11 +106,14 @@ export default function VoltNavbar({
         className={cn(
           preview
             ? "relative z-50 overflow-hidden rounded-xl border border-border [&_a]:pointer-events-none [&_button]:pointer-events-none"
-            : "sticky top-0 z-50",
+            : "hidden md:sticky md:top-0 md:z-50 md:block",
         )}
       >
         {showAnnouncement ? (
-          <VoltAnnouncement text={announcementText!.trim()} href={announcementUrl} />
+          <VoltAnnouncement
+            text={announcementText!.trim()}
+            href={announcementUrl}
+          />
         ) : null}
 
         <div
@@ -241,14 +244,14 @@ function VoltAnnouncement({
   );
 
   return (
-    <div className="border-b border-primary/15 bg-primary/10 px-4 py-1.5 text-center text-xs font-medium tracking-[0.04em] text-foreground">
+    <div className="border-b border-primary/20 bg-gradient-to-r from-primary/25 via-primary/10 to-primary/25 px-4 py-1.5 text-center text-xs font-medium tracking-[0.04em] text-foreground">
       {safeHref ? (
         <Link
           href={safeHref}
           {...(isExternalChromeHref(safeHref)
             ? { target: "_blank", rel: "noopener noreferrer" }
             : {})}
-          className="inline-flex transition-colors hover:text-primary"
+          className="inline-flex transition-opacity hover:opacity-80"
         >
           {content}
         </Link>
@@ -341,7 +344,7 @@ function VoltMenuLink({
           <DropdownMenuItem asChild className="rounded-xl p-0">
             <Link
               href={menu.href}
-              className="flex items-center justify-between rounded-xl bg-primary/10 px-4 py-3 text-sm font-semibold text-primary outline-none transition hover:bg-primary/15"
+              className="flex items-center justify-between rounded-xl bg-primary/10 px-4 py-3 text-sm font-semibold text-primary-readable outline-none transition hover:bg-primary/15"
             >
               <span>
                 {interpolateChromeTemplate(
@@ -355,13 +358,17 @@ function VoltMenuLink({
           </DropdownMenuItem>
           <div className="mt-2 grid max-h-[min(60vh,24rem)] grid-cols-2 gap-1 overflow-y-auto sm:grid-cols-3">
             {children.map((item) => (
-              <DropdownMenuItem key={`${item.label}-${item.href}`} asChild className="rounded-xl p-0">
+              <DropdownMenuItem
+                key={`${item.label}-${item.href}`}
+                asChild
+                className="rounded-xl p-0"
+              >
                 <Link
                   href={item.href}
                   {...(isExternalChromeHref(item.href)
                     ? { target: "_blank", rel: "noopener noreferrer" }
                     : {})}
-                  className="group flex min-h-16 flex-col justify-end rounded-xl border border-transparent bg-surface px-3 py-2.5 text-sm font-medium text-foreground outline-none transition hover:border-primary/30 hover:text-primary"
+                  className="group flex min-h-16 flex-col justify-end rounded-xl border border-transparent bg-surface px-3 py-2.5 text-sm font-medium text-foreground outline-none transition hover:border-primary/30 hover:text-primary-readable"
                 >
                   <span>{item.label}</span>
                   {item.items?.length ? (
@@ -426,7 +433,7 @@ function VoltIconLink({
       aria-current={active ? "page" : undefined}
       className={cn(
         "relative grid size-10 place-items-center rounded-full text-foreground/75 transition-all duration-200 hover:bg-foreground/[0.07] hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        active && "text-primary",
+        active && "text-primary-readable",
       )}
     >
       {children}
@@ -456,25 +463,14 @@ function VoltCartButton({
       aria-label={label}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "relative inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-semibold transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:px-4",
-        active || count > 0
-          ? "bg-primary text-primary-foreground shadow-[0_8px_28px_-10px_rgb(var(--primary-rgb)/0.7)]"
-          : "bg-foreground/[0.07] text-foreground hover:bg-foreground/[0.12]",
+        "relative grid size-10 place-items-center rounded-full text-foreground/75 transition-all duration-200 hover:bg-foreground/[0.07] hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        active && "text-primary-readable",
       )}
     >
-      <ShoppingBag className="size-4" />
-      <span className="hidden sm:inline">
-        {count > 0 ? (
-          <span>
-            {count > 9 ? countOverflowLabel : count} in bag
-          </span>
-        ) : (
-          "Bag"
-        )}
-      </span>
-      <span className="sm:hidden">
-        {count > 0 ? (count > 9 ? countOverflowLabel : count) : ""}
-      </span>
+      <ShoppingCart className="size-[1.15rem]" />
+      {count > 0 ? (
+        <VoltCountBadge count={count} countOverflowLabel={countOverflowLabel} />
+      ) : null}
     </Link>
   );
 }

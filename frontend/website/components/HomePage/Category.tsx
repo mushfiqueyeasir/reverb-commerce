@@ -50,7 +50,7 @@ export default function Category({
             </div>
             <h2 className="font-display text-4xl font-bold leading-[0.9] tracking-tight sm:text-5xl md:text-7xl">
               {title || "Editorial"}{" "}
-              <span className="italic text-primary">
+              <span className="italic text-primary-readable">
                 {subtitle?.split(" ")[0] || "chapters"}
               </span>
               {subtitle

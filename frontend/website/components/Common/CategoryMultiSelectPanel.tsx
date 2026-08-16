@@ -135,7 +135,7 @@ export function CategoryMultiSelectPanel({
                       </span>
                       <span className="truncate">{group.root.name}</span>
                       {selectedChildren ? (
-                        <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                        <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary-readable">
                           {selectedChildren}
                         </span>
                       ) : null}

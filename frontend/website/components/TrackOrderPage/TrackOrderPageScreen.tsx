@@ -91,7 +91,7 @@ export default function TrackOrderPageScreen() {
   return (
     <section className="mx-auto max-w-3xl px-6 pb-24 pt-24 md:px-10 md:pt-36">
       <div className="mb-10 lg:mb-14">
-        <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">
+        <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary-readable">
           Order status
         </p>
         <h1 className="mt-3 font-display text-4xl font-bold tracking-tight sm:text-5xl">
@@ -145,7 +145,7 @@ export default function TrackOrderPageScreen() {
             Double-check the number and try again. Need help?{" "}
             <a
               href="/contact-us"
-              className="text-primary underline-offset-4 hover:underline"
+              className="text-primary-readable underline-offset-4 hover:underline"
             >
               Contact us
             </a>
@@ -344,7 +344,7 @@ export default function TrackOrderPageScreen() {
                   </dd>
                 </div>
                 {(result.totals.discount ?? 0) > 0 ? (
-                  <div className="flex justify-between gap-3 text-primary">
+                  <div className="flex justify-between gap-3 text-primary-readable">
                     <dt>
                       Promo
                       {result.totals.promo_code

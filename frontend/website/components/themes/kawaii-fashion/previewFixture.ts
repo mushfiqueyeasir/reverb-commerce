@@ -386,6 +386,8 @@ export const KAWAII_FASHION_PREVIEW_SECTIONS: HomepageRendererSection[] = [
       promotion_id: promotion._id,
       cta_label: "Shop the special edit",
       cta_url: "/product",
+      image_path: imagePath("braided-promo"),
+      image_alt: "Braided style special edit",
       ...promoLabels,
     },
   },

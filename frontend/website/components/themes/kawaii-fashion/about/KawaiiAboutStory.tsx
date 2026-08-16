@@ -49,7 +49,7 @@ export default function KawaiiAboutStory({
 
         <div className={imageUrl ? "lg:pt-0" : "mx-auto w-full max-w-3xl"}>
           {eyebrow ? (
-            <p className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+            <p className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary-readable">
               <span className="h-px w-7 bg-primary" aria-hidden="true" />
               {eyebrow}
             </p>

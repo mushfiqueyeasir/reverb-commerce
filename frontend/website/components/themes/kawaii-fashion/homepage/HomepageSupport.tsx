@@ -37,10 +37,10 @@ export function KawaiiFashionGuarantees({
               className="group relative flex min-h-44 flex-col justify-between border-b border-border p-6 last:border-b-0 sm:min-h-52 sm:border-b-0 sm:border-r sm:p-8 sm:last:border-r-0 lg:p-10"
             >
               <div className="flex items-start justify-between gap-4">
-                <span className="grid size-11 place-items-center rounded-2xl bg-primary/10 text-primary transition-transform group-hover:-rotate-3 group-hover:scale-105 motion-reduce:transition-none">
+                <span className="grid size-11 place-items-center rounded-2xl bg-primary/10 text-primary-readable transition-transform group-hover:-rotate-3 group-hover:scale-105 motion-reduce:transition-none">
                   <Icon className="size-5" aria-hidden="true" />
                 </span>
-                <span className="font-display text-xs font-semibold tracking-[0.18em] text-primary/70">
+                <span className="font-display text-xs font-semibold tracking-[0.18em] text-primary-readable">
                   0{index + 1}
                 </span>
               </div>
@@ -88,7 +88,7 @@ export function KawaiiFashionStudioNotes({
           aria-hidden="true"
         />
         <div className="max-w-3xl">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-primary-readable">
             {eyebrow}
           </p>
           <h2

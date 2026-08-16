@@ -42,7 +42,7 @@ function QuoteCard({ review }: { review: TransformedReview }) {
   return (
     <div className="w-[280px] shrink-0 rounded-2xl border border-border bg-card p-6 sm:w-[340px] sm:p-8">
       <div
-        className="flex gap-0.5 text-primary"
+        className="flex gap-0.5 text-primary-readable"
         aria-label={`${rating} out of 5 stars`}
       >
         {Array.from({ length: 5 }).map((_, i) => (
@@ -50,7 +50,7 @@ function QuoteCard({ review }: { review: TransformedReview }) {
             key={i}
             className={
               i < rating
-                ? "h-4 w-4 fill-primary text-primary"
+                ? "h-4 w-4 fill-primary text-primary-readable"
                 : "h-4 w-4 text-border"
             }
           />
@@ -96,7 +96,7 @@ export default function ReviewSlider({
               {title ? (
                 <>
                   {title.replace(/\.$/, "").split(" ").slice(0, -1).join(" ")}{" "}
-                  <span className="italic text-primary">
+                  <span className="italic text-primary-readable">
                     {title.replace(/\.$/, "").split(" ").slice(-1)[0]}
                   </span>
                   .
@@ -104,7 +104,10 @@ export default function ReviewSlider({
               ) : (
                 <>
                   Worn by the{" "}
-                  <span className="italic text-primary">customers</span>.
+                  <span className="italic text-primary-readable">
+                    customers
+                  </span>
+                  .
                 </>
               )}
             </h2>

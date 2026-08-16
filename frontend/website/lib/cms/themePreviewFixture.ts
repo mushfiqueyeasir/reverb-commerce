@@ -208,6 +208,9 @@ export const TEE_DROP_PREVIEW_SECTIONS: HomepageRendererSection[] = [
       promotion_id: promotion._id,
       cta_label: "Shop the drop",
       cta_url: "/product",
+      image_path:
+        "/images/themes/legacy-classic/products/vintage-motorcycle-rider.webp",
+      image_alt: "New drop rider tee",
     },
   },
 ];

@@ -8,6 +8,8 @@ interface PromoStripProps {
   subtitle?: string | null;
   ctaHref?: string;
   ctaLabel?: string;
+  imageUrl?: string | null;
+  imageAlt?: string | null;
 }
 
 export default function PromoStrip({
@@ -16,16 +18,19 @@ export default function PromoStrip({
   subtitle,
   ctaHref = "/product",
   ctaLabel = "Shop the drop",
+  imageUrl,
+  imageAlt,
 }: PromoStripProps) {
   const heading = title || promotion.title;
-  const hasImage = Boolean(promotion.imageUrl);
+  const bannerImage = imageUrl ?? promotion.imageUrl;
+  const hasImage = Boolean(bannerImage);
 
   return (
     <section className="relative isolate overflow-hidden border-y border-border">
       {hasImage ? (
         <Image
-          src={promotion.imageUrl!}
-          alt={promotion.title}
+          src={bannerImage!}
+          alt={imageAlt?.trim() || promotion.title}
           fill
           sizes="100vw"
           className="object-cover object-center"
@@ -47,11 +52,11 @@ export default function PromoStrip({
       <div className="relative mx-auto flex min-h-[420px] max-w-[1600px] items-center px-6 py-16 md:min-h-[480px] md:px-10 lg:min-h-[520px]">
         <div className="max-w-xl space-y-6">
           {promotion.discountPercent ? (
-            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">
+            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary-readable">
               Up to {promotion.discountPercent}% off
             </p>
           ) : (
-            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">
+            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary-readable">
               Limited drop
             </p>
           )}

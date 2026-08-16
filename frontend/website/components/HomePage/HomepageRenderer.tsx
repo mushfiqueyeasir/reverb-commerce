@@ -127,7 +127,10 @@ export function resolveSectionImage(
   fallback: string,
 ): string {
   const resolved = resolveImageUrl?.(path);
-  if (resolved && (/^https?:\/\//i.test(resolved) || resolved.startsWith("/"))) {
+  if (
+    resolved &&
+    (/^https?:\/\//i.test(resolved) || resolved.startsWith("/"))
+  ) {
     return resolved;
   }
   return fallback;
@@ -348,7 +351,7 @@ function ReviewsV2Renderer(props: HomepageSectionRendererProps) {
 }
 
 function renderPromotion(props: HomepageSectionRendererProps, version: 1 | 2) {
-  const { section, data } = props;
+  const { section, data, resolveImageUrl } = props;
   const config = section.config;
   const promotionId = configString(config, "promotion_id");
   const promotion =
@@ -356,8 +359,13 @@ function renderPromotion(props: HomepageSectionRendererProps, version: 1 | 2) {
     data.promotions[0] ??
     null;
   if (!promotion) return null;
+  const sectionImagePath = configString(config, "image_path");
   const promotionProps = {
     promotion,
+    imageUrl: sectionImagePath
+      ? (resolveImageUrl?.(sectionImagePath) ?? sectionImagePath)
+      : null,
+    imageAlt: configString(config, "image_alt") ?? null,
     title: section.title,
     subtitle: section.subtitle,
     ctaHref: configString(config, "cta_url") || promotion.ctaUrl || "/product",

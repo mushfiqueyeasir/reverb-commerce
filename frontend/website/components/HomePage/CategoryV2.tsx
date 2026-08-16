@@ -134,7 +134,7 @@ export default function CategoryV2({
             {ctaLabel ? (
               <Link
                 href={ctaHref}
-                className="group inline-flex min-h-11 items-center gap-3 border-b border-foreground pb-1 font-mono text-[11px] uppercase tracking-[0.22em] transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background"
+                className="group inline-flex min-h-11 items-center gap-3 border-b border-foreground pb-1 font-mono text-[11px] uppercase tracking-[0.22em] transition-colors hover:border-primary hover:text-primary-readable focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background"
               >
                 {ctaLabel}
                 <ArrowUpRight
@@ -150,7 +150,7 @@ export default function CategoryV2({
           {visibleCategories.map((category, index) => (
             <motion.article
               key={category._id}
-              className={`group relative overflow-hidden rounded-[1.75rem] border border-border bg-card shadow-[0_24px_80px_rgb(0_0_0/0.2)] transition-shadow duration-500 hover:shadow-[0_32px_100px_rgb(var(--v2-primary-rgb)/0.2)] ${contactSheetSlots[index % contactSheetSlots.length]}`}
+              className={`group relative overflow-hidden border border-border bg-card shadow-[0_24px_80px_rgb(0_0_0/0.2)] transition-shadow duration-500 hover:shadow-[0_32px_100px_rgb(var(--v2-primary-rgb)/0.2)] ${contactSheetSlots[index % contactSheetSlots.length]}`}
               initial={false}
               whileHover={reduceMotion ? undefined : "hover"}
               variants={{
@@ -212,12 +212,12 @@ export default function CategoryV2({
                 <span className="absolute inset-x-0 bottom-0 h-1 origin-left scale-x-0 bg-primary shadow-[0_0_24px_rgb(var(--v2-primary-rgb)/0.9)] transition-transform duration-500 group-hover:scale-x-100" />
                 <div className="absolute inset-0 z-10 flex flex-col justify-between p-5 sm:p-7 lg:p-8">
                   <div className="flex items-start justify-between gap-4">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/75 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.22em] text-foreground backdrop-blur-md sm:text-[10px]">
-                      <span className="text-primary">Chapter</span>
+                    <span className="inline-flex items-center gap-2 border border-border bg-background/75 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.22em] text-foreground backdrop-blur-md sm:text-[10px]">
+                      <span className="text-primary-readable">Chapter</span>
                       {String(index + 1).padStart(2, "0")}
                     </span>
                     <motion.span
-                      className="grid size-11 place-items-center rounded-full border border-border bg-background/75 text-foreground backdrop-blur-md"
+                      className="grid size-11 place-items-center border border-border bg-background/75 text-foreground backdrop-blur-md"
                       variants={{ hover: { rotate: 8, x: 3, y: -3 } }}
                       transition={{ duration: 0.35 }}
                     >

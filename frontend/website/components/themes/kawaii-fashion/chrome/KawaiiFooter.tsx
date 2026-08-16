@@ -119,17 +119,17 @@ export default function KawaiiFooter({
                 key={link.id}
                 link={link}
                 pathname={pathname}
-                className="transition hover:text-primary"
+                className="transition hover:text-primary-readable"
               />
             ))}
           </div>
           <div className="flex items-center gap-2">
-            <Heart className="size-3.5 text-primary" aria-hidden />
+            <Heart className="size-3.5 text-primary-readable" aria-hidden />
             <Link
               href="https://www.reverbsolution.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="transition hover:text-primary"
+              className="transition hover:text-primary-readable"
             >
               Developed by Reverb Solution
             </Link>
@@ -193,7 +193,7 @@ function ContactLinks({
       {emailHref ? (
         <a
           href={emailHref}
-          className="flex items-center gap-2 transition hover:text-primary"
+          className="flex items-center gap-2 transition hover:text-primary-readable"
         >
           <Mail className="size-4 shrink-0" />
           <span className="truncate">{email}</span>
@@ -202,7 +202,7 @@ function ContactLinks({
       {phoneHref ? (
         <a
           href={phoneHref}
-          className="flex items-center gap-2 transition hover:text-primary"
+          className="flex items-center gap-2 transition hover:text-primary-readable"
         >
           <Phone className="size-4 shrink-0" />
           <span>{phone}</span>
@@ -230,7 +230,7 @@ function FooterColumnLinks({
             <SafeFooterLink
               link={link}
               pathname={pathname}
-              className="text-sm transition hover:text-primary"
+              className="text-sm transition hover:text-primary-readable"
             />
           </li>
         ))}
@@ -259,7 +259,9 @@ function SafeFooterLink({
       aria-current={active ? "page" : undefined}
       className={cn(
         className,
-        active ? "font-semibold text-primary" : "text-muted-foreground",
+        active
+          ? "font-semibold text-primary-readable"
+          : "text-muted-foreground",
       )}
     >
       {link.label}

@@ -9,9 +9,7 @@ import {
 
 export type HomepageProductSelection = "featured" | "deals" | "new-arrivals";
 export type HomepageSectionFamily =
-  | HomepageSectionV1Type
-  | HomepageSupportSectionType
-  | "ai_search";
+  HomepageSectionV1Type | HomepageSupportSectionType | "ai_search";
 
 export interface HomepageSectionMetadata {
   family: HomepageSectionFamily;
@@ -162,6 +160,8 @@ export const KAWAII_HOMEPAGE_TEXT_FIELD_LIMITS: Partial<
     image_eyebrow: 120,
     image_title: 160,
     cta_fallback_label: 120,
+    image_path: 500,
+    image_alt: 500,
   },
   richtext: {
     eyebrow: 120,

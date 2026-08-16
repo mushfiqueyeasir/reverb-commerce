@@ -131,12 +131,12 @@ export default function SearchSidebar({
         >
           <aside className="flex flex-col border-b border-border/80 pb-4 lg:min-h-0 lg:border-b-0 lg:border-r lg:pb-8 lg:pr-8">
             <div className="pr-12 lg:pr-0">
-              <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary">
+              <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary-readable">
                 Discovery / Active inventory
               </p>
               <h1 className="mt-2 max-w-sm font-display text-3xl font-bold leading-[0.95] tracking-[-0.045em] sm:text-4xl lg:mt-5 lg:text-6xl">
                 Find your
-                <span className="block text-primary">signal.</span>
+                <span className="block text-primary-readable">signal.</span>
               </h1>
               <p className="mt-3 hidden max-w-[15rem] text-sm leading-6 text-muted-foreground lg:block">
                 {aiSearchEnabled
@@ -208,7 +208,7 @@ export default function SearchSidebar({
               </div>
 
               <div className="group relative mt-8 border-b border-foreground/25 transition-colors focus-within:border-primary sm:mt-12">
-                <Search className="absolute left-0 top-1/2 size-5 -translate-y-1/2 text-primary sm:size-6" />
+                <Search className="absolute left-0 top-1/2 size-5 -translate-y-1/2 text-primary-readable sm:size-6" />
                 <input
                   type="text"
                   placeholder="Type a product name"
@@ -248,7 +248,7 @@ export default function SearchSidebar({
                     style={{ background: "var(--primary)" }}
                   />
                   <span className="relative">
-                    <span className="font-mono text-[9px] uppercase tracking-[0.28em] text-primary">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.28em] text-primary-readable">
                       Need help choosing a product?
                     </span>
                     <span className="mt-2 block font-display text-2xl font-bold tracking-tight sm:text-4xl">
@@ -271,7 +271,9 @@ export default function SearchSidebar({
               value="advisor"
               className="m-0 min-h-0 overflow-hidden focus-visible:ring-0 lg:px-10 xl:px-16"
             >
-              <AiShoppingAssistant onProductSelect={() => onOpenChange(false)} />
+              <AiShoppingAssistant
+                onProductSelect={() => onOpenChange(false)}
+              />
             </TabsContent>
           ) : null}
         </Tabs>

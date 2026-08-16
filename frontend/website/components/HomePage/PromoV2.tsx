@@ -13,6 +13,8 @@ export interface PromoV2Props {
   subtitle?: string | null;
   ctaHref?: string;
   ctaLabel?: string | null;
+  imageUrl?: string | null;
+  imageAlt?: string | null;
 }
 
 export default function PromoV2({
@@ -21,10 +23,16 @@ export default function PromoV2({
   subtitle,
   ctaHref,
   ctaLabel,
+  imageUrl,
+  imageAlt,
 }: PromoV2Props) {
   const reduceMotion = useReducedMotion();
 
   if (!promotion) return null;
+
+  const bannerImage = imageUrl ?? promotion.imageUrl;
+  const bannerAlt =
+    imageAlt?.trim() || promotion.title?.trim() || "Featured offer";
 
   const heading = title?.trim() || promotion.title?.trim();
   if (!heading) return null;
@@ -42,7 +50,7 @@ export default function PromoV2({
       <div className="relative mx-auto max-w-[1600px] px-5 sm:px-6 lg:px-10">
         <V2Reveal>
           <motion.div
-            className="relative min-h-[440px] overflow-hidden rounded-[1.75rem] border border-border bg-surface text-foreground shadow-[0_32px_110px_rgb(var(--v2-primary-rgb)/0.18)] sm:min-h-[520px] sm:rounded-[2.5rem] lg:min-h-[610px]"
+            className="relative min-h-[440px] overflow-hidden border border-border bg-surface text-foreground shadow-[0_32px_110px_rgb(var(--v2-primary-rgb)/0.18)] sm:min-h-[520px] lg:min-h-[610px]"
             whileHover={reduceMotion ? undefined : { scale: 1.004 }}
             transition={{ duration: 0.35 }}
           >
@@ -71,13 +79,13 @@ export default function PromoV2({
             />
 
             <motion.div
-              className="pointer-events-none absolute inset-3 z-20 rounded-2xl border-2 border-double border-primary/20 sm:inset-4 sm:rounded-[1.5rem]"
+              className="pointer-events-none absolute inset-3 z-20 border-2 border-double border-primary/20 sm:inset-4"
               animate={reduceMotion ? undefined : { opacity: [0.45, 1, 0.45] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               aria-hidden="true"
             />
 
-            {promotion.imageUrl ? (
+            {bannerImage ? (
               <motion.div
                 className="absolute inset-0 overflow-hidden"
                 initial={reduceMotion ? false : { opacity: 0, scale: 1.04 }}
@@ -102,8 +110,8 @@ export default function PromoV2({
                   }}
                 >
                   <Image
-                    src={promotion.imageUrl}
-                    alt=""
+                    src={bannerImage}
+                    alt={bannerAlt}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1600px) 94vw, 1500px"
                     className="object-cover object-center lg:object-[62%_center]"
@@ -137,7 +145,7 @@ export default function PromoV2({
 
               <div className="relative -my-2 w-fit sm:-my-6">
                 <motion.p
-                  className="font-display text-[clamp(6.5rem,25vw,20rem)] font-black leading-[0.66] tracking-[-0.095em] text-primary"
+                  className="font-display text-[clamp(6.5rem,25vw,20rem)] font-black leading-[0.66] tracking-[-0.095em] text-primary-readable"
                   initial={
                     reduceMotion ? false : { opacity: 0, y: 50, scale: 0.92 }
                   }
@@ -185,7 +193,7 @@ export default function PromoV2({
                 </div>
                 <Link
                   href={href}
-                  className="group inline-flex min-h-12 w-fit shrink-0 items-center gap-3 rounded-full bg-primary px-6 text-[10px] font-bold uppercase tracking-[0.2em] text-primary-foreground transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:min-h-14 sm:px-7 sm:text-[11px]"
+                  className="group inline-flex min-h-12 w-fit shrink-0 items-center gap-3 bg-primary px-6 text-[10px] font-bold uppercase tracking-[0.2em] text-primary-foreground transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:min-h-14 sm:px-7 sm:text-[11px]"
                 >
                   {label}
                   <ArrowUpRight

@@ -129,7 +129,7 @@ function HeroSection({
 
       <div className="relative z-10 mx-auto flex min-h-[72vh] max-w-[1600px] flex-col justify-end px-6 pb-16 pt-28 md:min-h-[80vh] md:px-10 md:pb-24 md:pt-32">
         {cfgStr(config, "eyebrow") ? (
-          <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">
+          <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary-readable">
             {cfgStr(config, "eyebrow")}
           </p>
         ) : null}
@@ -138,7 +138,7 @@ function HeroSection({
           {line2 ? (
             <>
               <br />
-              <span className="text-primary">{line2}</span>
+              <span className="text-primary-readable">{line2}</span>
             </>
           ) : null}
         </Heading>
@@ -160,7 +160,7 @@ function HeroSection({
           {cfgStr(config, "cta_secondary_label") ? (
             <Link
               href={cfgStr(config, "cta_secondary_url", "/contact-us")}
-              className="inline-flex items-center gap-2 rounded-full border border-border px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-foreground transition hover:border-primary hover:text-primary"
+              className="inline-flex items-center gap-2 rounded-full border border-border px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-foreground transition hover:border-primary hover:text-primary-readable"
             >
               {cfgStr(config, "cta_secondary_label")}
             </Link>
@@ -238,7 +238,7 @@ function StorySection({
           ) : null}
           {bodyHtml ? (
             <div
-              className="prose prose-invert mt-6 max-w-none text-muted-foreground prose-p:leading-relaxed prose-a:text-primary"
+              className="prose prose-invert mt-6 max-w-none text-muted-foreground prose-p:leading-relaxed prose-a:text-primary-readable"
               dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(bodyHtml) }}
             />
           ) : null}
@@ -261,7 +261,7 @@ function ValuesSection({ config }: { config: Record<string, unknown> }) {
       <div className="mx-auto max-w-[1600px] px-6 md:px-10">
         <div className="max-w-2xl">
           {cfgStr(config, "eyebrow") ? (
-            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">
+            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary-readable">
               {cfgStr(config, "eyebrow")}
             </p>
           ) : null}
@@ -332,7 +332,7 @@ function CraftSection({
                     key={item.label}
                     className="group rounded-2xl border border-border bg-card p-5 transition hover:border-primary/40"
                   >
-                    <Icon className="h-5 w-5 text-primary transition-transform group-hover:scale-110" />
+                    <Icon className="h-5 w-5 text-primary-readable transition-transform group-hover:scale-110" />
                     <div className="mt-4 font-display text-lg font-semibold tracking-tight">
                       {item.label}
                     </div>
@@ -365,7 +365,7 @@ function CraftSection({
                   {cfgStr(config, "fabric_value", "Update this detail")}
                 </div>
               </div>
-              <div className="font-mono text-xs text-primary">
+              <div className="font-mono text-xs text-primary-readable">
                 {cfgStr(config, "fabric_tag", "// DETAIL")}
               </div>
             </div>
@@ -412,7 +412,7 @@ function CtaSection({ config }: { config: Record<string, unknown> }) {
         <div className="relative grid lg:grid-cols-[minmax(0,1fr)_22rem]">
           <div className="px-7 py-12 sm:px-10 md:px-14 md:py-16 lg:px-16 lg:py-20">
             {eyebrow ? (
-              <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.32em] text-primary sm:text-[11px]">
+              <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.32em] text-primary-readable sm:text-[11px]">
                 <span className="size-2 rounded-full bg-primary shadow-[0_0_18px_rgb(var(--primary-rgb)/0.9)]" />
                 {eyebrow}
                 <span className="h-px w-12 bg-primary/45" />
@@ -459,7 +459,7 @@ function CtaSection({ config }: { config: Record<string, unknown> }) {
               {cfgStr(config, "cta_secondary_label") ? (
                 <Link
                   href={cfgStr(config, "cta_secondary_url", "/reviews")}
-                  className="group flex min-h-14 items-center justify-between rounded-2xl border border-border px-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground/75 transition duration-300 hover:border-primary/60 hover:bg-primary/5 hover:text-primary sm:px-6 sm:text-[11px]"
+                  className="group flex min-h-14 items-center justify-between rounded-2xl border border-border px-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground/75 transition duration-300 hover:border-primary/60 hover:bg-primary/5 hover:text-primary-readable sm:px-6 sm:text-[11px]"
                 >
                   {cfgStr(config, "cta_secondary_label")}
                   <ArrowRight className="size-4 opacity-50 transition-transform group-hover:translate-x-1 group-hover:opacity-100" />

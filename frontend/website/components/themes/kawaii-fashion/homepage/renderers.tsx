@@ -132,6 +132,7 @@ function KawaiiFashionReviewsRenderer({
 function KawaiiFashionPromoRenderer({
   section,
   data,
+  resolveImageUrl,
 }: HomepageSectionRendererProps) {
   const config = section.config;
   const promotionId = configString(config, "promotion_id");
@@ -140,6 +141,7 @@ function KawaiiFashionPromoRenderer({
     data.promotions[0] ??
     null;
   if (!promotion) return null;
+  const sectionImagePath = configString(config, "image_path");
   return (
     <KawaiiFashionPromo
       promotion={promotion}
@@ -155,6 +157,12 @@ function KawaiiFashionPromoRenderer({
       imageEyebrow={configString(config, "image_eyebrow")}
       imageTitle={configString(config, "image_title")}
       ctaFallbackLabel={configString(config, "cta_fallback_label")}
+      imageUrl={
+        sectionImagePath
+          ? (resolveImageUrl?.(sectionImagePath) ?? sectionImagePath)
+          : null
+      }
+      imageAlt={configString(config, "image_alt")}
     />
   );
 }

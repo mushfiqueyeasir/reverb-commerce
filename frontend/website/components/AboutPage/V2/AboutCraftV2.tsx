@@ -138,7 +138,7 @@ export default function AboutCraftV2({
                     ) : null}
                   </div>
                   {fabricTag ? (
-                    <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-primary sm:text-[10px]">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-primary-readable sm:text-[10px]">
                       {fabricTag}
                     </span>
                   ) : null}
@@ -158,7 +158,9 @@ export default function AboutCraftV2({
                     <span className="block">{firstLine}</span>
                   ) : null}
                   {secondLine ? (
-                    <span className="block text-primary">{secondLine}</span>
+                    <span className="block text-primary-readable">
+                      {secondLine}
+                    </span>
                   ) : null}
                 </h2>
               ) : (
@@ -196,7 +198,7 @@ export default function AboutCraftV2({
                       }}
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <span className="grid size-10 place-items-center border border-primary/35 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                        <span className="grid size-10 place-items-center border border-primary/35 text-primary-readable transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                           <Icon className="size-4" aria-hidden="true" />
                         </span>
                         <span className="font-mono text-[9px] tracking-[0.2em] text-muted-foreground">

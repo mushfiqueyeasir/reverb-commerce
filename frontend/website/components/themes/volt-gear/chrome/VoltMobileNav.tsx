@@ -26,7 +26,7 @@ export default function VoltMobileNav({
       aria-label={copy.mobileNavigationAriaLabel}
       className="fixed inset-x-0 bottom-0 z-50 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden"
     >
-      <div className="relative mx-auto flex h-16 max-w-md items-center justify-between rounded-2xl border border-border bg-background/75 px-2 shadow-[0_18px_50px_-20px_rgb(0_0_0/0.65),0_0_0_1px_rgb(var(--primary-rgb)/0.06)] backdrop-blur-2xl backdrop-saturate-150">
+      <div className="relative mx-auto flex h-16 max-w-md items-center justify-between rounded-[2.5rem] border border-border bg-background/75 px-2 shadow-[0_18px_50px_-20px_rgb(0_0_0/0.65),0_0_0_1px_rgb(var(--primary-rgb)/0.06)] backdrop-blur-2xl backdrop-saturate-150">
         <VoltTab
           href="/"
           label={copy.mobileHomeLabel}
@@ -45,7 +45,7 @@ export default function VoltMobileNav({
           href="/product"
           aria-label={copy.mobileShopLabel}
           aria-current={isActivePath(pathname, "/product") ? "page" : undefined}
-          className="group relative -mt-8 grid size-16 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-[0_14px_34px_-10px_rgb(var(--primary-rgb)/0.8)] ring-4 ring-background transition-transform duration-200 active:scale-95"
+          className="group relative -mt-8 grid size-16 shrink-0 place-items-center rounded-[2.5rem] bg-primary text-primary-foreground shadow-[0_14px_34px_-10px_rgb(var(--primary-rgb)/0.8)] ring-4 ring-background transition-transform duration-200 active:scale-95"
         >
           <Zap className="size-7" fill="currentColor" />
         </Link>
@@ -61,7 +61,7 @@ export default function VoltMobileNav({
           type="button"
           aria-label={copy.mobileSearchAriaLabel}
           onClick={onSearchOpen}
-          className="flex w-16 flex-col items-center justify-center gap-1 text-muted-foreground transition-colors active:text-primary"
+          className="flex w-16 flex-col items-center justify-center gap-1 text-muted-foreground transition-colors active:text-primary-readable"
         >
           <Search className="size-[1.15rem]" />
           <span className="text-[10px] font-medium">
@@ -95,7 +95,9 @@ function VoltTab({
       aria-current={active ? "page" : undefined}
       className={cn(
         "flex w-16 flex-col items-center justify-center gap-1 text-[10px] font-medium transition-all duration-200 active:scale-95",
-        active ? "text-primary" : "text-muted-foreground active:text-primary",
+        active
+          ? "text-primary-readable"
+          : "text-muted-foreground active:text-primary-readable",
       )}
     >
       <span className="relative grid place-items-center">

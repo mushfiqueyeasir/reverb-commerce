@@ -70,7 +70,7 @@ export default function KawaiiAboutCraft({
       <div className="relative mx-auto grid max-w-[1600px] gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:gap-16 lg:px-10 xl:gap-24">
         <div className="order-2 lg:order-1">
           {eyebrow ? (
-            <p className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+            <p className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary-readable">
               <span className="h-px w-7 bg-primary" aria-hidden="true" />
               {eyebrow}
             </p>
@@ -82,7 +82,7 @@ export default function KawaiiAboutCraft({
             >
               {firstLine ? <span className="block">{firstLine}</span> : null}
               {secondLine ? (
-                <span className="block font-normal italic text-primary">
+                <span className="block font-normal italic text-primary-readable">
                   {secondLine}
                 </span>
               ) : null}
@@ -107,7 +107,7 @@ export default function KawaiiAboutCraft({
                     key={`${item.label}-${index}`}
                     className="grid grid-cols-[auto_1fr_auto] items-center gap-4 border-b border-border py-4 last:border-b-0 sm:gap-5 sm:py-5"
                   >
-                    <span className="grid size-11 place-items-center rounded-2xl bg-surface text-primary transition-transform group-hover:-rotate-3 motion-reduce:transition-none">
+                    <span className="grid size-11 place-items-center rounded-2xl bg-surface text-primary-readable transition-transform group-hover:-rotate-3 motion-reduce:transition-none">
                       <Icon className="size-5" aria-hidden="true" />
                     </span>
                     <div>
@@ -148,7 +148,7 @@ export default function KawaiiAboutCraft({
                 <div className="flex items-end justify-between gap-4">
                   <div>
                     {fabricLabel ? (
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-readable">
                         {fabricLabel}
                       </p>
                     ) : null}

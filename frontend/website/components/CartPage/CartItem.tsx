@@ -86,7 +86,7 @@ export default function CartItem({ item }: CartItemProps) {
         <button
           type="button"
           onClick={() => removeItem(item.variantId)}
-          className="grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-primary"
+          className="grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-primary-readable"
           aria-label="Remove item"
         >
           <Trash2 className="h-5 w-5" />

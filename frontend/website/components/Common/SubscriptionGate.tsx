@@ -65,7 +65,7 @@ function MaintenanceScreen({ storeName }: { storeName: string }) {
             </div>
 
             <div
-              className="mt-8 flex animate-hero-in items-center gap-4 text-primary"
+              className="mt-8 flex animate-hero-in items-center gap-4 text-primary-readable"
               style={{ animationDelay: "0.16s" }}
               aria-hidden
             >
@@ -81,7 +81,7 @@ function MaintenanceScreen({ storeName }: { storeName: string }) {
             >
               We&apos;ll be
               <br />
-              <span className="text-primary">back soon.</span>
+              <span className="text-primary-readable">back soon.</span>
             </h1>
 
             <p
@@ -96,7 +96,7 @@ function MaintenanceScreen({ storeName }: { storeName: string }) {
               className="mt-10 inline-flex animate-hero-in items-center gap-4 rounded-2xl border border-border bg-card/65 px-5 py-4 backdrop-blur-xl md:mt-12 md:px-6"
               style={{ animationDelay: "0.38s" }}
             >
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary-readable">
                 <Clock3 className="size-4" />
               </span>
               <div>

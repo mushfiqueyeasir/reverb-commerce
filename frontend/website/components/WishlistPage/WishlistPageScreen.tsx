@@ -61,13 +61,13 @@ export default function WishlistPageScreen({
               clear();
               toast.success("Favorites cleared");
             }}
-            className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-primary-readable hover:underline"
           >
             Clear all
           </button>
           <Link
             href="/product"
-            className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-primary-readable hover:underline"
           >
             Continue shopping
           </Link>

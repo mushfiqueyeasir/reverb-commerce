@@ -357,6 +357,20 @@ export function SectionForm({
   const [promotionId, setPromotionId] = useState(
     strConfig(config, "promotion_id") || "__latest__",
   );
+  const [promoImage, setPromoImage] = useState<UploadedImage[]>(() =>
+    strConfig(config, "image_path")
+      ? [
+          {
+            path: strConfig(config, "image_path"),
+            alt: strConfig(config, "image_alt") || null,
+          },
+        ]
+      : [],
+  );
+  const [promoImageAlt, setPromoImageAlt] = useState(
+    strConfig(config, "image_alt"),
+  );
+  const [promoImageBusy, setPromoImageBusy] = useState(false);
   const [description, setDescription] = useState(
     strConfig(
       config,
@@ -555,6 +569,8 @@ export function SectionForm({
     if (family === "promo") {
       nextConfig.promotion_id =
         promotionId === "__latest__" ? null : promotionId;
+      nextConfig.image_path = promoImage[0]?.path ?? null;
+      nextConfig.image_alt = promoImageAlt.trim() || null;
     }
 
     startTransition(async () => {
@@ -638,7 +654,9 @@ export function SectionForm({
       </Button>
       <Button
         onClick={submit}
-        disabled={pending || storyImageBusy || aiSearchImageBusy}
+        disabled={
+          pending || storyImageBusy || aiSearchImageBusy || promoImageBusy
+        }
         className="rounded-full px-6"
       >
         {pending ? (
@@ -1198,6 +1216,37 @@ export function SectionForm({
                   />
                 </FormField>
               </div>
+              <FormField
+                label="Banner image"
+                hint="Your own homepage banner image. Independent of the promotion record used by the store popup."
+              >
+                <ImageUploader
+                  bucket={BUCKETS.branding}
+                  value={promoImage}
+                  onChange={setPromoImage}
+                  maxFiles={1}
+                  maxFileSizeMb={4}
+                  optimizeToWebp
+                  fileNamePrefix="promo-section"
+                  onBusyChange={setPromoImageBusy}
+                  disabled={pending || promoImageBusy}
+                  label="Upload banner image"
+                  preview="cover"
+                />
+              </FormField>
+              <FormField
+                label="Image alt text"
+                htmlFor="promo-image-alt"
+                hint="Optional. Used when the banner image is shown."
+              >
+                <Input
+                  id="promo-image-alt"
+                  value={promoImageAlt}
+                  onChange={(event) => setPromoImageAlt(event.target.value)}
+                  placeholder="Describe the banner image"
+                  className={adminInputClass}
+                />
+              </FormField>
             </>
           )}
 

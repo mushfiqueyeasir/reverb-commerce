@@ -114,6 +114,7 @@ export function PaymentSettings({
                 size="lg"
                 variant={draft.enabled ? "destructive" : "default"}
                 className="min-w-44 rounded-full font-semibold"
+                disabled={!currencySupported && !draft.enabled}
                 onClick={() => update(provider, { enabled: !draft.enabled })}
               >
                 {draft.enabled
@@ -139,10 +140,18 @@ export function PaymentSettings({
 
                 {!currencySupported ? (
                   <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-300">
-                    Default currency is {defaultCurrency}. Switch Commerce →
-                    Currency to {meta.requiredCurrency} before offering{" "}
-                    {meta.label}
-                    at checkout.
+                    {meta.label} requires the {meta.requiredCurrency} currency.
+                    {draft.enabled
+                      ? " It is currently hidden at checkout because the active currency is " +
+                        defaultCurrency +
+                        ". Activate " +
+                        meta.requiredCurrency +
+                        " in Commerce → Currency to offer it again."
+                      : " Activate " +
+                        meta.requiredCurrency +
+                        " in Commerce → Currency before enabling " +
+                        meta.label +
+                        "."}
                   </p>
                 ) : null}
 

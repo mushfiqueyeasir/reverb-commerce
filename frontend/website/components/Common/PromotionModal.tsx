@@ -106,7 +106,7 @@ export default function PromotionModal({ promotion }: PromotionModalProps) {
 
           <div className="flex min-h-0 flex-1 flex-col gap-4 bg-card px-6 pb-6 pt-5 sm:gap-5 sm:px-8 sm:pb-8 sm:pt-6">
             <div>
-              <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.28em] text-primary">
+              <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.28em] text-primary-readable">
                 Limited offer
               </p>
               <h2 className="font-display text-3xl font-bold leading-[0.95] tracking-tight text-foreground sm:text-4xl">
@@ -115,7 +115,7 @@ export default function PromotionModal({ promotion }: PromotionModalProps) {
               {promotion.discountPercent ? (
                 <p className="mt-2 text-xl font-semibold sm:text-2xl">
                   Up to{" "}
-                  <span className="text-primary">
+                  <span className="text-primary-readable">
                     {promotion.discountPercent}% OFF
                   </span>
                 </p>

@@ -112,7 +112,7 @@ export default function ProductCard({
                 "absolute right-3 top-3 grid size-10 place-items-center border backdrop-blur-sm transition-colors sm:right-4 sm:top-4",
                 isFavorite
                   ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-background/90 text-foreground hover:border-primary hover:text-primary",
+                  : "border-border bg-background/90 text-foreground hover:border-primary hover:text-primary-readable",
               )}
             >
               <Heart className={cn("size-4", isFavorite && "fill-current")} />

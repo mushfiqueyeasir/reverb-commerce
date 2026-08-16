@@ -120,7 +120,7 @@ export default function AboutStoryV2({
             <article className="relative border-t border-primary bg-background/95 px-0 pb-2 pt-7 sm:p-9 lg:p-12 lg:backdrop-blur-md">
               <div className="mb-9 flex items-center justify-between gap-4 font-mono text-[9px] uppercase tracking-[0.25em] text-muted-foreground sm:text-[10px]">
                 <span>From the beginning</span>
-                <span className="text-primary">
+                <span className="text-primary-readable">
                   01 — {String(paragraphs.length).padStart(2, "0")}
                 </span>
               </div>
@@ -132,7 +132,7 @@ export default function AboutStoryV2({
                       key={`${paragraph.slice(0, 36)}-${index}`}
                       className={
                         index === 0
-                          ? "font-display text-xl font-medium leading-[1.35] tracking-[-0.02em] text-foreground first-letter:float-left first-letter:mr-3 first-letter:mt-1 first-letter:text-6xl first-letter:font-bold first-letter:leading-[0.8] first-letter:text-primary sm:text-2xl"
+                          ? "font-display text-xl font-medium leading-[1.35] tracking-[-0.02em] text-foreground first-letter:float-left first-letter:mr-3 first-letter:mt-1 first-letter:text-6xl first-letter:font-bold first-letter:leading-[0.8] first-letter:text-primary-readable sm:text-2xl"
                           : undefined
                       }
                     >
