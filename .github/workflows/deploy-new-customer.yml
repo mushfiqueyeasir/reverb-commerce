@@ -7,6 +7,10 @@ on:
         description: "New store domain, for example https://www.example.com/"
         required: true
         type: string
+      subscription_tracker_project_id:
+        description: "Optional subscription tracker project ID; leave blank for personal projects"
+        required: false
+        type: string
       provision_mode:
         description: "Create a store or resume a partially created store"
         required: true
@@ -117,6 +121,7 @@ jobs:
         working-directory: backend
         env:
           SITE_URL: ${{ inputs.site_url }}
+          SUBSCRIPTION_TRACKER_PROJECT_ID: ${{ inputs.subscription_tracker_project_id }}
           PROVISION_MODE: ${{ inputs.provision_mode }}
           SUPABASE_PROJECT_REF: ${{ inputs.supabase_project_ref }}
           RELEASE_SHA: ${{ github.sha }}

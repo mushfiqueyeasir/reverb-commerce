@@ -1005,6 +1005,8 @@ commit;
     .at(-1);
   if (!schemaVersion) throw new Error("Supabase migration ledger is empty");
 
+  const subscriptionTrackerProjectId =
+    process.env.SUBSCRIPTION_TRACKER_PROJECT_ID?.trim() ?? "";
   const clientDirectory = join(clientsDirectory, "kawaii");
   mkdirSync(clientDirectory, { recursive: true });
   const tenantPath = join(clientDirectory, "tenant.json");
@@ -1055,6 +1057,7 @@ commit;
     SUPABASE_ACCESS_TOKEN: "",
     SITE_URL: sourceUrl,
     SECURITY_ENABLED: "true",
+    SUBSCRIPTION_TRACKER_PROJECT_ID: subscriptionTrackerProjectId,
   };
   const environmentBackup = {
     formatVersion: 2,
@@ -1080,6 +1083,7 @@ commit;
     SUPABASE_SERVICE_ROLE_KEY: serviceRole,
     SITE_URL: sourceUrl,
     SECURITY_ENABLED: "true",
+    SUBSCRIPTION_TRACKER_PROJECT_ID: subscriptionTrackerProjectId,
   };
   writeFileSync(
     join(repositoryRoot, "frontend", "website", ".env.kawaii"),

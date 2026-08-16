@@ -10,6 +10,7 @@ import { generateMetadata as generateSeoMetadata } from "@/utility/generateMetad
 import { getBaseSeoItem } from "@/utility/getSeoSettings";
 import { getSiteSettings } from "@/utility/getSettings";
 import { StoreBrandProvider } from "@/components/providers/StoreBrandProvider";
+import SubscriptionGate from "@/components/Common/SubscriptionGate";
 
 // Settings / palette / SEO must always reflect the latest admin edits.
 export const dynamic = "force-dynamic";
@@ -73,7 +74,9 @@ export default async function RootLayout({
       >
         <ThemeStyle tokens={tokens} />
         <StoreBrandProvider storeName={settings.store_name || "Store"}>
-          {children}
+          <SubscriptionGate storeName={settings.store_name || "Store"}>
+            {children}
+          </SubscriptionGate>
         </StoreBrandProvider>
         <AppToaster theme={light ? "light" : "dark"} />
       </body>

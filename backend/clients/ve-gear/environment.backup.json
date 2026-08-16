@@ -8,7 +8,8 @@
       "SITE_URL": "https://www.vegear.com",
       "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6bnhtcWVoeXpxd3Fma2ZneHhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2MTAwMjEsImV4cCI6MjEwMDE4NjAyMX0.hSUiarEHBMko8PUolzNzimu5s8WOrB-YF67QSKgXAV4",
       "SUPABASE_SERVICE_ROLE_KEY": "",
-      "SUPABASE_URL": "https://lznxmqehyzqwqfkfgxxh.supabase.co"
+      "SUPABASE_URL": "https://lznxmqehyzqwqfkfgxxh.supabase.co",
+      "SUBSCRIPTION_TRACKER_PROJECT_ID": ""
     },
     "frontend/website/.env.ve-gear": {
       "SECURITY_ENABLED": "true",
@@ -16,7 +17,8 @@
       "SUPABASE_ACCESS_TOKEN": "",
       "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6bnhtcWVoeXpxd3Fma2ZneHhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2MTAwMjEsImV4cCI6MjEwMDE4NjAyMX0.hSUiarEHBMko8PUolzNzimu5s8WOrB-YF67QSKgXAV4",
       "SUPABASE_SERVICE_ROLE_KEY": "",
-      "SUPABASE_URL": "https://lznxmqehyzqwqfkfgxxh.supabase.co"
+      "SUPABASE_URL": "https://lznxmqehyzqwqfkfgxxh.supabase.co",
+      "SUBSCRIPTION_TRACKER_PROJECT_ID": ""
     }
   }
 }

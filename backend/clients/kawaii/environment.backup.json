@@ -9,7 +9,8 @@
       "SUPABASE_SERVICE_ROLE_KEY": "",
       "SUPABASE_ACCESS_TOKEN": "",
       "SITE_URL": "https://kawaii.com.bd",
-      "SECURITY_ENABLED": "true"
+      "SECURITY_ENABLED": "true",
+      "SUBSCRIPTION_TRACKER_PROJECT_ID": ""
     }
   }
 }

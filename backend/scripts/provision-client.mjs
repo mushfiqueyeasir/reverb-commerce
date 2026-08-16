@@ -67,6 +67,12 @@ const environment = {
   SUPABASE_SERVICE_ROLE_KEY: secrets.SUPABASE_SERVICE_ROLE_KEY,
   SITE_URL: manifest.domains.production,
   SECURITY_ENABLED: "true",
+  ...(process.env.SUBSCRIPTION_TRACKER_PROJECT_ID?.trim()
+    ? {
+        SUBSCRIPTION_TRACKER_PROJECT_ID:
+          process.env.SUBSCRIPTION_TRACKER_PROJECT_ID.trim(),
+      }
+    : {}),
 };
 
 for (const [name, value] of Object.entries(environment)) {

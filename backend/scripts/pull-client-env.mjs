@@ -91,9 +91,16 @@ const environment = {
   SUPABASE_ANON_KEY: supabaseKeys.SUPABASE_ANON_KEY,
   SUPABASE_SERVICE_ROLE_KEY: supabaseKeys.SUPABASE_SERVICE_ROLE_KEY,
   SITE_URL: pulled.SITE_URL || manifest.domains.production,
+  SUBSCRIPTION_TRACKER_PROJECT_ID:
+    pulled.SUBSCRIPTION_TRACKER_PROJECT_ID || "",
 };
-for (const [name, value] of Object.entries(environment)) {
-  if (!value) throw new Error(`Missing required variable ${name}`);
+for (const name of [
+  "SUPABASE_URL",
+  "SUPABASE_ANON_KEY",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "SITE_URL",
+]) {
+  if (!environment[name]) throw new Error(`Missing required variable ${name}`);
 }
 
 const lines = Object.entries(environment).map(

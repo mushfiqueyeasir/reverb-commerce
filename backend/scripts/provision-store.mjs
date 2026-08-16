@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { createHash } from "node:crypto";
 import {
   existsSync,
   mkdirSync,
@@ -6,7 +7,8 @@ import {
   readdirSync,
   writeFileSync,
 } from "node:fs";
-import { basename, join } from "node:path";
+import { basename, join, relative } from "node:path";
+import { spawnSync } from "node:child_process";
 import {
   buildPlaceholderAssets,
   createSupabaseFetch,
@@ -49,6 +51,17 @@ function numericString(name, fallback) {
   return value;
 }
 
+function spawnGitHead(cwd, label) {
+  const result = spawnSync("git", ["rev-parse", "HEAD"], {
+    cwd,
+    encoding: "utf8",
+  });
+  if (result.status !== 0 || !result.stdout.trim()) {
+    throw new Error(`Unable to resolve ${label} from the Git worktree`);
+  }
+  return result.stdout.trim();
+}
+
 function output(name, value) {
   const outputPath = process.env.GITHUB_OUTPUT;
   if (outputPath) {
@@ -72,18 +85,28 @@ function getConfig() {
   if (!new Set(["provision", "resume"]).has(mode)) {
     throw new Error("PROVISION_MODE must be provision or resume");
   }
+  const deployMode = optional("VERCEL_DEPLOY_MODE", "git");
+  if (!new Set(["git", "upload"]).has(deployMode)) {
+    throw new Error("VERCEL_DEPLOY_MODE must be git or upload");
+  }
   const aliasInput = optional("ALIAS_URL");
   const aliasUrl = aliasInput
     ? normalizeHttpsUrl(aliasInput, "ALIAS_URL")
     : derived.aliasUrl;
   if (aliasUrl === siteUrl)
     throw new Error("ALIAS_URL must differ from SITE_URL");
-  const releaseSha = required("RELEASE_SHA").toLowerCase();
+  const releaseSha = optional(
+    "RELEASE_SHA",
+    deployMode === "upload"
+      ? spawnGitHead(repositoryRoot, "RELEASE_SHA")
+      : "",
+  ).toLowerCase();
   if (!/^[0-9a-f]{40}$/.test(releaseSha))
     throw new Error("RELEASE_SHA must be a full Git commit SHA");
   const config = {
     clientId,
     mode,
+    deployMode,
     displayName: optional("STORE_NAME", derived.displayName),
     siteUrl,
     aliasUrl,
@@ -94,6 +117,7 @@ function getConfig() {
     currencySymbol: optional("CURRENCY_SYMBOL", "৳"),
     shippingFlat: numericString("SHIPPING_FLAT", "80"),
     freeShippingThreshold: numericString("FREE_SHIPPING_THRESHOLD", "1000"),
+    subscriptionTrackerProjectId: optional("SUBSCRIPTION_TRACKER_PROJECT_ID"),
     supabaseToken: required("SUPABASE_ACCESS_TOKEN"),
     supabaseOrganizationSlug: optional("SUPABASE_ORG_SLUG"),
     supabaseRegion: optional("SUPABASE_REGION", "ap-southeast-1"),
@@ -115,6 +139,14 @@ function getConfig() {
     workflowRunId: optional("GITHUB_RUN_ID", "local"),
     projectName: `store-${clientId}`,
   };
+  if (
+    config.subscriptionTrackerProjectId &&
+    !/^[a-f\d]{24}$/i.test(config.subscriptionTrackerProjectId)
+  ) {
+    throw new Error(
+      "SUBSCRIPTION_TRACKER_PROJECT_ID must be a 24-character hexadecimal ID",
+    );
+  }
   if (config.supabaseProjectRef && !/^[a-z]{20}$/.test(config.supabaseProjectRef)) {
     throw new Error("SUPABASE_PROJECT_REF must be a 20-letter project ref");
   }
@@ -742,21 +774,23 @@ async function createOrResumeVercel(config, existingAtPreflight) {
     );
   }
   let project = existingAtPreflight;
-  if (project && !project.link) {
-    throw new Error(
-      "Existing Vercel project has no verified Git connection; refusing unsafe adoption",
-    );
-  }
-  if (project?.link) {
-    const [expectedOrg, expectedRepo] = config.gitRepository.split("/");
-    if (
-      project.link.org !== expectedOrg ||
-      project.link.repo !== expectedRepo ||
-      project.link.productionBranch !== "main"
-    ) {
+  if (config.deployMode === "git") {
+    if (project && !project.link) {
       throw new Error(
-        "Existing Vercel project is connected to a different Git repository or branch",
+        "Existing Vercel project has no verified Git connection; refusing unsafe adoption",
       );
+    }
+    if (project?.link) {
+      const [expectedOrg, expectedRepo] = config.gitRepository.split("/");
+      if (
+        project.link.org !== expectedOrg ||
+        project.link.repo !== expectedRepo ||
+        project.link.productionBranch !== "main"
+      ) {
+        throw new Error(
+          "Existing Vercel project is connected to a different Git repository or branch",
+        );
+      }
     }
   }
   if (!project) {
@@ -768,7 +802,9 @@ async function createOrResumeVercel(config, existingAtPreflight) {
         rootDirectory: "frontend/website",
         previewDeploymentsDisabled: true,
         enableAffectedProjectsDeployments: true,
-        gitRepository: { type: "github", repo: config.gitRepository },
+        ...(config.deployMode === "git"
+          ? { gitRepository: { type: "github", repo: config.gitRepository } }
+          : {}),
       },
     });
   }
@@ -796,6 +832,15 @@ async function setVercelEnvironment(config, projectId, projectUrl, keys) {
     ["SUPABASE_SERVICE_ROLE_KEY", keys.secretKey, "sensitive"],
     ["SITE_URL", config.siteUrl, "plain"],
     ["SECURITY_ENABLED", "true", "plain"],
+    ...(config.subscriptionTrackerProjectId
+      ? [
+          [
+            "SUBSCRIPTION_TRACKER_PROJECT_ID",
+            config.subscriptionTrackerProjectId,
+            "plain",
+          ],
+        ]
+      : []),
   ].map(([key, value, type]) => ({ key, value, type, target: ["production"] }));
   const result = await vercelRequest(
     config,
@@ -830,6 +875,92 @@ async function createDeployment(config, project) {
       },
     },
   });
+  return waitForVercelDeployment(config, deployment);
+}
+
+const UPLOAD_IGNORED = new Set([
+  ".git",
+  ".next",
+  ".vercel",
+  "node_modules",
+  "coverage",
+]);
+
+function collectWebsiteFiles() {
+  const directory = join(repositoryRoot, "frontend", "website");
+  const files = [];
+  const walk = (current) => {
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        if (UPLOAD_IGNORED.has(entry.name)) continue;
+        walk(join(current, entry.name));
+      } else if (
+        !entry.name.startsWith(".env") &&
+        !entry.name.endsWith(".tsbuildinfo") &&
+        !entry.name.endsWith(".url")
+      ) {
+        files.push(join(current, entry.name));
+      }
+    }
+  };
+  walk(directory);
+  return files;
+}
+
+async function uploadWebsiteFiles(config, files) {
+  const websiteDirectory = join(repositoryRoot, "frontend", "website");
+  const uploaded = [];
+  for (const absolute of files) {
+    const content = readFileSync(absolute);
+    const digest = createHash("sha1").update(content).digest("hex");
+    const url = vercelUrl(config, "/v2/files");
+    const response = await fetch(url, {
+      method: "POST",
+      signal: AbortSignal.timeout(120_000),
+      headers: {
+        Authorization: `Bearer ${config.vercelToken}`,
+        "Content-Type": "application/octet-stream",
+        "Content-Length": String(content.length),
+        "x-vercel-digest": digest,
+      },
+      body: content,
+    });
+    if (response.status !== 200) {
+      const text = await response.text();
+      throw new HttpError(
+        `Vercel file upload failed for ${relative(repositoryRoot, absolute)}: ${text.slice(0, 500)}`,
+        response.status,
+        text,
+      );
+    }
+    const path = `frontend/website/${relative(websiteDirectory, absolute).replaceAll("\\", "/")}`;
+    uploaded.push({ file: path, sha: digest, size: content.length });
+  }
+  return uploaded;
+}
+
+async function createUploadDeployment(config, project) {
+  const files = collectWebsiteFiles();
+  if (!files.length) throw new Error("No frontend files were found to upload");
+  const uploaded = await uploadWebsiteFiles(config, files);
+  const deployment = await vercelRequest(config, "/v13/deployments", {
+    method: "POST",
+    body: {
+      name: config.projectName,
+      project: project.id,
+      target: "production",
+      files: uploaded,
+      projectSettings: {
+        framework: "nextjs",
+        rootDirectory: "frontend/website",
+        nodeVersion: "22.x",
+      },
+    },
+  });
+  return waitForVercelDeployment(config, deployment);
+}
+
+async function waitForVercelDeployment(config, deployment) {
   if (!deployment?.id)
     throw new Error("Vercel deployment response did not include an ID");
   const deadline = Date.now() + 20 * 60_000;
@@ -1032,6 +1163,7 @@ function writeClientRegistry(config, state) {
     SUPABASE_ACCESS_TOKEN: "",
     SITE_URL: config.siteUrl,
     SECURITY_ENABLED: "true",
+    SUBSCRIPTION_TRACKER_PROJECT_ID: config.subscriptionTrackerProjectId,
   };
   const environmentBackup = {
     formatVersion: 2,
@@ -1043,7 +1175,7 @@ function writeClientRegistry(config, state) {
       [`frontend/website/.env.${config.clientId}`]: publicEnvironment,
     },
   };
-  const readme = `# ${config.displayName}\n\nProduction storefront: ${config.siteUrl}\n\nAdmin: ${config.siteUrl}/admin/login\n\nVercel project: \`${config.projectName}\`\n\nSupabase project: \`${state.projectRef}\`\n\nThe store is provisioned with sample content. Replace placeholder content and integration settings before promoting the storefront.\n\nPrivileged values are intentionally blank in \`environment.backup.json\`. Pull local credentials through the approved environment tooling; never commit service-role keys, access tokens, or passwords.\n\n## Local development\n\n\`\`\`bash\ncd backend\nnpm run client:env:pull -- --client ${config.clientId}\n\ncd ../frontend/website\nnpm run dev:client -- ${config.clientId}\n\`\`\`\n`;
+  const readme = `# ${config.displayName}\n\nProduction storefront: ${config.siteUrl}\n\nAdmin: ${config.siteUrl}/admin/login\n\nVercel project: \`${config.projectName}\`\n\nSupabase project: \`${state.projectRef}\`\n\nThe store is provisioned with sample content. Replace placeholder content and integration settings before promoting the storefront.\n\nPrivileged values are intentionally blank in \`environment.backup.json\`. Pull local credentials through the approved environment tooling; never commit service-role keys, access tokens, or passwords.\n\n## Local development\n\n\`\`\`bash\ncd backend\nnpm run client:env:pull -- --client ${config.clientId}\n\ncd ../frontend/website\nnpm run dev:client -- ${config.clientId}\n\`\`\`\n\nWhen the store was provisioned with \`VERCEL_DEPLOY_MODE=upload\` (the local \`deploy-new-customer.bat\`), these files are generated automatically:\n\n- \`frontend/website/.env.${config.clientId}\`\n- \`.client-secrets/${config.clientId}.env\`\n`;
 
   writeFileSync(
     join(directory, "tenant.json"),
@@ -1058,6 +1190,40 @@ function writeClientRegistry(config, state) {
     `${JSON.stringify(environmentBackup, null, 2)}\n`,
   );
   writeFileSync(join(directory, "README.md"), readme);
+}
+
+function writeEnvFile(path, environment) {
+  const lines = Object.entries(environment).map(
+    ([name, value]) => `${name}=${JSON.stringify(value)}`,
+  );
+  writeFileSync(path, `${lines.join("\n")}\n`);
+}
+
+function writeLocalEnvironment(config, projectUrl, keys) {
+  const websiteEnv = {
+    SUPABASE_URL: projectUrl,
+    SUPABASE_ANON_KEY: keys.publishableKey,
+    SUPABASE_SERVICE_ROLE_KEY: keys.secretKey,
+    SITE_URL: config.siteUrl,
+    SECURITY_ENABLED: "true",
+    SUBSCRIPTION_TRACKER_PROJECT_ID: config.subscriptionTrackerProjectId,
+  };
+  writeEnvFile(
+    join(repositoryRoot, "frontend", "website", `.env.${config.clientId}`),
+    websiteEnv,
+  );
+
+  const secretsDirectory = join(repositoryRoot, ".client-secrets");
+  mkdirSync(secretsDirectory, { recursive: true });
+  const secretsEnv = {
+    SUPABASE_ANON_KEY: keys.publishableKey,
+    SUPABASE_SERVICE_ROLE_KEY: keys.secretKey,
+    SUPABASE_ACCESS_TOKEN: config.supabaseToken,
+  };
+  writeEnvFile(join(secretsDirectory, `${config.clientId}.env`), secretsEnv);
+  console.log(
+    `Wrote local environment to frontend/website/.env.${config.clientId} and .client-secrets/${config.clientId}.env.`,
+  );
 }
 
 async function main() {
@@ -1104,7 +1270,10 @@ async function main() {
 
   const vercelProject = await createOrResumeVercel(config, existingVercel);
   await setVercelEnvironment(config, vercelProject.id, projectUrl, keys);
-  const deployment = await createDeployment(config, vercelProject);
+  const deployment =
+    config.deployMode === "upload"
+      ? await createUploadDeployment(config, vercelProject)
+      : await createDeployment(config, vercelProject);
   await fetchHealthy(
     `${deployment.url.startsWith("http") ? deployment.url : `https://${deployment.url}`}/api/health`,
     15,
@@ -1136,6 +1305,9 @@ async function main() {
     vercelProject,
     deployment,
   });
+  if (config.deployMode === "upload") {
+    writeLocalEnvironment(config, projectUrl, keys);
+  }
 
   output("client_id", config.clientId);
   output("client_directory", `backend/clients/${config.clientId}`);
