@@ -3,7 +3,7 @@ import { HOMEPAGE_SECTION_TYPES } from "../../type/db";
 import {
   KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS,
   LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS,
-  V2_DESIGN_HOMEPAGE_RENDERER_PATHS,
+  VOLT_GEAR_HOMEPAGE_RENDERER_PATHS,
   createHomepageRendererRegistry,
   resolveHomepageRenderer,
   resolveHomepageRendererId,
@@ -32,11 +32,11 @@ describe("homepage renderer registry", () => {
     ]);
   });
 
-  it("provides V2 Design dispatch paths only for supported types", () => {
-    expect(Object.keys(V2_DESIGN_HOMEPAGE_RENDERER_PATHS)).toEqual(
+  it("provides Volt Gear dispatch paths only for supported types", () => {
+    expect(Object.keys(VOLT_GEAR_HOMEPAGE_RENDERER_PATHS)).toEqual(
       HOMEPAGE_SECTION_TYPES.slice(0, 14),
     );
-    expect(Object.values(V2_DESIGN_HOMEPAGE_RENDERER_PATHS)).toEqual([
+    expect(Object.values(VOLT_GEAR_HOMEPAGE_RENDERER_PATHS)).toEqual([
       "banner-v2",
       "categories-v2",
       "featured-v2",

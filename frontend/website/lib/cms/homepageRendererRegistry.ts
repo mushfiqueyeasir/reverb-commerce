@@ -24,7 +24,7 @@ export const LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS = {
   richtext_v2: "richtext-classic",
 } as const satisfies HomepageRendererIdMapping;
 
-export const V2_DESIGN_HOMEPAGE_RENDERER_PATHS = {
+export const VOLT_GEAR_HOMEPAGE_RENDERER_PATHS = {
   banner: "banner-v2",
   categories: "categories-v2",
   deals: "featured-v2",

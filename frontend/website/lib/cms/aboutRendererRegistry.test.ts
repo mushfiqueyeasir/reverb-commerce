@@ -4,7 +4,7 @@ import {
   KAWAII_FASHION_ABOUT_RENDERER_PATHS,
   LEGACY_CLASSIC_ABOUT_RENDERER_PATHS,
   SOURCE_VERSION_ABOUT_RENDERER_PATHS,
-  V2_DESIGN_ABOUT_RENDERER_PATHS,
+  VOLT_GEAR_ABOUT_RENDERER_PATHS,
   createAboutRendererRegistry,
   resolveAboutRenderer,
   resolveAboutRendererId,
@@ -49,12 +49,14 @@ describe("about renderer registry", () => {
     ).toEqual([...V1_RENDERER_IDS, ...V1_RENDERER_IDS]);
   });
 
-  it("maps all 12 source types to V2 renderers", () => {
-    expect(Object.keys(V2_DESIGN_ABOUT_RENDERER_PATHS)).toEqual(
+  it("maps all 12 source types to Volt Gear renderers", () => {
+    expect(Object.keys(VOLT_GEAR_ABOUT_RENDERER_PATHS)).toEqual(
       ABOUT_SECTION_TYPES,
     );
     expect(
-      ABOUT_SECTION_TYPES.map((type) => V2_DESIGN_ABOUT_RENDERER_PATHS[type]),
+      ABOUT_SECTION_TYPES.map(
+        (type) => VOLT_GEAR_ABOUT_RENDERER_PATHS[type],
+      ),
     ).toEqual([...V2_RENDERER_IDS, ...V2_RENDERER_IDS]);
   });
 

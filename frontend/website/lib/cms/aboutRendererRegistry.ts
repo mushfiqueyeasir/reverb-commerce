@@ -35,7 +35,7 @@ export const LEGACY_CLASSIC_ABOUT_RENDERER_PATHS = {
   cta_v2: "cta-v1",
 } as const satisfies Record<AboutSectionType, string>;
 
-export const V2_DESIGN_ABOUT_RENDERER_PATHS = {
+export const VOLT_GEAR_ABOUT_RENDERER_PATHS = {
   hero: "hero-v2",
   stats: "stats-v2",
   story: "story-v2",

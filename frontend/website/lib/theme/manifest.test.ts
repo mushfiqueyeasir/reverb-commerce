@@ -15,10 +15,11 @@ import {
   KAWAII_FASHION_THEME,
   LEGACY_CLASSIC_SHAPE,
   LEGACY_CLASSIC_THEME,
+  STOREFRONT_THEME_REGISTRY,
   THEME_ABOUT_SECTION_TYPES,
   THEME_HOMEPAGE_SECTION_TYPES,
-  V2_DESIGN_SHAPE,
-  V2_DESIGN_THEME,
+  VOLT_GEAR_SHAPE,
+  VOLT_GEAR_THEME,
   createDefaultStorefrontThemeConfig,
   getStorefrontThemeManifest,
   normalizeStorefrontThemeConfig,
@@ -104,15 +105,17 @@ describe("storefront theme manifest", () => {
       AVAILABLE_STOREFRONT_THEMES.map(({ id, version }) => ({ id, version })),
     ).toEqual([
       { id: "legacy-classic", version: 1 },
-      { id: "v2-design", version: 1 },
+      { id: "volt-gear", version: 1 },
       { id: "kawaii-fashion", version: 1 },
     ]);
     expect(LEGACY_CLASSIC_THEME.displayName).toBe("Tee Drop Classic");
     expect(LEGACY_CLASSIC_THEME.id).toBe("legacy-classic");
     expect(KAWAII_FASHION_THEME.displayName).toBe("Kawaii Fashion");
     expect(KAWAII_FASHION_THEME.id).toBe("kawaii-fashion");
+    expect(VOLT_GEAR_THEME.displayName).toBe("Volt Gear");
+    expect(VOLT_GEAR_THEME.id).toBe("volt-gear");
     expect(LEGACY_CLASSIC_THEME.defaultTokens.palette).toEqual(DEFAULT_PALETTE);
-    expect(V2_DESIGN_THEME.defaultTokens.palette).toEqual(DEFAULT_PALETTE);
+    expect(VOLT_GEAR_THEME.defaultTokens.palette).toEqual(DEFAULT_PALETTE);
     expect(KAWAII_FASHION_THEME.defaultTokens.palette).toEqual({
       ...KAWAII_WHITE_PALETTE,
       primaryForeground: "#050505",
@@ -120,14 +123,14 @@ describe("storefront theme manifest", () => {
     expect(LEGACY_CLASSIC_THEME.defaultTokens.shape).toEqual(
       LEGACY_CLASSIC_SHAPE,
     );
-    expect(V2_DESIGN_THEME.defaultTokens.shape).toEqual(V2_DESIGN_SHAPE);
+    expect(VOLT_GEAR_THEME.defaultTokens.shape).toEqual(VOLT_GEAR_SHAPE);
     expect(KAWAII_FASHION_THEME.defaultTokens.shape).toEqual(
       KAWAII_FASHION_SHAPE,
     );
     expect(LEGACY_CLASSIC_THEME.renderers.navbar).toBe("legacy-classic.navbar");
     expect(LEGACY_CLASSIC_THEME.renderers.footer).toBe("legacy-classic.footer");
-    expect(V2_DESIGN_THEME.renderers.navbar).toBe("v2-design.navbar");
-    expect(V2_DESIGN_THEME.renderers.footer).toBe("v2-design.footer");
+    expect(VOLT_GEAR_THEME.renderers.navbar).toBe("volt-gear.navbar");
+    expect(VOLT_GEAR_THEME.renderers.footer).toBe("volt-gear.footer");
     expect(KAWAII_FASHION_THEME.renderers.navbar).toBe("kawaii-fashion.navbar");
     expect(KAWAII_FASHION_THEME.renderers.footer).toBe("kawaii-fashion.footer");
     expect(THEME_HOMEPAGE_SECTION_TYPES).toEqual([
@@ -184,7 +187,7 @@ describe("storefront theme manifest", () => {
       THEME_HOMEPAGE_SECTION_TYPES,
     ],
     [
-      V2_DESIGN_THEME,
+      VOLT_GEAR_THEME,
       V2_HOMEPAGE_MAPPING,
       V2_ABOUT_MAPPING,
       THEME_HOMEPAGE_SECTION_TYPES,
@@ -222,6 +225,13 @@ describe("storefront theme manifest", () => {
       LEGACY_CLASSIC_THEME,
     );
   });
+
+  it("resolves the legacy v2-design id to Volt Gear", () => {
+    expect(getStorefrontThemeManifest("v2-design")).toBe(VOLT_GEAR_THEME);
+    expect(getStorefrontThemeManifest("v2-design", 1)).toBe(VOLT_GEAR_THEME);
+    expect(getStorefrontThemeManifest("volt-gear")).toBe(VOLT_GEAR_THEME);
+    expect(STOREFRONT_THEME_REGISTRY["v2-design"]).toBe(VOLT_GEAR_THEME);
+  });
 });
 
 describe("normalizeStorefrontThemeConfig", () => {
@@ -248,7 +258,7 @@ describe("normalizeStorefrontThemeConfig", () => {
     expect(result.errors).toContain("Theme is unknown or unavailable.");
   });
 
-  it.each(["legacy-classic", "v2-design", "kawaii-fashion"])(
+  it.each(["legacy-classic", "volt-gear", "kawaii-fashion"])(
     "accepts installed %s version 1 configuration",
     (themeId) => {
       const result = normalizeStorefrontThemeConfigWithResult({
@@ -296,7 +306,7 @@ describe("normalizeStorefrontThemeConfig", () => {
     );
   });
 
-  it.each([LEGACY_CLASSIC_THEME, V2_DESIGN_THEME, KAWAII_FASHION_THEME])(
+  it.each([LEGACY_CLASSIC_THEME, VOLT_GEAR_THEME, KAWAII_FASHION_THEME])(
     "always resolves non-primary tokens from $id defaults",
     (theme) => {
       const config = {

@@ -69,7 +69,7 @@ describe("getPalettePresets", () => {
 
   it("keeps the global presets unchanged for other themes", () => {
     expect(getPalettePresets("legacy-classic")).toEqual(PALETTE_PRESETS);
-    expect(getPalettePresets("v2-design")).toEqual(PALETTE_PRESETS);
+    expect(getPalettePresets("volt-gear")).toEqual(PALETTE_PRESETS);
     expect(PALETTE_PRESETS.some((preset) => preset.id === "daylight")).toBe(
       true,
     );

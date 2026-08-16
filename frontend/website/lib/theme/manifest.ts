@@ -4,12 +4,12 @@ import type { HomepageSectionFamily } from "../cms/homepageSections";
 import {
   KAWAII_FASHION_ABOUT_RENDERER_PATHS,
   LEGACY_CLASSIC_ABOUT_RENDERER_PATHS,
-  V2_DESIGN_ABOUT_RENDERER_PATHS,
+  VOLT_GEAR_ABOUT_RENDERER_PATHS,
 } from "../cms/aboutRendererRegistry";
 import {
   KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS,
   LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS,
-  V2_DESIGN_HOMEPAGE_RENDERER_PATHS,
+  VOLT_GEAR_HOMEPAGE_RENDERER_PATHS,
   type HomepageRendererIdMapping,
 } from "../cms/homepageRendererRegistry";
 import {
@@ -152,12 +152,12 @@ const LEGACY_ABOUT_RENDERERS: Record<AboutSectionType, string> = {
   ...LEGACY_CLASSIC_ABOUT_RENDERER_PATHS,
 };
 
-const V2_HOMEPAGE_RENDERERS: HomepageRendererIdMapping = {
-  ...V2_DESIGN_HOMEPAGE_RENDERER_PATHS,
+const VOLT_GEAR_HOMEPAGE_RENDERERS: HomepageRendererIdMapping = {
+  ...VOLT_GEAR_HOMEPAGE_RENDERER_PATHS,
 };
 
-const V2_ABOUT_RENDERERS: Record<AboutSectionType, string> = {
-  ...V2_DESIGN_ABOUT_RENDERER_PATHS,
+const VOLT_GEAR_ABOUT_RENDERERS: Record<AboutSectionType, string> = {
+  ...VOLT_GEAR_ABOUT_RENDERER_PATHS,
 };
 
 const KAWAII_FASHION_HOMEPAGE_RENDERERS: HomepageRendererIdMapping = {
@@ -213,7 +213,7 @@ export const LEGACY_CLASSIC_SHAPE: ThemeShapeTokens = {
   },
 };
 
-export const V2_DESIGN_SHAPE: ThemeShapeTokens = {
+export const VOLT_GEAR_SHAPE: ThemeShapeTokens = {
   radius: {
     sm: "12px",
     md: "16px",
@@ -323,21 +323,21 @@ export const LEGACY_CLASSIC_THEME: StorefrontThemeManifest = {
   },
 };
 
-export const V2_DESIGN_THEME: StorefrontThemeManifest = {
-  id: "v2-design",
+export const VOLT_GEAR_THEME: StorefrontThemeManifest = {
+  id: "volt-gear",
   schemaVersion: STOREFRONT_THEME_SCHEMA_VERSION,
   version: 1,
-  displayName: "V2 Design",
-  category: "V2 storefront",
+  displayName: "Volt Gear",
+  category: "Mobile covers & gadget accessories",
   description:
-    "The V2 Reverb storefront package with complete homepage and About coverage.",
+    "A dark, premium storefront for phone cases, covers, chargers, and everyday gadget accessories.",
   defaultTokens: {
     palette: { ...DEFAULT_PALETTE },
-    shape: V2_DESIGN_SHAPE,
+    shape: VOLT_GEAR_SHAPE,
   },
   productCardVariant: "default",
   admin: {
-    browserAddress: "teedrop.store",
+    browserAddress: "voltgear.store",
     homepageSectionLabels: {},
     featuredLimit: null,
     maxMosaicCategories: 4,
@@ -345,20 +345,20 @@ export const V2_DESIGN_THEME: StorefrontThemeManifest = {
   },
   preview: {
     fixture: "tee-drop",
-    storeName: "TeeDrop",
-    contactEmail: "hello@teedrop.store",
+    storeName: "Volt Gear",
+    contactEmail: "hello@voltgear.store",
     contactPhone: "+880 1700-000000",
-    freeShippingThreshold: 2000,
+    freeShippingThreshold: 1500,
     announcementText: null,
     announcementUrl: null,
     footerDescription:
-      "Premium graphic T-shirts, heavyweight cotton, and limited streetwear drops made for the road.",
+      "Tough phone cases, fast chargers, and everyday gadget gear engineered to keep up with your device.",
   },
   renderers: {
-    navbar: "v2-design.navbar",
-    footer: "v2-design.footer",
-    homepageSections: V2_HOMEPAGE_RENDERERS,
-    aboutSections: V2_ABOUT_RENDERERS,
+    navbar: "volt-gear.navbar",
+    footer: "volt-gear.footer",
+    homepageSections: VOLT_GEAR_HOMEPAGE_RENDERERS,
+    aboutSections: VOLT_GEAR_ABOUT_RENDERERS,
   },
   compatibility: {
     storefrontApiVersion: 1,
@@ -367,24 +367,24 @@ export const V2_DESIGN_THEME: StorefrontThemeManifest = {
   },
   slots: {
     navbar: {
-      rendererId: "v2-design.navbar",
+      rendererId: "volt-gear.navbar",
       required: true,
       accepts: ["classic", "centered"],
     },
     footer: {
-      rendererId: "v2-design.footer",
+      rendererId: "volt-gear.footer",
       required: true,
       accepts: ["classic", "compact"],
     },
     homepage: {
-      rendererId: "v2-design.homepage",
+      rendererId: "volt-gear.homepage",
       required: true,
       accepts: ["homepage-section-v1", "homepage-section-v2"],
       sectionTypes: THEME_HOMEPAGE_SECTION_TYPES,
       allowsRepeatedSections: false,
     },
     about: {
-      rendererId: "v2-design.about",
+      rendererId: "volt-gear.about",
       required: true,
       accepts: ["about-section-v1", "about-section-v2"],
       sectionTypes: THEME_ABOUT_SECTION_TYPES,
@@ -531,39 +531,71 @@ export const KAWAII_FASHION_THEME: StorefrontThemeManifest = {
 
 const INSTALLED_STOREFRONT_THEME_VERSIONS = [
   LEGACY_CLASSIC_THEME,
-  V2_DESIGN_THEME,
+  VOLT_GEAR_THEME,
   KAWAII_FASHION_THEME,
 ] as const;
 
 export const AVAILABLE_STOREFRONT_THEMES = [
   LEGACY_CLASSIC_THEME,
-  V2_DESIGN_THEME,
+  VOLT_GEAR_THEME,
   KAWAII_FASHION_THEME,
 ] as const;
 
+/**
+ * Legacy ids kept resolving to their successor so already-published
+ * storefront theme configs never silently fall back to a different theme.
+ */
+export const STOREFRONT_THEME_ID_ALIASES: Readonly<Record<string, string>> = {
+  "v2-design": "volt-gear",
+};
+
+export function resolveStorefrontThemeId(
+  themeId: unknown,
+): string | undefined {
+  if (typeof themeId !== "string" || !themeId.trim()) return undefined;
+  const trimmed = themeId.trim();
+  return STOREFRONT_THEME_ID_ALIASES[trimmed] ?? trimmed;
+}
+
 export const STOREFRONT_THEME_REGISTRY: Readonly<
   Record<string, StorefrontThemeManifest>
-> = Object.fromEntries(
-  AVAILABLE_STOREFRONT_THEMES.map((theme) => [theme.id, theme]),
-);
+> = (() => {
+  const registry: Record<string, StorefrontThemeManifest> = Object.fromEntries(
+    AVAILABLE_STOREFRONT_THEMES.map((theme) => [theme.id, theme]),
+  );
+  for (const [alias, targetId] of Object.entries(STOREFRONT_THEME_ID_ALIASES)) {
+    const target = registry[targetId];
+    if (target) registry[alias] = target;
+  }
+  return registry;
+})();
 
 export const STOREFRONT_THEME_VERSION_REGISTRY: Readonly<
   Record<string, StorefrontThemeManifest>
-> = Object.fromEntries(
-  INSTALLED_STOREFRONT_THEME_VERSIONS.map((theme) => [
-    `${theme.id}@${theme.version}`,
-    theme,
-  ]),
-);
+> = (() => {
+  const registry: Record<string, StorefrontThemeManifest> = Object.fromEntries(
+    INSTALLED_STOREFRONT_THEME_VERSIONS.map((theme) => [
+      `${theme.id}@${theme.version}`,
+      theme,
+    ]),
+  );
+  for (const [alias, targetId] of Object.entries(STOREFRONT_THEME_ID_ALIASES)) {
+    for (const theme of INSTALLED_STOREFRONT_THEME_VERSIONS) {
+      if (theme.id === targetId) registry[`${alias}@${theme.version}`] = theme;
+    }
+  }
+  return registry;
+})();
 
 function findStorefrontThemeManifest(
   themeId: unknown,
   themeVersion: unknown,
 ): StorefrontThemeManifest | undefined {
-  if (typeof themeId !== "string" || !Number.isSafeInteger(themeVersion)) {
+  const resolvedId = resolveStorefrontThemeId(themeId);
+  if (!resolvedId || !Number.isSafeInteger(themeVersion)) {
     return undefined;
   }
-  return STOREFRONT_THEME_VERSION_REGISTRY[`${themeId}@${themeVersion}`];
+  return STOREFRONT_THEME_VERSION_REGISTRY[`${resolvedId}@${themeVersion}`];
 }
 
 export interface StorefrontThemeConfig {
@@ -699,8 +731,9 @@ export function getStorefrontThemeManifest(
       findStorefrontThemeManifest(themeId, themeVersion) ?? LEGACY_CLASSIC_THEME
     );
   }
-  return typeof themeId === "string" && STOREFRONT_THEME_REGISTRY[themeId]
-    ? STOREFRONT_THEME_REGISTRY[themeId]
+  const resolvedId = resolveStorefrontThemeId(themeId);
+  return resolvedId && STOREFRONT_THEME_REGISTRY[resolvedId]
+    ? STOREFRONT_THEME_REGISTRY[resolvedId]
     : LEGACY_CLASSIC_THEME;
 }
 
