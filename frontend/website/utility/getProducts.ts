@@ -57,6 +57,77 @@ const PRODUCT_SELECT_LEGACY = `
   product_categories ( categories ( id, name, slug, description ) )
 `;
 
+const HOMEPAGE_PRODUCT_LIMIT = 10;
+
+interface HomepageProductSummary {
+  id: string;
+  original_price: number;
+  current_price: number;
+  created_at: string;
+  sort?: number | null;
+  product_variants: { stock_quantity: number }[] | null;
+}
+
+function homepageDiscount(product: HomepageProductSummary) {
+  const originalPrice = Number(product.original_price);
+  const currentPrice = Number(product.current_price);
+  if (
+    !Number.isFinite(originalPrice) ||
+    !Number.isFinite(currentPrice) ||
+    originalPrice <= 0 ||
+    currentPrice < 0 ||
+    currentPrice >= originalPrice
+  ) {
+    return 0;
+  }
+  return (originalPrice - currentPrice) / originalPrice;
+}
+
+function homepageHasStock(product: HomepageProductSummary) {
+  return (product.product_variants ?? []).some(
+    (variant) => variant.stock_quantity > 0,
+  );
+}
+
+function compareHomepageFeatured(
+  a: HomepageProductSummary,
+  b: HomepageProductSummary,
+) {
+  return (
+    Number(a.sort ?? 0) - Number(b.sort ?? 0) ||
+    Date.parse(b.created_at) - Date.parse(a.created_at) ||
+    a.id.localeCompare(b.id)
+  );
+}
+
+function selectHomepageProductIds(products: HomepageProductSummary[]) {
+  const takeAvailableFirst = (ranked: HomepageProductSummary[]) =>
+    [
+      ...ranked.filter(homepageHasStock),
+      ...ranked.filter((product) => !homepageHasStock(product)),
+    ].slice(0, HOMEPAGE_PRODUCT_LIMIT);
+  const featured = [...products].sort(compareHomepageFeatured);
+  const newArrivals = [...products].sort(
+    (a, b) =>
+      Date.parse(b.created_at) - Date.parse(a.created_at) ||
+      compareHomepageFeatured(a, b),
+  );
+  const deals = products
+    .filter((product) => homepageDiscount(product) > 0)
+    .sort(
+      (a, b) =>
+        homepageDiscount(b) - homepageDiscount(a) ||
+        compareHomepageFeatured(a, b),
+    );
+  return [
+    ...new Set(
+      [featured, newArrivals, deals]
+        .flatMap(takeAvailableFirst)
+        .map((product) => product.id),
+    ),
+  ];
+}
+
 function mapStock(variants: RawProduct["product_variants"]): ProductStock[] {
   return variants.map((variant) => ({
     id: variant.id,
@@ -204,6 +275,66 @@ export async function getProductsPage(
     total: count ?? 0,
     maxCatalogPrice: Number(maxPriceResult.data?.current_price ?? 0),
   };
+}
+
+export async function getHomepageProducts(): Promise<Product[]> {
+  const supabase = await createSupabaseServerClient();
+  const ordered = await supabase
+    .from("products")
+    .select(
+      "id, original_price, current_price, created_at, sort, product_variants ( stock_quantity )",
+    )
+    .eq("status", "active")
+    .order("sort", { ascending: true })
+    .order("created_at", { ascending: false });
+
+  let summaries: HomepageProductSummary[];
+  if (ordered.error) {
+    const fallback = await supabase
+      .from("products")
+      .select(
+        "id, original_price, current_price, created_at, product_variants ( stock_quantity )",
+      )
+      .eq("status", "active")
+      .order("created_at", { ascending: false });
+    if (fallback.error) throw fallback.error;
+    summaries =
+      (fallback.data as unknown as HomepageProductSummary[] | null) ?? [];
+  } else {
+    summaries =
+      (ordered.data as unknown as HomepageProductSummary[] | null) ?? [];
+  }
+
+  const productIds = selectHomepageProductIds(summaries);
+  if (productIds.length === 0) return [];
+
+  const fullResult = await supabase
+    .from("products")
+    .select(PRODUCT_SELECT)
+    .eq("status", "active")
+    .in("id", productIds);
+  let data: unknown = fullResult.data;
+  let error = fullResult.error;
+
+  if (error && /(size_chart|sizing_mode)/i.test(error.message)) {
+    const legacyResult = await supabase
+      .from("products")
+      .select(PRODUCT_SELECT_LEGACY)
+      .eq("status", "active")
+      .in("id", productIds);
+    data = legacyResult.data;
+    error = legacyResult.error;
+  }
+
+  if (error) throw error;
+  const byId = new Map(
+    ((data as RawProduct[]) ?? [])
+      .map(mapProduct)
+      .map((product) => [product._id, product] as const),
+  );
+  return productIds
+    .map((productId) => byId.get(productId))
+    .filter((product): product is Product => Boolean(product));
 }
 
 export async function getProducts(): Promise<Product[]> {

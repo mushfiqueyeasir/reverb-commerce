@@ -86,9 +86,6 @@ export function useMarqueeCarousel(
     }
     const el = trackRef.current;
     if (!el) return;
-    cancelAnimationFrame(autoScrollFrameRef.current);
-    cancelAnimationFrame(momentumFrameRef.current);
-    setSettling(false);
     suppressClickRef.current = false;
     const now = performance.now();
     dragState.current = {
@@ -100,8 +97,6 @@ export function useMarqueeCarousel(
       velocity: 0,
       moved: false,
     };
-    setDragging(true);
-    el.setPointerCapture(event.pointerId);
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -112,6 +107,11 @@ export function useMarqueeCarousel(
     if (!drag.moved && Math.abs(dx) > DRAG_THRESHOLD) {
       drag.moved = true;
       suppressClickRef.current = true;
+      cancelAnimationFrame(autoScrollFrameRef.current);
+      cancelAnimationFrame(momentumFrameRef.current);
+      setSettling(false);
+      setDragging(true);
+      el.setPointerCapture(event.pointerId);
     }
     if (!drag.moved) return;
     event.preventDefault();

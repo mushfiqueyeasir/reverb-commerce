@@ -68,7 +68,7 @@ describe("category hierarchy", () => {
         flattenCategoryHierarchy(categories),
         new Set(["grandchild", "default"]),
       ).map((item) => item._id),
-    ).toEqual(["default", "root", "parent", "child-a", "grandchild"]);
+    ).toEqual(["default", "parent", "child-a", "grandchild"]);
   });
 
   it("keeps the default category even when it has no product links", () => {
@@ -77,16 +77,16 @@ describe("category hierarchy", () => {
         flattenCategoryHierarchy(categories),
         new Set(["grandchild"]),
       ).map((item) => item._id),
-    ).toEqual(["default", "root", "parent", "child-a", "grandchild"]);
+    ).toEqual(["default", "parent", "child-a", "grandchild"]);
   });
 
-  it("keeps root categories even when they have no product links", () => {
+  it("removes root categories when they have no product links", () => {
     expect(
       filterCategoriesWithProductLinks(
         flattenCategoryHierarchy(categories),
         new Set(["child-a"]),
       ).map((item) => item._id),
-    ).toEqual(["default", "root", "parent", "child-a"]);
+    ).toEqual(["default", "parent", "child-a"]);
   });
 
   it("builds category breadcrumbs", () => {

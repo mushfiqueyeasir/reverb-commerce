@@ -4,7 +4,7 @@ import { getStorefrontThemePackage } from "@/components/themes/registry";
 import { getStorefrontThemeManifest } from "@/lib/theme/manifest";
 import { readCurrentPublishedStorefrontTheme } from "@/lib/theme/store";
 import { getStorefrontCategories } from "@/utility/getCategory";
-import { getProducts, transformProduct } from "@/utility/getProducts";
+import { getHomepageProducts, transformProduct } from "@/utility/getProducts";
 import { getReviews, transformReview } from "@/utility/getReview";
 import { getBanners } from "@/utility/getBanners";
 import { getHomepageSections } from "@/utility/getHomepageSections";
@@ -39,7 +39,7 @@ export default async function HomePage() {
     getBanners("banner_v2"),
     getHomepageSections(),
     getStorefrontCategories(),
-    getProducts(),
+    getHomepageProducts(),
     getReviews(),
     getPromotions(),
     getAiSearchSettings(),
