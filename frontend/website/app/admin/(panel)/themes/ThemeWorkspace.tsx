@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { STOREFRONT_THEME_REGISTRY } from "@/lib/theme/manifest";
 import { applyStorefrontTheme } from "./actions";
+import { ScaledThemePreview } from "./ScaledThemePreview";
 
 const PRIMARY_PRESETS = [
   "#dc2626",
@@ -215,11 +216,10 @@ export function ThemeWorkspace({
                 {browserAddress}
               </div>
             </div>
-            <iframe
+            <ScaledThemePreview
+              viewport="desktop"
               title={`${themeName} desktop storefront preview`}
               src={previewUrl}
-              tabIndex={-1}
-              className="h-[min(72vh,720px)] w-full border-0 bg-[#050505]"
             />
           </div>
         </div>
@@ -228,19 +228,18 @@ export function ThemeWorkspace({
           <p className="text-center text-sm font-medium text-foreground">
             Phone storefront
           </p>
-          <div className="relative mx-auto aspect-[9/19] w-full max-w-[390px] rounded-[46px] bg-[#050505] p-[9px] shadow-[0_24px_70px_-24px_rgba(0,0,0,0.85)] ring-1 ring-white/15">
+          <div className="relative mx-auto w-full max-w-[390px] rounded-[46px] bg-[#050505] p-[9px] shadow-[0_24px_70px_-24px_rgba(0,0,0,0.85)] ring-1 ring-white/15">
             <span className="absolute -left-[3px] top-28 h-14 w-[3px] rounded-l-sm bg-[#1d1d1d]" />
             <span className="absolute -left-[3px] top-48 h-20 w-[3px] rounded-l-sm bg-[#1d1d1d]" />
             <span className="absolute -right-[3px] top-40 h-24 w-[3px] rounded-r-sm bg-[#1d1d1d]" />
-            <div className="relative h-full overflow-hidden rounded-[37px] bg-black ring-1 ring-white/10">
+            <div className="relative overflow-hidden rounded-[37px] bg-black ring-1 ring-white/10">
               <div className="pointer-events-none absolute left-1/2 top-2 z-20 flex h-6 w-24 -translate-x-1/2 items-center justify-end rounded-full bg-black px-2 shadow-lg">
                 <span className="size-1.5 rounded-full bg-[#1e293b] ring-1 ring-white/10" />
               </div>
-              <iframe
+              <ScaledThemePreview
+                viewport="phone"
                 title={`${themeName} phone storefront preview`}
                 src={previewUrl}
-                tabIndex={-1}
-                className="h-full w-full border-0 bg-[#050505]"
               />
               <div className="pointer-events-none absolute bottom-1 left-1/2 z-20 h-1 w-20 -translate-x-1/2 rounded-full bg-white/80" />
             </div>

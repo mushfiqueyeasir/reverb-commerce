@@ -9,6 +9,7 @@ import {
 } from "@/lib/theme/manifest";
 import { readCurrentPublishedStorefrontTheme } from "@/lib/theme/store";
 import { cn } from "@/lib/utils";
+import { ScaledThemePreview } from "./ScaledThemePreview";
 
 export const dynamic = "force-dynamic";
 
@@ -62,14 +63,13 @@ export default async function ThemesAdminPage() {
                     </span>
                     <MonitorSmartphone className="ml-1 size-3.5 text-muted-foreground" />
                   </div>
-                  <div className="relative aspect-[4/3] overflow-hidden bg-[#050505]">
-                    <iframe
+                  <div className="relative overflow-hidden bg-[#050505]">
+                    <ScaledThemePreview
+                      viewport="desktop"
                       title={`${theme.displayName} scaled desktop component preview`}
                       src={previewUrl}
-                      tabIndex={-1}
                       loading="lazy"
-                      aria-hidden="true"
-                      className="pointer-events-none absolute left-0 top-0 h-[400%] w-[400%] origin-top-left scale-[0.25] border-0 bg-[#050505]"
+                      interactive={false}
                     />
                     <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between p-3">
                       <Badge

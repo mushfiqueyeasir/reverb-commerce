@@ -102,14 +102,15 @@ const V2_ABOUT_MAPPING = {
 };
 
 describe("storefront theme manifest", () => {
-  it("exposes exactly three complete version 1 theme packages", () => {
-    expect(AVAILABLE_STOREFRONT_THEMES).toHaveLength(3);
+  it("exposes exactly four complete version 1 theme packages", () => {
+    expect(AVAILABLE_STOREFRONT_THEMES).toHaveLength(4);
     expect(
       AVAILABLE_STOREFRONT_THEMES.map(({ id, version }) => ({ id, version })),
     ).toEqual([
       { id: "legacy-classic", version: 1 },
       { id: "volt-gear", version: 1 },
       { id: "kawaii-fashion", version: 1 },
+      { id: "zaro-fashion", version: 1 },
     ]);
     expect(LEGACY_CLASSIC_THEME.displayName).toBe("Tee Drop Classic");
     expect(LEGACY_CLASSIC_THEME.id).toBe("legacy-classic");

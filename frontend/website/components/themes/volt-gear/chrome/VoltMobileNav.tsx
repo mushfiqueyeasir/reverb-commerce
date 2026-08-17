@@ -45,7 +45,7 @@ export default function VoltMobileNav({
           href="/product"
           aria-label={copy.mobileShopLabel}
           aria-current={isActivePath(pathname, "/product") ? "page" : undefined}
-          className="group relative -mt-8 grid size-16 shrink-0 place-items-center rounded-[2.5rem] bg-primary text-primary-foreground shadow-[0_14px_34px_-10px_rgb(var(--primary-rgb)/0.8)] ring-4 ring-background transition-transform duration-200 active:scale-95"
+          className="group relative -mt-8 grid size-16 shrink-0 place-items-center rounded-[9999px] bg-primary text-primary-foreground shadow-[0_14px_34px_-10px_rgb(var(--primary-rgb)/0.8)] ring-4 ring-background transition-transform duration-200 active:scale-95"
         >
           <Zap className="size-7" fill="currentColor" />
         </Link>

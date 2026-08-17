@@ -36,7 +36,7 @@ export default function MobileBottomNav({
           aria-label="Shop"
           aria-current={shopActive ? "page" : undefined}
           className={cn(
-            "absolute left-1/2 top-1 z-20 grid size-16 -translate-x-1/2 place-items-center rounded-full",
+            "absolute left-1/2 top-1 z-20 grid size-16 -translate-x-1/2 place-items-center rounded-[9999px]",
             "bg-primary text-primary-foreground",
             "border-[5px] border-white/20",
             "shadow-[0_10px_28px_rgb(var(--primary-rgb)/0.45)]",

@@ -525,7 +525,7 @@ function MobileTab({
         className={cn(
           "relative grid place-items-center",
           featured &&
-            "-mt-7 size-16 rounded-full border-4 border-background bg-primary text-primary-foreground shadow-md",
+            "-mt-7 size-16 rounded-[9999px] border-4 border-background bg-primary text-primary-foreground shadow-md",
         )}
       >
         {icon}
