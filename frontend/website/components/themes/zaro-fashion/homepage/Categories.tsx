@@ -1,13 +1,13 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import {
   motion,
+  useMotionValue,
   useReducedMotion,
-  useScroll,
   useTransform,
 } from "motion/react";
 import { safeZaroHref } from "@/components/themes/zaro-fashion/safeHref";
@@ -29,6 +29,46 @@ function categoryHref(category: Category) {
   return category.isDefault || !slug
     ? "/product"
     : `/product?category=${encodeURIComponent(slug)}`;
+}
+
+function useSectionScrollProgress(sectionRef: RefObject<HTMLElement | null>) {
+  const progress = useMotionValue(0);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const container = section.closest<HTMLElement>(
+      "[data-radix-scroll-area-viewport]",
+    );
+    const scrollTarget: HTMLElement | Window = container ?? window;
+
+    const update = () => {
+      const viewportHeight = container?.clientHeight ?? window.innerHeight;
+      const sectionTop = container
+        ? section.getBoundingClientRect().top -
+          container.getBoundingClientRect().top +
+          container.scrollTop
+        : section.getBoundingClientRect().top + window.scrollY;
+      const scrollTop = container?.scrollTop ?? window.scrollY;
+      const travel = Math.max(1, section.offsetHeight - viewportHeight);
+      progress.set(Math.min(1, Math.max(0, (scrollTop - sectionTop) / travel)));
+    };
+
+    update();
+    scrollTarget.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    const observer = new ResizeObserver(update);
+    observer.observe(section);
+    if (container) observer.observe(container);
+
+    return () => {
+      scrollTarget.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      observer.disconnect();
+    };
+  }, [progress, sectionRef]);
+
+  return progress;
 }
 
 function CollectionCard({
@@ -116,10 +156,7 @@ export default function ZaroFeaturedCollections({
 }: ZaroFeaturedCollectionsProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const reduceMotion = Boolean(useReducedMotion());
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end end"],
-  });
+  const scrollYProgress = useSectionScrollProgress(sectionRef);
   const stripX = useTransform(
     scrollYProgress,
     [0, 0.24, 0.62, 1],
