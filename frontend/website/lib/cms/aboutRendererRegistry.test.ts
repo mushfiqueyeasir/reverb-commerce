@@ -54,9 +54,7 @@ describe("about renderer registry", () => {
       ABOUT_SECTION_TYPES,
     );
     expect(
-      ABOUT_SECTION_TYPES.map(
-        (type) => VOLT_GEAR_ABOUT_RENDERER_PATHS[type],
-      ),
+      ABOUT_SECTION_TYPES.map((type) => VOLT_GEAR_ABOUT_RENDERER_PATHS[type]),
     ).toEqual([...V2_RENDERER_IDS, ...V2_RENDERER_IDS]);
   });
 

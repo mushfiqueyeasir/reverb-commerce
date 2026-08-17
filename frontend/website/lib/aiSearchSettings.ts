@@ -4,11 +4,7 @@ import Groq from "groq-sdk";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { config } from "@/config";
 
-export type AiSearchProvider =
-  | "gemini"
-  | "openrouter"
-  | "groq"
-  | "aihubmix";
+export type AiSearchProvider = "gemini" | "openrouter" | "groq" | "aihubmix";
 
 export interface AiSearchSettings {
   enabled: boolean;
@@ -168,7 +164,7 @@ export async function validateAiSearchApiKey(
         const providerMessage =
           typeof providerError?.error === "string"
             ? providerError.error
-            : providerError?.error?.message ?? providerError?.message;
+            : (providerError?.error?.message ?? providerError?.message);
         if (response.status === 401) {
           return { error: "The AIHubMix API key is invalid or expired." };
         }
@@ -287,8 +283,7 @@ export async function saveAiSearchSettingsRow(
   const openrouterApiKey =
     input.openrouterApiKey?.trim() || existingOpenrouterKey;
   const groqApiKey = input.groqApiKey?.trim() || existingGroqKey;
-  const aihubmixApiKey =
-    input.aihubmixApiKey?.trim() || existingAihubmixKey;
+  const aihubmixApiKey = input.aihubmixApiKey?.trim() || existingAihubmixKey;
   const selectedApiKey =
     input.provider === "openrouter"
       ? openrouterApiKey

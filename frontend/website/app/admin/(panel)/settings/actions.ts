@@ -373,7 +373,9 @@ export async function connectAiSearchProvider(input: {
 }): Promise<{ error?: string }> {
   const s = await requireAdminSession();
   if (!isAdmin(s.role)) {
-    return { error: "You do not have permission to change AI Search settings." };
+    return {
+      error: "You do not have permission to change AI Search settings.",
+    };
   }
 
   const apiKey = input.apiKey.trim();
@@ -409,7 +411,9 @@ export async function activateAiSearchProvider(
 ): Promise<{ error?: string }> {
   const s = await requireAdminSession();
   if (!isAdmin(s.role)) {
-    return { error: "You do not have permission to change AI Search settings." };
+    return {
+      error: "You do not have permission to change AI Search settings.",
+    };
   }
 
   const current = await getAiSearchSettings();
@@ -451,7 +455,9 @@ export async function activateAiSearchProvider(
 export async function disableAiSearch(): Promise<{ error?: string }> {
   const s = await requireAdminSession();
   if (!isAdmin(s.role)) {
-    return { error: "You do not have permission to change AI Search settings." };
+    return {
+      error: "You do not have permission to change AI Search settings.",
+    };
   }
 
   const current = await getAiSearchSettings();

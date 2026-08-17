@@ -160,7 +160,8 @@ export function AiSearchSettings({
     PROVIDERS.find((provider) => provider.id === selectedProviderId) ??
     PROVIDERS[0];
   const activeProvider =
-    PROVIDERS.find((provider) => provider.id === value.provider) ?? PROVIDERS[0];
+    PROVIDERS.find((provider) => provider.id === value.provider) ??
+    PROVIDERS[0];
   const providerName = selectedProvider.label;
   const ActiveProviderIcon = activeProvider.icon;
   const apiKey =
@@ -228,8 +229,7 @@ export function AiSearchSettings({
           value.hasGeminiApiKey || selectedProviderId === "gemini",
         hasOpenrouterApiKey:
           value.hasOpenrouterApiKey || selectedProviderId === "openrouter",
-        hasGroqApiKey:
-          value.hasGroqApiKey || selectedProviderId === "groq",
+        hasGroqApiKey: value.hasGroqApiKey || selectedProviderId === "groq",
         hasAihubmixApiKey:
           value.hasAihubmixApiKey || selectedProviderId === "aihubmix",
       });

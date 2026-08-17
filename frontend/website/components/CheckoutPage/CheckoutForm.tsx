@@ -256,9 +256,7 @@ export default function CheckoutForm({
               <Select
                 aria-label="Country code"
                 value={formData.phoneCode}
-                onChange={(e) =>
-                  updateFormData({ phoneCode: e.target.value })
-                }
+                onChange={(e) => updateFormData({ phoneCode: e.target.value })}
               >
                 {PHONE_CODES.map((code) => (
                   <option key={code.value} value={code.value}>

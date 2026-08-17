@@ -194,16 +194,17 @@ export const KAWAII_FASHION_HOMEPAGE_SECTION_TYPES: readonly HomepageSectionType
     "ai_search",
   ];
 
-export const VOLT_GEAR_HOMEPAGE_SECTION_TYPES: readonly HomepageSectionType[] = [
-  "banner",
-  "categories",
-  "deals",
-  "new_arrivals",
-  "featured",
-  "richtext",
-  "reviews",
-  "promo",
-];
+export const VOLT_GEAR_HOMEPAGE_SECTION_TYPES: readonly HomepageSectionType[] =
+  [
+    "banner",
+    "categories",
+    "deals",
+    "new_arrivals",
+    "featured",
+    "richtext",
+    "reviews",
+    "promo",
+  ];
 
 export const THEME_ABOUT_SECTION_TYPES: readonly AboutSectionType[] = [
   "hero",

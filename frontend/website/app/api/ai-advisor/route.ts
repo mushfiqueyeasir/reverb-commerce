@@ -203,34 +203,37 @@ async function callOpenrouter(
   systemPrompt: string,
   messages: { role: "user" | "assistant"; content: string }[],
 ): Promise<ProviderResult> {
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: config.aiSearch.models.openrouter,
-      messages: [
-        { role: "system", content: systemPrompt },
-        ...messages.map((message) => ({
-          role: message.role,
-          content: message.content,
-        })),
-      ],
-      max_tokens: 4096,
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "shopping_advisor_response",
-          strict: true,
-          schema: OPENROUTER_RESPONSE_SCHEMA,
-        },
+  const response = await fetch(
+    "https://openrouter.ai/api/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
       },
-    }),
-    cache: "no-store",
-    signal: AbortSignal.timeout(45_000),
-  });
+      body: JSON.stringify({
+        model: config.aiSearch.models.openrouter,
+        messages: [
+          { role: "system", content: systemPrompt },
+          ...messages.map((message) => ({
+            role: message.role,
+            content: message.content,
+          })),
+        ],
+        max_tokens: 4096,
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "shopping_advisor_response",
+            strict: true,
+            schema: OPENROUTER_RESPONSE_SCHEMA,
+          },
+        },
+      }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(45_000),
+    },
+  );
 
   if (!response.ok) {
     const providerError = (await response.json().catch(() => null)) as {
