@@ -50,6 +50,17 @@ export const MINICO_BURGUNDY_PALETTE: ThemePalette = {
   border: "#2f1f24",
 };
 
+export const ZARO_FASHION_PALETTE: ThemePalette = {
+  primary: "#1f1f1b",
+  primaryForeground: "#ffffff",
+  background: "#f9f5f3",
+  surface: "#ffffff",
+  card: "#ffffff",
+  foreground: "#1f1f1b",
+  mutedForeground: "#7e796a",
+  border: "#dedad9",
+};
+
 export const PALETTE_PRESETS: PalettePreset[] = [
   {
     id: "default",
@@ -115,6 +126,16 @@ export const PALETTE_PRESETS: PalettePreset[] = [
 ];
 
 export function getPalettePresets(themeId: string): PalettePreset[] {
+  if (themeId === "zaro-fashion") {
+    return [
+      {
+        id: "zaro-cream",
+        name: "Zaro Cream",
+        palette: { ...ZARO_FASHION_PALETTE },
+      },
+      ...PALETTE_PRESETS.slice(1).filter((preset) => preset.id !== "daylight"),
+    ];
+  }
   if (themeId !== "kawaii-fashion" && themeId !== "volt-gear") {
     return PALETTE_PRESETS;
   }

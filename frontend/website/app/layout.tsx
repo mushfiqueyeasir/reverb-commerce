@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import {
+  Inter,
+  Space_Grotesk,
+  JetBrains_Mono,
+  Outfit,
+  DM_Sans,
+} from "next/font/google";
 import "./globals.css";
 import AppToaster from "@/components/Common/AppToaster";
 import ThemeStyle from "@/components/Common/ThemeStyle";
@@ -31,6 +37,18 @@ const space = Space_Grotesk({
 
 const jetbrains = JetBrains_Mono({
   variable: "--font-jetbrains",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const outfit = Outfit({
+  variable: "--font-outfit",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
   display: "swap",
 });
@@ -70,7 +88,7 @@ export default async function RootLayout({
       data-storefront-theme={publishedTheme.config.themeId || "legacy-classic"}
     >
       <body
-        className={`${inter.variable} ${space.variable} ${jetbrains.variable} font-sans antialiased bg-background text-foreground`}
+        className={`${inter.variable} ${space.variable} ${jetbrains.variable} ${outfit.variable} ${dmSans.variable} font-sans antialiased bg-background text-foreground`}
       >
         <ThemeStyle tokens={tokens} />
         <StoreBrandProvider storeName={settings.store_name || "Store"}>

@@ -12,7 +12,7 @@ import { useWishlistStore } from "@/store/wishlistStore";
 import { cn } from "@/lib/utils";
 import type { ProductSizeChartRow, ProductStock } from "@/type/productType";
 
-export type ProductCardVariant = "default" | "kawaii-fashion";
+export type ProductCardVariant = "default" | "kawaii-fashion" | "zaro-fashion";
 
 export interface ProductCardProps {
   id: string;
@@ -151,6 +151,134 @@ export default function ProductCard({
               </span>
               {originalPrice > currentPrice && (
                 <span className="text-xs text-muted-foreground line-through">
+                  {format(originalPrice)}
+                </span>
+              )}
+            </div>
+          </Link>
+        </article>
+
+        <ProductModal
+          id={id}
+          title={title}
+          image={image}
+          hoverImage={hoverImage}
+          images={images}
+          originalPrice={originalPrice}
+          currentPrice={currentPrice}
+          discount={discount}
+          href={href}
+          stock={stock}
+          sizingMode={sizingMode}
+          sizeChart={sizeChart}
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+        />
+      </>
+    );
+  }
+
+  if (variant === "zaro-fashion") {
+    return (
+      <>
+        <article className="group">
+          <div
+            className="relative aspect-[3/4] overflow-hidden rounded-[8px] bg-card"
+            style={{
+              backgroundImage:
+                "linear-gradient(160deg, #f0e6dc 0%, #cec8d4 100%)",
+            }}
+          >
+            <Link
+              href={href}
+              className="block h-full w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
+            >
+              <ImageLoader
+                src={image}
+                alt={title}
+                width={750}
+                height={1000}
+                className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03] motion-reduce:transition-none"
+              />
+              {hoverImage && (
+                <div className="absolute inset-0">
+                  <ImageLoader
+                    src={hoverImage}
+                    alt=""
+                    width={750}
+                    height={1000}
+                    className="h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100 motion-reduce:transition-none"
+                  />
+                </div>
+              )}
+            </Link>
+
+            {discount ? (
+              <span className="absolute left-3 top-3 rounded-full bg-[#ffc400] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#1f1f1b] sm:left-4 sm:top-4">
+                {discount}% Off
+              </span>
+            ) : null}
+
+            <button
+              type="button"
+              aria-label={
+                isFavorite
+                  ? productCardCopy.removeFavoriteAriaLabel
+                  : productCardCopy.addFavoriteAriaLabel
+              }
+              aria-pressed={isFavorite}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleItem({
+                  id,
+                  title,
+                  image,
+                  href,
+                  currentPrice,
+                  originalPrice,
+                });
+              }}
+              className={cn(
+                "absolute right-3 top-3 grid size-10 place-items-center rounded-full border backdrop-blur-md transition-colors sm:right-4 sm:top-4",
+                isFavorite
+                  ? "border-[#ffc400] bg-[#ffc400] text-[#1f1f1b]"
+                  : "border-border bg-white/85 text-[#1f1f1b] hover:border-[#ffc400]",
+              )}
+            >
+              <Heart className={cn("size-4", isFavorite && "fill-current")} />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => !isOutOfStock && setIsModalOpen(true)}
+              disabled={isOutOfStock}
+              className={cn(
+                "absolute inset-x-3 bottom-3 flex min-h-10 items-center justify-between rounded-full bg-[#1f1f1b] px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white transition-all duration-300 sm:inset-x-4 sm:bottom-4 sm:text-[11px] md:translate-y-2 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 md:group-focus-within:translate-y-0 md:group-focus-within:opacity-100 motion-reduce:transition-none",
+                isOutOfStock &&
+                  "translate-y-0 cursor-not-allowed bg-[#1f1f1b]/70 opacity-100 text-white md:translate-y-0 md:opacity-100",
+              )}
+            >
+              {isOutOfStock
+                ? productCardCopy.soldOutButtonLabel
+                : productCardCopy.quickAddButtonLabel}
+              <Plus className="size-4 shrink-0" />
+            </button>
+          </div>
+
+          <Link
+            href={href}
+            className="block px-1 pt-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4"
+          >
+            <h3 className="line-clamp-2 text-[15px] font-medium leading-snug text-[#1f1f1b]">
+              {title}
+            </h3>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px]">
+              <span className="font-semibold text-[#1f1f1b]">
+                {format(currentPrice)}
+              </span>
+              {originalPrice > currentPrice && (
+                <span className="text-sm text-[#7e796a] line-through">
                   {format(originalPrice)}
                 </span>
               )}

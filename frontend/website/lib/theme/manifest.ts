@@ -5,17 +5,20 @@ import {
   KAWAII_FASHION_ABOUT_RENDERER_PATHS,
   LEGACY_CLASSIC_ABOUT_RENDERER_PATHS,
   VOLT_GEAR_ABOUT_RENDERER_PATHS,
+  ZARO_FASHION_ABOUT_RENDERER_PATHS,
 } from "../cms/aboutRendererRegistry";
 import {
   KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS,
   LEGACY_CLASSIC_HOMEPAGE_RENDERER_PATHS,
   VOLT_GEAR_HOMEPAGE_RENDERER_PATHS,
+  ZARO_FASHION_HOMEPAGE_RENDERER_PATHS,
   type HomepageRendererIdMapping,
 } from "../cms/homepageRendererRegistry";
 import {
   DEFAULT_PALETTE,
   KAWAII_WHITE_PALETTE,
   MINICO_BURGUNDY_PALETTE,
+  ZARO_FASHION_PALETTE,
   accessiblePrimaryForeground,
   normalizePalette,
   normalizePaletteOverrides,
@@ -68,7 +71,8 @@ export interface ThemeTokenOverrides {
   palette?: ThemePaletteOverrides;
 }
 
-export type StorefrontProductCardVariant = "default" | "kawaii-fashion";
+export type StorefrontProductCardVariant =
+  "default" | "kawaii-fashion" | "zaro-fashion";
 
 export interface ThemeSlotCompatibility {
   rendererId: string;
@@ -100,7 +104,7 @@ export interface StorefrontThemeAdminConfig {
 }
 
 export interface StorefrontThemePreviewConfig {
-  fixture: "tee-drop" | "kawaii-fashion" | "volt-gear";
+  fixture: "tee-drop" | "kawaii-fashion" | "volt-gear" | "zaro-fashion";
   storeName: string;
   contactEmail: string;
   contactPhone: string;
@@ -170,6 +174,14 @@ const KAWAII_FASHION_ABOUT_RENDERERS: Record<AboutSectionType, string> = {
   ...KAWAII_FASHION_ABOUT_RENDERER_PATHS,
 };
 
+const ZARO_FASHION_HOMEPAGE_RENDERERS: HomepageRendererIdMapping = {
+  ...ZARO_FASHION_HOMEPAGE_RENDERER_PATHS,
+};
+
+const ZARO_FASHION_ABOUT_RENDERERS: Record<AboutSectionType, string> = {
+  ...ZARO_FASHION_ABOUT_RENDERER_PATHS,
+};
+
 export const THEME_HOMEPAGE_SECTION_TYPES: readonly HomepageSectionType[] = [
   "banner",
   "featured",
@@ -204,6 +216,19 @@ export const VOLT_GEAR_HOMEPAGE_SECTION_TYPES: readonly HomepageSectionType[] =
     "richtext",
     "reviews",
     "promo",
+  ];
+
+export const ZARO_FASHION_HOMEPAGE_SECTION_TYPES: readonly HomepageSectionType[] =
+  [
+    "banner",
+    "categories",
+    "deals",
+    "new_arrivals",
+    "featured",
+    "richtext",
+    "reviews",
+    "promo",
+    "guarantees",
   ];
 
 export const THEME_ABOUT_SECTION_TYPES: readonly AboutSectionType[] = [
@@ -251,6 +276,18 @@ export const KAWAII_FASHION_SHAPE: ThemeShapeTokens = {
   },
 };
 
+export const ZARO_FASHION_SHAPE: ThemeShapeTokens = {
+  radius: {
+    sm: "12px",
+    md: "16px",
+    lg: "20px",
+    xl: "24px",
+    "2xl": "28px",
+    "3xl": "32px",
+    full: "9999px",
+  },
+};
+
 export const KAWAII_SECTION_LABELS: Partial<
   Record<HomepageSectionType, string>
 > = {
@@ -266,6 +303,19 @@ export const KAWAII_SECTION_LABELS: Partial<
   studio_notes: "Studio Notes",
   ai_search: "AI Search Promo",
 };
+
+export const ZARO_SECTION_LABELS: Partial<Record<HomepageSectionType, string>> =
+  {
+    banner: "Hero Carousel",
+    categories: "Featured Collections",
+    deals: "Trending Now",
+    new_arrivals: "Trending Now",
+    featured: "Best Sellers",
+    richtext: "Modern Details",
+    reviews: "Fashion Insider",
+    promo: "Sale & Promotion",
+    guarantees: "Easy Returns",
+  };
 
 export const LEGACY_CLASSIC_THEME: StorefrontThemeManifest = {
   id: "legacy-classic",
@@ -543,16 +593,89 @@ export const KAWAII_FASHION_THEME: StorefrontThemeManifest = {
   },
 };
 
+export const ZARO_FASHION_THEME: StorefrontThemeManifest = {
+  id: "zaro-fashion",
+  schemaVersion: STOREFRONT_THEME_SCHEMA_VERSION,
+  version: 1,
+  displayName: "Zaro Fashion",
+  category: "Fashion eCommerce",
+  description:
+    "A warm, editorial fashion storefront with soft cream surfaces, pill buttons, and trend-driven product storytelling.",
+  defaultTokens: {
+    palette: { ...ZARO_FASHION_PALETTE },
+    shape: ZARO_FASHION_SHAPE,
+  },
+  productCardVariant: "zaro-fashion",
+  admin: {
+    browserAddress: "zaro.framer.website",
+    homepageSectionLabels: { ...ZARO_SECTION_LABELS },
+    featuredLimit: 10,
+    maxMosaicCategories: 3,
+    kawaiiLabels: false,
+  },
+  preview: {
+    fixture: "zaro-fashion",
+    storeName: "ZARO",
+    contactEmail: "hello@zaro.store",
+    contactPhone: "+880 1700-333444",
+    freeShippingThreshold: 5000,
+    announcementText:
+      "Enjoy an extra 30% off selected styles with code FLASH30",
+    announcementUrl: "/product",
+    footerDescription:
+      "Modern silhouettes, natural tones, and effortless pieces designed to feel authentic and trending.",
+  },
+  renderers: {
+    navbar: "zaro-fashion.navbar",
+    footer: "zaro-fashion.footer",
+    homepageSections: ZARO_FASHION_HOMEPAGE_RENDERERS,
+    aboutSections: ZARO_FASHION_ABOUT_RENDERERS,
+  },
+  compatibility: {
+    storefrontApiVersion: 1,
+    homepageSectionVersions: [1, 2],
+    aboutSectionVersions: [1, 2],
+  },
+  slots: {
+    navbar: {
+      rendererId: "zaro-fashion.navbar",
+      required: true,
+      accepts: ["classic", "centered"],
+    },
+    footer: {
+      rendererId: "zaro-fashion.footer",
+      required: true,
+      accepts: ["classic", "compact"],
+    },
+    homepage: {
+      rendererId: "zaro-fashion.homepage",
+      required: true,
+      accepts: ["homepage-section-v1", "homepage-section-v2"],
+      sectionTypes: ZARO_FASHION_HOMEPAGE_SECTION_TYPES,
+      allowsRepeatedSections: false,
+    },
+    about: {
+      rendererId: "zaro-fashion.about",
+      required: true,
+      accepts: ["about-section-v1", "about-section-v2"],
+      sectionTypes: THEME_ABOUT_SECTION_TYPES,
+      allowsRepeatedSections: false,
+    },
+  },
+};
+
 const INSTALLED_STOREFRONT_THEME_VERSIONS = [
   LEGACY_CLASSIC_THEME,
   VOLT_GEAR_THEME,
   KAWAII_FASHION_THEME,
+  ZARO_FASHION_THEME,
 ] as const;
 
 export const AVAILABLE_STOREFRONT_THEMES = [
   LEGACY_CLASSIC_THEME,
   VOLT_GEAR_THEME,
   KAWAII_FASHION_THEME,
+  ZARO_FASHION_THEME,
 ] as const;
 
 /**

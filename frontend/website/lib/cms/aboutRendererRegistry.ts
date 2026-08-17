@@ -65,6 +65,21 @@ export const KAWAII_FASHION_ABOUT_RENDERER_PATHS = {
   cta_v2: "kawaii-fashion.about.cta",
 } as const satisfies Record<AboutSectionType, string>;
 
+export const ZARO_FASHION_ABOUT_RENDERER_PATHS = {
+  hero: "hero-v1",
+  stats: "stats-v1",
+  story: "story-v1",
+  values: "values-v1",
+  craft: "craft-v1",
+  cta: "cta-v1",
+  hero_v2: "hero-v1",
+  stats_v2: "stats-v1",
+  story_v2: "story-v1",
+  values_v2: "values-v1",
+  craft_v2: "craft-v1",
+  cta_v2: "cta-v1",
+} as const satisfies Record<AboutSectionType, string>;
+
 export function resolveAboutRendererId(
   type: unknown,
   mapping: AboutRendererIdMapping = {},

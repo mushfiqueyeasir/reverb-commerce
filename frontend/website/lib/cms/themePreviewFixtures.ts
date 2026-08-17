@@ -7,6 +7,10 @@ import {
   VOLT_GEAR_PREVIEW_SECTIONS,
 } from "@/components/themes/volt-gear/previewFixture";
 import {
+  ZARO_FASHION_PREVIEW_DATA,
+  ZARO_FASHION_PREVIEW_SECTIONS,
+} from "@/components/themes/zaro-fashion/previewFixture";
+import {
   TEE_DROP_PREVIEW_DATA,
   TEE_DROP_PREVIEW_SECTIONS,
 } from "./themePreviewFixture";
@@ -23,6 +27,10 @@ export const THEME_PREVIEW_FIXTURES = {
   "volt-gear": {
     data: VOLT_GEAR_PREVIEW_DATA,
     sections: VOLT_GEAR_PREVIEW_SECTIONS,
+  },
+  "zaro-fashion": {
+    data: ZARO_FASHION_PREVIEW_DATA,
+    sections: ZARO_FASHION_PREVIEW_SECTIONS,
   },
 } as const;
 

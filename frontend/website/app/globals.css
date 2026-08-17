@@ -110,6 +110,13 @@
   --radius-full: var(--theme-radius-full);
 }
 
+[data-storefront-theme="zaro-fashion"] {
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-inter: var(--font-dm-sans);
+  --font-space: var(--font-outfit);
+}
+
 @layer base {
   * {
     border-color: var(--border);

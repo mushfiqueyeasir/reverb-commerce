@@ -61,6 +61,24 @@ export const KAWAII_FASHION_HOMEPAGE_RENDERER_PATHS = {
   ai_search: "kawaii-fashion.ai-search",
 } as const satisfies HomepageRendererIdMapping;
 
+export const ZARO_FASHION_HOMEPAGE_RENDERER_PATHS = {
+  banner: "zaro-fashion.banner",
+  categories: "zaro-fashion.categories",
+  deals: "zaro-fashion.trending",
+  new_arrivals: "zaro-fashion.trending",
+  featured: "zaro-fashion.best-sellers",
+  reviews: "zaro-fashion.insider",
+  promo: "zaro-fashion.promo",
+  richtext: "zaro-fashion.story",
+  banner_v2: "zaro-fashion.banner",
+  categories_v2: "zaro-fashion.categories",
+  featured_v2: "zaro-fashion.best-sellers",
+  reviews_v2: "zaro-fashion.insider",
+  promo_v2: "zaro-fashion.promo",
+  richtext_v2: "zaro-fashion.story",
+  guarantees: "zaro-fashion.guarantees",
+} as const satisfies HomepageRendererIdMapping;
+
 export function resolveHomepageRendererId(
   type: unknown,
   mapping: HomepageRendererIdMapping = {},
