@@ -22,7 +22,7 @@ import {
   parseHomepageStoryConfig,
   type StoryCardIcon,
 } from "@/lib/cms/homepageStory";
-import { V2Aurora, V2Grid, V2Particles, V2Reveal } from "./V2Motion";
+import { V2Aurora, V2Grid, V2Reveal } from "./V2Motion";
 
 export interface RichTextSectionV2Props {
   title?: string | null;
@@ -105,12 +105,6 @@ export default function RichTextSectionV2({
   const linkHref =
     ctaHref?.trim() || configString(config, "cta_url") || "/product";
   const outlineWord = heading ? plainText(heading) : "";
-  const monogram = outlineWord
-    .split(/\s+/)
-    .map((word) => word[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 
   return (
     <section
@@ -129,36 +123,6 @@ export default function RichTextSectionV2({
         className="pointer-events-none absolute inset-y-0 right-0 w-px bg-[linear-gradient(to_bottom,transparent,rgb(var(--v2-primary-rgb)/0.8),transparent)] shadow-[0_0_48px_12px_rgb(var(--v2-primary-rgb)/0.16)] sm:right-6 lg:right-10"
         aria-hidden="true"
       />
-
-      <div
-        className="pointer-events-none absolute right-[3vw] top-24 z-0 hidden aspect-square w-[min(34vw,34rem)] lg:block"
-        aria-hidden="true"
-      >
-        <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgb(var(--v2-primary-rgb)/0.22)_0%,rgb(var(--v2-primary-rgb)/0.06)_34%,transparent_70%)] blur-2xl" />
-        <V2Particles className="rounded-full opacity-55 [mask-image:radial-gradient(circle,black_0%,black_58%,transparent_76%)]" />
-        <motion.div
-          className="absolute inset-[8%] rounded-full border border-primary/30"
-          animate={reduceMotion ? undefined : { rotate: 360 }}
-          transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
-        >
-          <span className="absolute left-1/2 top-0 h-7 w-px -translate-x-1/2 -translate-y-1/2 bg-primary shadow-[0_0_20px_rgb(var(--v2-primary-rgb)/0.8)]" />
-          <span className="absolute bottom-0 left-1/2 h-3 w-3 -translate-x-1/2 translate-y-1/2 rotate-45 border border-primary bg-background" />
-        </motion.div>
-        <motion.div
-          className="absolute inset-[20%] rounded-full border border-dashed border-foreground/20"
-          animate={reduceMotion ? undefined : { rotate: -360 }}
-          transition={{ duration: 38, repeat: Infinity, ease: "linear" }}
-        />
-        <div className="absolute inset-[31%] grid place-items-center rounded-full border border-border bg-background/65 shadow-[inset_0_0_50px_rgb(var(--v2-primary-rgb)/0.14),0_0_70px_rgb(var(--v2-primary-rgb)/0.16)] backdrop-blur-md">
-          <span className="font-display text-[clamp(3rem,7vw,7rem)] font-bold tracking-[-0.08em] text-foreground">
-            {monogram || "V2"}
-          </span>
-        </div>
-        <div className="absolute right-0 top-1/2 flex -translate-y-1/2 translate-x-1/3 flex-col items-center gap-3 font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-          <span className="h-14 w-px bg-gradient-to-b from-transparent via-primary to-transparent" />
-          <span className="[writing-mode:vertical-rl]">Perspective / 02</span>
-        </div>
-      </div>
 
       {outlineWord ? (
         <motion.div

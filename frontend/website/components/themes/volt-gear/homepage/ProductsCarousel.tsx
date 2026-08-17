@@ -1,11 +1,19 @@
 "use client";
 
+import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
+import { useId } from "react";
 import ProductCard from "@/components/Common/ProductCard";
-import SectionHeading from "./SectionHeading";
 import { useMarqueeCarousel } from "@/components/Common/useMarqueeCarousel";
+import {
+  V2Aurora,
+  V2Grid,
+  V2Particles,
+  V2Reveal,
+} from "@/components/HomePage/V2Motion";
 import type { TransformedProduct } from "@/type/productType";
 
-interface KawaiiFashionFeaturedProductsProps {
+export interface VoltGearProductsCarouselProps {
   products: TransformedProduct[];
   title?: string | null;
   subtitle?: string | null;
@@ -13,10 +21,10 @@ interface KawaiiFashionFeaturedProductsProps {
   ctaLabel?: string | null;
   ctaHref?: string;
   listLabel?: string | null;
-  uncategorizedLabelTemplate?: string | null;
+  preview?: boolean;
 }
 
-export default function KawaiiFashionFeaturedProducts({
+export default function VoltGearProductsCarousel({
   products,
   title,
   subtitle,
@@ -24,7 +32,9 @@ export default function KawaiiFashionFeaturedProducts({
   ctaLabel,
   ctaHref = "/product",
   listLabel,
-}: KawaiiFashionFeaturedProductsProps) {
+  preview = false,
+}: VoltGearProductsCarouselProps) {
+  const headingId = useId();
   const {
     trackRef,
     handlePointerDown,
@@ -48,24 +58,60 @@ export default function KawaiiFashionFeaturedProducts({
   if (products.length === 0) return null;
 
   return (
-    <section className="relative bg-surface py-16 sm:py-24 lg:py-32">
-      <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
-        <SectionHeading
-          eyebrow={eyebrow}
-          title={title}
-          subtitle={subtitle}
-          ctaLabel={ctaLabel}
-          ctaHref={ctaHref}
-        />
+    <section
+      className="relative overflow-hidden py-20 motion-reduce:[&_*]:animate-none motion-reduce:[&_*]:transition-none sm:py-28 lg:py-40"
+      aria-labelledby={headingId}
+    >
+      <V2Aurora className="opacity-45" />
+      <V2Grid className="opacity-[0.1]" />
+      <V2Particles className="opacity-30" />
+      <div className="relative mx-auto max-w-[1600px] px-5 sm:px-6 lg:px-10">
+        <V2Reveal
+          className="mb-12 grid gap-7 border-b border-border pb-10 lg:mb-16 lg:grid-cols-12 lg:items-end lg:pb-14"
+          initiallyVisible={preview}
+        >
+          <div className="lg:col-span-8">
+            <div className="mb-5 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground sm:text-[11px]">
+              <span className="h-px w-10 bg-primary" aria-hidden="true" />
+              {eyebrow || "The featured runway"}
+            </div>
+            <h2
+              id={headingId}
+              className="max-w-5xl font-display text-5xl font-bold leading-[0.84] tracking-[-0.06em] sm:text-7xl lg:text-[6.5rem]"
+            >
+              {title || "One look ahead."}
+            </h2>
+            {subtitle ? (
+              <p className="mt-6 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
+                {subtitle}
+              </p>
+            ) : null}
+          </div>
+          <div className="flex flex-col items-start gap-7 lg:col-span-4 lg:items-end">
+            {ctaLabel ? (
+              <Link
+                href={ctaHref}
+                className="group inline-flex min-h-11 items-center gap-3 border-b border-foreground pb-1 font-mono text-[11px] uppercase tracking-[0.22em] transition-colors hover:border-primary hover:text-primary-readable focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background"
+              >
+                {ctaLabel}
+                <ArrowUpRight
+                  className="size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                  aria-hidden="true"
+                />
+              </Link>
+            ) : null}
+          </div>
+        </V2Reveal>
       </div>
+
       <div className="relative mx-auto mt-10 max-w-[1600px] sm:mt-14">
-        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-surface to-transparent sm:w-16" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-surface to-transparent sm:w-16" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-background to-transparent sm:w-16" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-background to-transparent sm:w-16" />
         <div
           ref={trackRef}
           role="list"
           aria-label={normalizedListLabel || undefined}
-          className="scrollbar-hide touch-auto select-none cursor-grab overflow-x-auto overscroll-x-contain px-4 active:cursor-grabbing sm:px-6 lg:px-10"
+          className="scrollbar-hide touch-auto select-none cursor-grab overflow-x-auto overscroll-x-contain px-5 active:cursor-grabbing sm:px-6 lg:px-10"
           onPointerEnter={onPointerEnter}
           onPointerLeave={onPointerLeave}
           onPointerDown={handlePointerDown}
@@ -108,7 +154,6 @@ export default function KawaiiFashionFeaturedProducts({
                       sizingMode={product.sizingMode}
                       sizeChart={product.sizeChart}
                       label={product.categories[0]?.categoryName}
-                      variant="kawaii-fashion"
                     />
                   </div>
                 ))}

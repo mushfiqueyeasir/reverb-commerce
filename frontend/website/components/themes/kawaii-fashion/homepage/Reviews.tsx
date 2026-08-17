@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { Quote, Star } from "lucide-react";
 import SectionHeading from "./SectionHeading";
-import { useMarqueeCarousel } from "./useMarqueeCarousel";
+import { useMarqueeCarousel } from "@/components/Common/useMarqueeCarousel";
 import type { TransformedReview } from "@/type/reviewType";
 
 interface KawaiiFashionReviewsProps {

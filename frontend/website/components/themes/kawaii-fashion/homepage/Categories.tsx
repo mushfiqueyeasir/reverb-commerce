@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import SectionHeading from "./SectionHeading";
-import { useMarqueeCarousel } from "./useMarqueeCarousel";
+import { useMarqueeCarousel } from "@/components/Common/useMarqueeCarousel";
 import type { Category } from "@/type/categoryType";
 
 interface KawaiiFashionCategoriesProps {

@@ -194,6 +194,17 @@ export const KAWAII_FASHION_HOMEPAGE_SECTION_TYPES: readonly HomepageSectionType
     "ai_search",
   ];
 
+export const VOLT_GEAR_HOMEPAGE_SECTION_TYPES: readonly HomepageSectionType[] = [
+  "banner",
+  "categories",
+  "deals",
+  "new_arrivals",
+  "featured",
+  "richtext",
+  "reviews",
+  "promo",
+];
+
 export const THEME_ABOUT_SECTION_TYPES: readonly AboutSectionType[] = [
   "hero",
   "stats",
@@ -382,7 +393,7 @@ export const VOLT_GEAR_THEME: StorefrontThemeManifest = {
       rendererId: "volt-gear.homepage",
       required: true,
       accepts: ["homepage-section-v1", "homepage-section-v2"],
-      sectionTypes: THEME_HOMEPAGE_SECTION_TYPES,
+      sectionTypes: VOLT_GEAR_HOMEPAGE_SECTION_TYPES,
       allowsRepeatedSections: false,
     },
     about: {

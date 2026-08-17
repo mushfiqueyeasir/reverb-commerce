@@ -20,6 +20,7 @@ import {
   STOREFRONT_THEME_REGISTRY,
   THEME_ABOUT_SECTION_TYPES,
   THEME_HOMEPAGE_SECTION_TYPES,
+  VOLT_GEAR_HOMEPAGE_SECTION_TYPES,
   VOLT_GEAR_SHAPE,
   VOLT_GEAR_THEME,
   createDefaultStorefrontThemeConfig,
@@ -56,15 +57,15 @@ const LEGACY_HOMEPAGE_MAPPING = {
 const V2_HOMEPAGE_MAPPING = {
   banner: "banner-v2",
   categories: "categories-v2",
-  deals: "featured-v2",
-  new_arrivals: "featured-v2",
-  featured: "featured-v2",
+  deals: "volt-gear.featured",
+  new_arrivals: "volt-gear.featured",
+  featured: "volt-gear.featured",
   reviews: "reviews-v2",
   promo: "promo-v2",
   richtext: "richtext-v2",
   banner_v2: "banner-v2",
   categories_v2: "categories-v2",
-  featured_v2: "featured-v2",
+  featured_v2: "volt-gear.featured",
   reviews_v2: "reviews-v2",
   promo_v2: "promo-v2",
   richtext_v2: "richtext-v2",
@@ -145,6 +146,16 @@ describe("storefront theme manifest", () => {
       "reviews",
       "promo",
     ]);
+    expect(VOLT_GEAR_HOMEPAGE_SECTION_TYPES).toEqual([
+      "banner",
+      "categories",
+      "deals",
+      "new_arrivals",
+      "featured",
+      "richtext",
+      "reviews",
+      "promo",
+    ]);
     expect(KAWAII_FASHION_HOMEPAGE_SECTION_TYPES).toEqual([
       "banner",
       "categories",
@@ -194,7 +205,7 @@ describe("storefront theme manifest", () => {
       VOLT_GEAR_THEME,
       V2_HOMEPAGE_MAPPING,
       V2_ABOUT_MAPPING,
-      THEME_HOMEPAGE_SECTION_TYPES,
+      VOLT_GEAR_HOMEPAGE_SECTION_TYPES,
     ],
     [
       KAWAII_FASHION_THEME,
