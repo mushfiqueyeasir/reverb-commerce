@@ -17,6 +17,20 @@
   --v2-background-rgb: 5 5 5;
   --border-soft: rgba(255, 255, 255, 0.08);
 
+  /* Semantic status colors — informational, not brand. Used by admin badges/accents. */
+  --success: #059669;
+  --success-rgb: 5, 150, 105;
+  --warning: #d97706;
+  --warning-rgb: 217, 119, 6;
+  --info: #0284c7;
+  --info-rgb: 2, 132, 199;
+  --progress: #4f46e5;
+  --progress-rgb: 79, 70, 229;
+  --shipped: #7c3aed;
+  --shipped-rgb: 124, 58, 237;
+  --danger: #dc2626;
+  --danger-rgb: 220, 38, 38;
+
   --color-primary-base: #ff5c70;
   --color-primary-foreground-base: #050505;
   --radius: 0.875rem;
@@ -97,6 +111,12 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-readable: var(--primary-readable);
   --color-primary: var(--primary);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-progress: var(--progress);
+  --color-shipped: var(--shipped);
+  --color-danger: var(--danger);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);

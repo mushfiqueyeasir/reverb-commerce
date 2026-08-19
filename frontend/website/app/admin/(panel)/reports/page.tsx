@@ -55,19 +55,19 @@ export default async function ReportsPage() {
           value={formatMoney(totalSales, symbol)}
           icon="DollarSign"
           hint="Excludes cancelled orders"
-          accent="green"
+          accent="success"
         />
         <StatCard
           label="Total products"
           value={formatNumber(totalProducts)}
           icon="Package"
-          accent="blue"
+          accent="info"
         />
         <StatCard
           label="Total customers"
           value={formatNumber(totalCustomers)}
           icon="Users"
-          accent="amber"
+          accent="warning"
         />
       </div>
 

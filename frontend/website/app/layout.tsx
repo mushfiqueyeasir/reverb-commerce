@@ -91,7 +91,10 @@ export default async function RootLayout({
         className={`${inter.variable} ${space.variable} ${jetbrains.variable} ${outfit.variable} ${dmSans.variable} font-sans antialiased bg-background text-foreground`}
       >
         <ThemeStyle tokens={tokens} />
-        <StoreBrandProvider storeName={settings.store_name || "Store"}>
+        <StoreBrandProvider
+          storeName={settings.store_name || "Store"}
+          logoUrl={settings.logoUrl}
+        >
           <SubscriptionGate storeName={settings.store_name || "Store"}>
             {children}
           </SubscriptionGate>

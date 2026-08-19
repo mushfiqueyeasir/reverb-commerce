@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "dev:client": "node scripts/run-client-env.mjs dev",
     "build": "next build",
     "build:client": "node scripts/run-client-env.mjs build",

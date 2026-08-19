@@ -60,6 +60,7 @@ export function ConfirmDialog({
         <DialogFooter>
           <Button
             variant="outline"
+            className="rounded-full"
             onClick={() => setOpen(false)}
             disabled={pending}
           >
@@ -67,6 +68,7 @@ export function ConfirmDialog({
           </Button>
           <Button
             variant={destructive ? "destructive" : "default"}
+            className="rounded-full"
             onClick={run}
             disabled={pending}
           >

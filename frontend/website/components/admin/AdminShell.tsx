@@ -119,7 +119,7 @@ function AdminNavList({
                         className={cn(
                           "flex min-h-11 items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm font-medium transition-colors",
                           active
-                            ? "bg-primary text-white"
+                            ? "bg-primary text-primary-foreground"
                             : "text-sidebar-foreground hover:bg-foreground/5 hover:text-foreground",
                           compact && "justify-center px-2",
                         )}
@@ -383,7 +383,10 @@ export default function AdminShell({
                 <span className="hidden sm:inline">Admin</span>
                 {activeItem && (
                   <>
-                    <span className="hidden text-border sm:inline">/</span>
+                    <span
+                      aria-hidden
+                      className="hidden size-1 rounded-full bg-muted-foreground/50 sm:inline-block"
+                    />
                     <span className="truncate text-foreground">
                       {activeItem.label}
                     </span>

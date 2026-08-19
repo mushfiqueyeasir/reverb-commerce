@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
 
 // Standard admin page header: title, optional description, right-aligned actions.
@@ -37,7 +38,7 @@ export function BackLink({ href, label }: { href: string; label: string }) {
       href={href}
       className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
     >
-      <span aria-hidden>←</span> {label}
+      <ArrowLeft className="size-4" aria-hidden /> {label}
     </Link>
   );
 }

@@ -390,24 +390,35 @@ function SettingsSkeleton() {
     <div>
       <HeaderSkeleton />
       <div className="mx-auto max-w-3xl space-y-8">
-        <div className="flex flex-wrap gap-1 rounded-xl bg-card p-1">
-          {Array.from({ length: 6 }, (_, index) => (
-            <Skeleton key={index} className="h-9 w-24 rounded-lg" />
+        <div className="flex h-auto w-fit flex-wrap justify-start gap-1 rounded-xl bg-card p-1">
+          {Array.from({ length: 7 }, (_, index) => (
+            <Skeleton key={index} className="h-9 w-20 rounded-lg" />
           ))}
         </div>
-        <div className="flex flex-wrap gap-2">
-          {Array.from({ length: 4 }, (_, index) => (
-            <Skeleton key={index} className="h-9 w-28 rounded-full" />
+        <div className="flex h-auto w-fit flex-wrap justify-start gap-1 rounded-lg border border-border bg-background/60 p-1">
+          {Array.from({ length: 3 }, (_, index) => (
+            <Skeleton key={index} className="h-7 w-16 rounded-md" />
           ))}
         </div>
-        <div className={cn(cardClass, "space-y-5")}>
+        <div className="space-y-5">
           <FieldSkeleton />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Skeleton className="h-44 rounded-xl" />
-            <Skeleton className="h-44 rounded-xl" />
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+            <div className="min-w-0 flex-1">
+              <Skeleton className="mb-2 h-4 w-24" />
+              <Skeleton className="h-44 w-full rounded-xl" />
+            </div>
+            <div className="shrink-0">
+              <Skeleton className="mb-2 h-4 w-16" />
+              <Skeleton className="h-44 w-44 rounded-xl" />
+            </div>
           </div>
-          <Skeleton className="h-44 rounded-xl" />
-          <ActionFooterSkeleton />
+          <div>
+            <Skeleton className="mb-2 h-4 w-28" />
+            <Skeleton className="h-44 w-full rounded-xl" />
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border pt-6">
+          <Skeleton className="h-10 w-32 rounded-full" />
         </div>
       </div>
     </div>
@@ -465,6 +476,128 @@ function AuditSkeleton() {
             <Skeleton className="h-9 w-20 rounded-full" />
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ThemesSkeleton() {
+  return (
+    <div>
+      <HeaderSkeleton />
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }, (_, index) => (
+          <div
+            key={index}
+            className="overflow-hidden rounded-xl border border-border bg-card shadow-sm"
+          >
+            <div className="border-b border-border bg-muted/40 p-2.5">
+              <div className="overflow-hidden rounded-sm border border-border bg-background shadow-inner">
+                <div className="flex h-8 items-center gap-1.5 border-b border-border bg-muted/70 px-3">
+                  <Skeleton className="size-2 rounded-full" />
+                  <Skeleton className="size-2 rounded-full" />
+                  <Skeleton className="size-2 rounded-full" />
+                  <Skeleton className="ml-2 h-3 flex-1 rounded-sm" />
+                </div>
+                <div className="relative overflow-hidden bg-[#050505]">
+                  <div className="grid h-52 place-items-center">
+                    <Skeleton className="size-10 rounded-full" />
+                  </div>
+                  <div className="absolute inset-x-0 top-0 flex items-center justify-between p-3">
+                    <Skeleton className="h-5 w-24 rounded-full" />
+                    <Skeleton className="h-5 w-20 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="p-5">
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="mt-2 h-5 w-32" />
+              <Skeleton className="mt-3 h-10 w-full" />
+              <div className="mt-5 flex items-center gap-4 border-t border-border pt-4">
+                <Skeleton className="size-3 rounded-full" />
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ThemeDetailSkeleton() {
+  return (
+    <div>
+      <BackHeaderSkeleton />
+      <div className="space-y-6">
+        <section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <div className="flex items-start gap-3 border-b border-border bg-muted/30 px-5 py-4">
+            <Skeleton className="size-10 rounded-md" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-4 w-72 max-w-full" />
+            </div>
+          </div>
+          <div className="grid gap-6 p-5 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-end">
+            <div className="space-y-5">
+              <div className="grid gap-3 sm:grid-cols-[72px_minmax(0,240px)] sm:items-end">
+                <div className="space-y-2">
+                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-11 w-[72px] rounded-md" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-11 w-full rounded-md" />
+                </div>
+              </div>
+              <div>
+                <Skeleton className="h-3 w-20" />
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {Array.from({ length: 6 }, (_, index) => (
+                    <Skeleton key={index} className="size-9 rounded-md" />
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="border border-border bg-background p-4">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="mt-2 h-4 w-28" />
+              <div className="mt-4 grid grid-cols-[1fr_auto] gap-2">
+                <Skeleton className="h-10 rounded-full" />
+                <Skeleton className="size-10 rounded-full" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_410px]">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-28" />
+            <div className="overflow-hidden rounded-[6px] border border-border bg-background shadow-sm">
+              <div className="flex h-9 items-center gap-1.5 border-b border-border bg-muted/60 px-3">
+                <Skeleton className="size-2 rounded-full" />
+                <Skeleton className="size-2 rounded-full" />
+                <Skeleton className="size-2 rounded-full" />
+                <Skeleton className="ml-3 h-5 flex-1 rounded-sm" />
+              </div>
+              <div className="grid h-[420px] place-items-center">
+                <Skeleton className="size-12 rounded-full" />
+              </div>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="mx-auto h-4 w-28" />
+            <div className="relative mx-auto w-full max-w-[390px] rounded-[46px] bg-[#050505] p-[9px] shadow-[0_24px_70px_-24px_rgba(0,0,0,0.85)] ring-1 ring-white/15">
+              <div className="relative overflow-hidden rounded-[37px] bg-black ring-1 ring-white/10">
+                <div className="grid h-[560px] place-items-center">
+                  <Skeleton className="size-12 rounded-full" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );
@@ -628,6 +761,8 @@ function skeletonForPath(pathname: string) {
   if (section === "pages") return detail ? <FormSkeleton /> : <PagesSkeleton />;
   if (section === "contact") return <ListSkeleton trailing={2} />;
   if (section === "settings") return <SettingsSkeleton />;
+  if (section === "themes")
+    return detail ? <ThemeDetailSkeleton /> : <ThemesSkeleton />;
   if (section === "users") return <ListSkeleton action trailing={2} />;
   if (section === "security") return <SecuritySkeleton />;
   if (section === "audit") return <AuditSkeleton />;

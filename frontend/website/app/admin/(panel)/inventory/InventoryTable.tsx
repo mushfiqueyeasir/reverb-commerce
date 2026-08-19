@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/admin/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatNumber } from "@/lib/admin/format";
@@ -188,14 +189,15 @@ export function InventoryTable({
       </div>
 
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center rounded-xl border border-border bg-card/80 px-4 py-12 text-center">
-          <PackageOpen className="mb-3 size-6 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">
-            {data.length === 0
-              ? "No inventory found."
-              : "No products match these filters."}
-          </p>
-        </div>
+        <EmptyState
+          compact
+          icon={<PackageOpen className="size-5" />}
+          title={
+            data.length === 0
+              ? "No inventory found"
+              : "No products match these filters"
+          }
+        />
       ) : (
         <div className="space-y-2">
           {filtered.map((product) => {

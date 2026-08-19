@@ -19,7 +19,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Eye, GripVertical, Pencil } from "lucide-react";
+import { Eye, GripVertical, LayoutTemplate, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import {
   HomepageSectionView,
@@ -29,6 +29,7 @@ import {
 } from "@/components/HomePage/HomepageRenderer";
 import type { HomepageSectionRow } from "@/type/db";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/admin/EmptyState";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -342,9 +343,12 @@ export function HomepageTable({
 
   if (!items.length) {
     return (
-      <p className="rounded-2xl border border-border bg-card/80 px-4 py-10 text-center text-sm text-muted-foreground">
-        No homepage sections configured.
-      </p>
+      <EmptyState
+        compact
+        icon={<LayoutTemplate className="size-5" />}
+        title="No homepage sections configured"
+        description="Sections appear here once the active theme publishes them."
+      />
     );
   }
 

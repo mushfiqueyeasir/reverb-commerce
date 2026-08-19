@@ -31,6 +31,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
+import { EmptyState } from "@/components/admin/EmptyState";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -193,11 +194,15 @@ export function CategoriesTable({
           </SortableContext>
         </DndContext>
       ) : (
-        <p className="rounded-2xl border border-dashed border-border bg-card/50 px-4 py-12 text-center text-sm text-muted-foreground">
-          {query
-            ? "No categories match this search."
-            : "No categories at this level."}
-        </p>
+        <EmptyState
+          compact
+          icon={<Tags className="size-5" />}
+          title={
+            query
+              ? "No categories match this search"
+              : "No categories at this level"
+          }
+        />
       )}
     </div>
   );

@@ -18,18 +18,18 @@ export function StatCard({
   value: string | number;
   icon: string;
   hint?: string;
-  accent?: "primary" | "green" | "amber" | "blue" | "red";
+  accent?: "primary" | "success" | "warning" | "info" | "danger";
   href?: string;
   className?: string;
   style?: CSSProperties;
 }) {
-  // Mid-tone accents stay readable on both dark shells and Daylight.
+  // Semantic tokens (globals.css) — adapt to every storefront palette.
   const accents: Record<string, string> = {
     primary: "bg-primary/15 text-primary",
-    green: "bg-emerald-500/15 text-emerald-600",
-    amber: "bg-amber-500/15 text-amber-600",
-    blue: "bg-sky-500/15 text-sky-600",
-    red: "bg-red-500/15 text-red-600",
+    success: "bg-success/15 text-success",
+    warning: "bg-warning/15 text-warning",
+    info: "bg-info/15 text-info",
+    danger: "bg-danger/15 text-danger",
   };
 
   const body = (

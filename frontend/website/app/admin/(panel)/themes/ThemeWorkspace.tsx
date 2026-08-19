@@ -65,7 +65,7 @@ export function ThemeWorkspace({
 
   return (
     <div className="space-y-6">
-      <section className="overflow-hidden rounded-md border border-border bg-card shadow-sm">
+      <section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <div className="flex items-start gap-3 border-b border-border bg-muted/30 px-5 py-4">
           <span className="grid size-10 shrink-0 place-items-center rounded-md border border-border bg-background text-primary">
             <Palette className="size-5" />

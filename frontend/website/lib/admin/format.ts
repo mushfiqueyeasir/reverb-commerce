@@ -40,14 +40,14 @@ export function timeAgo(value: string | Date): string {
   }
 }
 
-// Tailwind classes for order-status badges. Tuned for both dark + Daylight palettes.
+// Semantic-token badge classes for order statuses (globals.css). Tuned for dark + Daylight.
 export const ORDER_STATUS_STYLES: Record<OrderStatus, string> = {
-  pending: "bg-amber-500/15 text-amber-600 border-amber-500/30",
-  confirmed: "bg-sky-500/15 text-sky-600 border-sky-500/30",
-  processing: "bg-indigo-500/15 text-indigo-600 border-indigo-500/30",
-  shipped: "bg-violet-500/15 text-violet-600 border-violet-500/30",
-  delivered: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
-  cancelled: "bg-red-500/15 text-red-600 border-red-500/30",
+  pending: "bg-warning/15 text-warning border-warning/30",
+  confirmed: "bg-info/15 text-info border-info/30",
+  processing: "bg-progress/15 text-progress border-progress/30",
+  shipped: "bg-shipped/15 text-shipped border-shipped/30",
+  delivered: "bg-success/15 text-success border-success/30",
+  cancelled: "bg-danger/15 text-danger border-danger/30",
 };
 
 // Allowed forward transitions for the order workflow.

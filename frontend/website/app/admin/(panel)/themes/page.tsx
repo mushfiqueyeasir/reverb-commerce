@@ -38,7 +38,7 @@ export default async function ThemesAdminPage() {
             <article
               key={theme.id}
               className={cn(
-                "group relative overflow-hidden rounded-md border bg-card shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-xl",
+                "group relative overflow-hidden rounded-xl border bg-card shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-xl",
                 selected
                   ? "border-primary ring-1 ring-primary/20"
                   : "border-border",

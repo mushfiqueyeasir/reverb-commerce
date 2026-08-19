@@ -27,6 +27,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { EmptyState } from "@/components/admin/EmptyState";
 import { cn } from "@/lib/utils";
 
 export type AdminListItem = { id: string };
@@ -352,9 +353,19 @@ export function AdminList<T extends AdminListItem>({
 
   const listBody =
     filtered.length === 0 ? (
-      <p className="rounded-xl border border-border bg-card/80 px-4 py-10 text-center text-sm text-muted-foreground">
-        {rows.length === 0 ? emptyMessage : "No matches for your search."}
-      </p>
+      rows.length === 0 ? (
+        <EmptyState
+          compact
+          icon={<Search className="size-5" />}
+          title={emptyMessage}
+        />
+      ) : (
+        <EmptyState
+          compact
+          icon={<Search className="size-5" />}
+          title="No matches for your search"
+        />
+      )
     ) : (
       <div className="space-y-2">
         {filtered.map((item) =>

@@ -19,8 +19,9 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Eye, GripVertical, Pencil } from "lucide-react";
+import { Eye, GripVertical, LayoutTemplate, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/admin/EmptyState";
 import AboutPageScreen from "@/components/AboutPage/AboutPageScreen";
 import { getStorefrontThemePackage } from "@/components/themes/registry";
 import type { AboutSectionRenderer } from "@/components/themes/types";
@@ -292,9 +293,12 @@ export function AboutTable({
 
   if (!items.length) {
     return (
-      <p className="rounded-2xl border border-border bg-card/80 px-4 py-10 text-center text-sm text-muted-foreground">
-        No About sections configured.
-      </p>
+      <EmptyState
+        compact
+        icon={<LayoutTemplate className="size-5" />}
+        title="No About sections configured"
+        description="Sections appear here once the active theme publishes them."
+      />
     );
   }
 

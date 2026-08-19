@@ -97,7 +97,7 @@ export default async function DashboardPage() {
             value={formatMoney(data.salesWeek, symbol)}
             icon="DollarSign"
             hint={`${formatMoney(data.salesTotal, symbol)} all-time`}
-            accent="green"
+            accent="success"
             href="/admin/reports"
           />
           <StatCard
@@ -105,7 +105,7 @@ export default async function DashboardPage() {
             value={data.newCustomersWeek}
             icon="UserPlus"
             hint="Last 7 days"
-            accent="blue"
+            accent="info"
             href="/admin/customers"
           />
           <StatCard
@@ -113,7 +113,7 @@ export default async function DashboardPage() {
             value={data.lowStockCount}
             icon="AlertTriangle"
             hint={`${data.pendingCount} orders pending`}
-            accent="amber"
+            accent="warning"
             href="/admin/inventory"
           />
         </div>
