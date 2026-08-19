@@ -179,12 +179,18 @@ function PasswordInput({
                 reduced ? { opacity: 1 } : { opacity: 1, rotate: 0, scale: 1 }
               }
               exit={
-                reduced ? { opacity: 0 } : { opacity: 0, rotate: 25, scale: 0.5 }
+                reduced
+                  ? { opacity: 0 }
+                  : { opacity: 0, rotate: 25, scale: 0.5 }
               }
               transition={reduced ? { duration: 0.15 } : SPRING}
               className="grid size-4 place-items-center"
             >
-              {visible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              {visible ? (
+                <EyeOff className="size-4" />
+              ) : (
+                <Eye className="size-4" />
+              )}
             </motion.span>
           </AnimatePresence>
         </button>
@@ -257,7 +263,10 @@ function LoginForm() {
       </Rise>
 
       <Rise delay={0.36}>
-        <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} />
+        <PasswordInput
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
       </Rise>
 
       <Rise delay={0.42}>
@@ -307,7 +316,12 @@ function LoginForm() {
 
 function FormSkeleton() {
   return (
-    <div className="space-y-5" aria-busy="true" aria-label="Loading" role="status">
+    <div
+      className="space-y-5"
+      aria-busy="true"
+      aria-label="Loading"
+      role="status"
+    >
       <span className="sr-only">Loading sign-in form</span>
       <div aria-hidden="true" className="space-y-5">
         <div className="space-y-2">
@@ -487,7 +501,11 @@ export default function AdminLoginPage() {
                 ? { opacity: 1 }
                 : { opacity: 1, scale: 1, filter: "blur(0px)" }
             }
-            transition={reduced ? { duration: 0.45, delay: 0.12 } : { ...SPRING, delay: 0.12 }}
+            transition={
+              reduced
+                ? { duration: 0.45, delay: 0.12 }
+                : { ...SPRING, delay: 0.12 }
+            }
             className="group glass relative w-full overflow-hidden rounded-2xl p-7 shadow-[0_48px_140px_-48px_rgba(0,0,0,0.95)] [@media(prefers-reduced-transparency:reduce)]:bg-card [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none sm:p-9"
           >
             {/* Hairline accent */}

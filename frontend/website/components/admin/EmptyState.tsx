@@ -38,7 +38,9 @@ export function EmptyState({
           {description}
         </p>
       ) : null}
-      {action ? <div className="mt-5 flex justify-center gap-2">{action}</div> : null}
+      {action ? (
+        <div className="mt-5 flex justify-center gap-2">{action}</div>
+      ) : null}
     </div>
   );
 }

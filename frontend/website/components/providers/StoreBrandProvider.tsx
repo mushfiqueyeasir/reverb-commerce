@@ -18,7 +18,10 @@ export function StoreBrandProvider({
 }) {
   return (
     <StoreBrandContext
-      value={{ storeName: storeName.trim() || "Store", logoUrl: logoUrl ?? null }}
+      value={{
+        storeName: storeName.trim() || "Store",
+        logoUrl: logoUrl ?? null,
+      }}
     >
       {children}
     </StoreBrandContext>

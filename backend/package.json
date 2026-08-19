@@ -25,7 +25,8 @@
     "cleanup:assets:dry": "node scripts/cleanup-unused-assets.mjs --dry-run"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.57.4",
-    "sanitize-html": "^2.17.6"
+    "@supabase/supabase-js": "^2.112.3",
+    "sanitize-html": "^2.17.7",
+    "sharp": "^0.35.3"
   }
 }
