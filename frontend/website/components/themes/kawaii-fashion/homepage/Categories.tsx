@@ -113,7 +113,7 @@ export default function KawaiiFashionCategories({
                 {visible.map((category) => (
                   <div
                     key={`${category._id}-${copy}`}
-                    className="w-[min(44vw,13.5rem)] shrink-0"
+                    className="w-[min(32vw,13.5rem)] shrink-0"
                   >
                     <article className="group">
                       <Link
@@ -130,7 +130,7 @@ export default function KawaiiFashionCategories({
                               alt={category.categoryName}
                               fill
                               draggable={false}
-                              sizes="(max-width: 640px) 44vw, 13.5rem"
+                              sizes="(max-width: 640px) 32vw, 13.5rem"
                               className="pointer-events-none object-cover transition-transform duration-700 group-hover:scale-[1.035] motion-reduce:transition-none"
                             />
                           ) : (

@@ -92,7 +92,7 @@ export default function KawaiiFashionFeaturedProducts({
                 {products.map((product) => (
                   <div
                     key={`${product.id}-${duplicate ? "duplicate" : "original"}`}
-                    className="w-[min(44vw,17rem)] shrink-0"
+                    className="w-[min(32vw,17rem)] shrink-0"
                   >
                     <ProductCard
                       id={product.id}
