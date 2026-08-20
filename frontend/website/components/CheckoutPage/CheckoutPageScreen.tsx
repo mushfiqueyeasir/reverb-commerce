@@ -19,7 +19,7 @@ export default function CheckoutPageScreen({
   bkashEnabled = false,
   otpEnabled = false,
 }: CheckoutPageScreenProps) {
-  const { items, getTotal, getItemCount } = useCartStore();
+  const { items, getTotal, getItemCount, hasHydrated } = useCartStore();
 
   useEffect(() => {
     if (items.length > 0) {
@@ -29,6 +29,33 @@ export default function CheckoutPageScreen({
       trackInitiateCheckout(productIds, totalValue, "USD", numItems);
     }
   }, [items, getTotal, getItemCount]);
+
+  if (!hasHydrated) {
+    return (
+      <section className="mx-auto max-w-[1600px] px-5 pb-24 pt-24 sm:px-6 md:px-10 md:pt-36">
+        <h1 className="mb-8 font-display text-4xl font-bold tracking-tight sm:text-5xl">
+          Checkout
+        </h1>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-14">
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <div className="h-6 w-20 animate-pulse rounded-md bg-foreground/[0.08]" />
+              <div className="h-12 w-full animate-pulse rounded-lg bg-foreground/[0.08]" />
+            </div>
+            <div className="space-y-4">
+              <div className="h-6 w-24 animate-pulse rounded-md bg-foreground/[0.08]" />
+              <div className="h-12 w-full animate-pulse rounded-lg bg-foreground/[0.08]" />
+              <div className="h-12 w-full animate-pulse rounded-lg bg-foreground/[0.08]" />
+              <div className="h-12 w-full animate-pulse rounded-lg bg-foreground/[0.08]" />
+            </div>
+          </div>
+          <div className="hidden lg:block">
+            <div className="h-64 w-full max-w-sm animate-pulse rounded-2xl bg-foreground/[0.08]" />
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   if (items.length === 0) {
     return (

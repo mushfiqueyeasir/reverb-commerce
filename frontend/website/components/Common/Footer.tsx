@@ -92,7 +92,13 @@ export default function Footer({ settings, preview = false }: FooterProps) {
   ].filter((item) => Boolean(item.href && item.href !== "#"));
 
   const identity = (
-    <div className={cn("max-w-sm", compact && "mx-auto text-center")}>
+    <div
+      className={cn(
+        "max-w-sm",
+        compact && "mx-auto text-center",
+        !compact && "col-span-2 lg:col-span-1",
+      )}
+    >
       <Link
         href="/"
         className={cn(
@@ -192,7 +198,7 @@ export default function Footer({ settings, preview = false }: FooterProps) {
           <div>
             {identity}
             {columns.length ? (
-              <div className="mt-12 grid gap-8 border-t border-border pt-10 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="mt-12 grid grid-cols-2 gap-8 border-t border-border pt-10 lg:grid-cols-4">
                 {columns.map((column) => (
                   <Col
                     key={column.id}
@@ -206,7 +212,7 @@ export default function Footer({ settings, preview = false }: FooterProps) {
             ) : null}
           </div>
         ) : (
-          <div className="grid gap-12 lg:grid-cols-5 lg:gap-10">
+          <div className="grid grid-cols-2 gap-12 lg:grid-cols-5 lg:gap-10">
             {identity}
             {columns.map((column) => (
               <Col

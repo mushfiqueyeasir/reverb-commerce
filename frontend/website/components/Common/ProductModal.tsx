@@ -120,9 +120,12 @@ export default function ProductModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[min(92dvh,860px)] w-[calc(100%-1rem)] max-w-5xl gap-0 overflow-hidden overflow-y-auto rounded-2xl p-0 sm:w-[calc(100%-2rem)] lg:max-h-none">
+      <DialogContent
+        onOpenAutoFocus={(event) => event.preventDefault()}
+        className="max-h-[min(92dvh,860px)] w-[calc(100%-1rem)] max-w-5xl gap-0 overflow-hidden overflow-y-auto rounded-2xl p-0 sm:w-[calc(100%-2rem)] lg:max-h-none"
+      >
         <div className="flex flex-col lg:flex-row">
-          <div className="relative aspect-[4/5] max-h-[38dvh] w-full shrink-0 sm:max-h-[42dvh] lg:aspect-auto lg:h-[600px] lg:max-h-none lg:w-1/2">
+          <div className="relative aspect-[4/5] max-h-[38dvh] w-full shrink-0 sm:max-h-[42dvh] lg:aspect-auto lg:h-full lg:max-h-none lg:w-1/2">
             <ImageLoader
               src={image}
               alt={title}

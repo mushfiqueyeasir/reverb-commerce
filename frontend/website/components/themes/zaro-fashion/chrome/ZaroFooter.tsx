@@ -88,7 +88,7 @@ export default function ZaroFooter({
             ) : null}
           </div>
 
-          <div className="grid gap-10 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-10 sm:grid-cols-3">
             {columns.map((column) => (
               <FooterColumnLinks
                 key={column.id}

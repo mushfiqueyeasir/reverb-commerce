@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import Input from "@/components/Common/Input";
 import Select from "@/components/Common/Select";
+import SearchableSelect from "@/components/Common/SearchableSelect";
 import { submitOrder } from "@/utility/submitOrder";
 import { trackPurchase } from "@/utility/analytics/facebookPixelEvents";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
@@ -287,17 +288,15 @@ export default function CheckoutForm({
           <label className="mb-2 block text-sm font-medium text-foreground">
             City *
           </label>
-          <Select
+          <SearchableSelect
             value={formData.city}
-            onChange={(e) => updateFormData({ city: e.target.value })}
-          >
-            <option value="">Select your city</option>
-            {BANGLADESH_CITIES.map((city) => (
-              <option key={city} value={city}>
-                {city}
-              </option>
-            ))}
-          </Select>
+            onChange={(value) => updateFormData({ city: value })}
+            options={BANGLADESH_CITIES}
+            placeholder="Search and select your city"
+            searchPlaceholder="Search cities…"
+            emptyText="No city matches your search."
+            ariaLabel="City"
+          />
           {formData.city ? (
             <p className="mt-2 text-xs text-muted-foreground">
               Delivery area:{" "}

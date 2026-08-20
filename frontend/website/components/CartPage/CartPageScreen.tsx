@@ -7,7 +7,26 @@ import CartSummary from "./CartSummary";
 import EmptyCart from "./EmptyCart";
 
 export default function CartPageScreen() {
-  const { items, getTotal } = useCartStore();
+  const { items, getTotal, hasHydrated } = useCartStore();
+
+  if (!hasHydrated) {
+    return (
+      <section className="mx-auto max-w-[1600px] px-5 pb-24 pt-24 sm:px-6 md:px-10 md:pt-36">
+        <div className="mb-8 h-12 w-56 animate-pulse rounded-md bg-foreground/[0.08] sm:h-14" />
+        <div className="flex flex-col gap-8">
+          <div className="space-y-4">
+            {Array.from({ length: 3 }, (_, index) => (
+              <div
+                key={index}
+                className="h-28 w-full animate-pulse rounded-2xl bg-foreground/[0.08]"
+              />
+            ))}
+          </div>
+          <div className="h-48 w-full max-w-sm animate-pulse rounded-2xl bg-foreground/[0.08] lg:self-end" />
+        </div>
+      </section>
+    );
+  }
 
   if (items.length === 0) {
     return (

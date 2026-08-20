@@ -167,7 +167,7 @@ export default function VoltFooter({
           </div>
 
           {columns.length ? (
-            <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+            <div className="grid grid-cols-2 gap-10 lg:grid-cols-4 lg:gap-8">
               {columns.map((column) => (
                 <div key={column.id}>
                   <h2 className="mb-4 text-sm font-semibold tracking-[-0.01em] text-foreground">

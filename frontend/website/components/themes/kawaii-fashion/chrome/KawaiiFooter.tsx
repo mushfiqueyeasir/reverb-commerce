@@ -63,8 +63,8 @@ export default function KawaiiFooter({
       )}
     >
       <div className="mx-auto max-w-[1600px] px-4 py-12 sm:px-6 md:py-16 lg:px-10">
-        <div className="grid gap-10 border-b border-border pb-12 sm:grid-cols-2 lg:grid-cols-[minmax(16rem,1.5fr)_repeat(3,minmax(8rem,1fr))] lg:gap-12">
-          <div className="max-w-sm sm:col-span-2 lg:col-span-1">
+        <div className="grid grid-cols-2 gap-10 border-b border-border pb-12 lg:grid-cols-[minmax(16rem,1.5fr)_repeat(3,minmax(8rem,1fr))] lg:gap-12">
+          <div className="col-span-2 max-w-sm lg:col-span-1">
             <FooterBrand
               logoUrl={settings.logoUrl}
               storeName={storeName}

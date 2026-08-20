@@ -14,6 +14,8 @@ export interface CartItem {
 
 interface CartStore {
   items: CartItem[];
+  hasHydrated: boolean;
+  setHasHydrated: (value: boolean) => void;
   addItem: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => void;
   removeItem: (variantId: string) => void;
   updateQuantity: (variantId: string, quantity: number) => void;
@@ -27,6 +29,11 @@ export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      hasHydrated: false,
+
+      setHasHydrated: (value) => {
+        set({ hasHydrated: value });
+      },
 
       addItem: (item) => {
         const { variantId, quantity = 1 } = item;
@@ -100,6 +107,9 @@ export const useCartStore = create<CartStore>()(
       version: 2,
       migrate: (persisted, version) =>
         version < 2 ? { items: [] } : (persisted as CartStore),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     },
   ),
 );
