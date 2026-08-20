@@ -5,7 +5,7 @@
   "domainAliases": [],
   "supabaseProjectRef": "dpgzrukkmoyvrzubaenx",
   "supabaseUrl": "https://dpgzrukkmoyvrzubaenx.supabase.co",
-  "schemaVersion": "0045",
+  "schemaVersion": "0047",
   "migrationChecksums": {
     "0018_clean_baseline": "2a833e68252973e451beab7de38b573f449c67c7e79c3f4bd4958e6b38b4fdeb",
     "0019_payment_courier_concurrency.sql": "0e466df50e3fd9e70ed2ab22efb7967f46e76271df8603e3c0082d664ffb1122",
@@ -34,10 +34,12 @@
     "0042_homepage_support_sections.sql": "956eff93c0cec34990408ce18acf4ed15324e3da18f4b64424146fd3105d8add",
     "0043_navbar_announcement_config.sql": "1aceff48cedde4c8344f3c958db7c84cee697216e214693dce69c297269cf1e9",
     "0044_kawaii_chrome_copy_config.sql": "7f16e64c29fda61afbe5df516f8121c3a5418a220a9ebab7174e11ac9b88b565",
-    "0045_homepage_ai_search_section.sql": "389563676fe8560e0bd4c3078163bbd5af8ce1849d8bfdb61b7bf0a1fb4d2850"
+    "0045_homepage_ai_search_section.sql": "389563676fe8560e0bd4c3078163bbd5af8ce1849d8bfdb61b7bf0a1fb4d2850",
+    "0046_storefront_catalog_indexes.sql": "71ec46c3201cd785ab20db700cb6a4660f1a91034d7f56ea29f026345aaad8d6",
+    "0047_sms_otp_settings.sql": "31a425a48c8eb39dcaafd08cdc1b051406d7f0587a6a28bac12475d01258eedf"
   },
   "domainVerified": false,
   "sslReady": false,
   "smokeTestsPassed": false,
-  "trackedAt": "2026-08-15T14:53:24.640Z"
+  "trackedAt": "2026-08-20T10:13:59.572Z"
 }
