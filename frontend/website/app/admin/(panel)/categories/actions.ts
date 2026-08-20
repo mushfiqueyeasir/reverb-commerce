@@ -120,6 +120,70 @@ export async function saveCategory(
   return { id: categoryId };
 }
 
+export async function setDefaultCategory(
+  id: string,
+): Promise<{ error?: string } | void> {
+  const s = await requireAdminSession();
+  if (!canWrite(s.role))
+    return { error: "You do not have permission to do this." };
+
+  const supabase = await createSupabaseServerClient();
+  const { data: category, error: categoryError } = await supabase
+    .from("categories")
+    .select("id, name, parent_id, is_default")
+    .eq("id", id)
+    .maybeSingle();
+  if (categoryError) return { error: categoryError.message };
+  if (!category) return { error: "Category was not found." };
+  if (category.is_default) {
+    return { error: "This category is already the store default." };
+  }
+  if (category.parent_id) {
+    return { error: "Only primary categories can be the store default." };
+  }
+  const { count: childCount, error: childError } = await supabase
+    .from("categories")
+    .select("id", { count: "exact", head: true })
+    .eq("parent_id", id);
+  if (childError) return { error: childError.message };
+  if (childCount) {
+    return { error: "The default category cannot contain subcategories." };
+  }
+
+  const { data: roots, error: rootsError } = await supabase
+    .from("categories")
+    .select("id, sort")
+    .is("parent_id", null)
+    .order("sort", { ascending: true });
+  if (rootsError) return { error: rootsError.message };
+
+  const now = new Date().toISOString();
+  let nextSort = 10;
+  for (const root of roots ?? []) {
+    const isTarget = root.id === id;
+    const sort = isTarget ? 0 : nextSort;
+    if (!isTarget) nextSort += 10;
+    const { error } = await supabase
+      .from("categories")
+      .update({ is_default: isTarget, sort, updated_at: now })
+      .eq("id", root.id);
+    if (error) return { error: error.message };
+  }
+
+  await writeAuditLog({
+    actor: s,
+    action: "update",
+    entity: "category",
+    entityId: id,
+    summary: `Set "${category.name}" as the store default category`,
+  });
+
+  revalidatePath("/admin/categories");
+  revalidatePath("/", "layout");
+  revalidatePath("/product");
+  return {};
+}
+
 export async function deleteCategory(
   id: string,
 ): Promise<{ error?: string } | void> {

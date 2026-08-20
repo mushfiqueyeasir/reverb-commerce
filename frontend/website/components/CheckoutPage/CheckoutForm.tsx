@@ -12,6 +12,8 @@ import { submitOrder } from "@/utility/submitOrder";
 import { trackPurchase } from "@/utility/analytics/facebookPixelEvents";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
 import { shippingCostForZone, type DeliveryCharges } from "@/lib/delivery";
+import { BANGLADESH_CITIES, deliveryZoneForCity } from "@/lib/bangladesh";
+import { deliveryZoneLabel } from "@/lib/delivery";
 import { computePromoDiscount } from "@/lib/promoCodes";
 import { cn } from "@/lib/utils";
 
@@ -35,9 +37,11 @@ const PHONE_CODES = [
 export default function CheckoutForm({
   deliveryCharges,
   bkashEnabled = false,
+  otpEnabled = false,
 }: {
   deliveryCharges: DeliveryCharges;
   bkashEnabled?: boolean;
+  otpEnabled?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -52,10 +56,12 @@ export default function CheckoutForm({
   const { items, getTotal, clearCart } = useCartStore();
   const { code, format } = useCurrency();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const shippingCost = shippingCostForZone(
-    deliveryCharges,
-    formData.shippingMethod,
-  );
+  const [otpStage, setOtpStage] = useState<"idle" | "sending" | "sent">("idle");
+  const [otpValue, setOtpValue] = useState("");
+  const [otpPhone, setOtpPhone] = useState("");
+  const [resendIn, setResendIn] = useState(0);
+
+  const fullPhone = `${formData.phoneCode}${formData.phone.replace(/^0+/, "")}`;
 
   useEffect(() => {
     loadSavedDeliveryInfo();
@@ -73,12 +79,52 @@ export default function CheckoutForm({
     }
   }, [bkashEnabled, formData.paymentMethod, updateFormData]);
 
+  useEffect(() => {
+    if (otpStage === "sent" && fullPhone !== otpPhone) {
+      setOtpStage("idle");
+      setOtpValue("");
+    }
+  }, [fullPhone, otpPhone, otpStage]);
+
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const timer = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendIn]);
+
+  const sendOtp = async (): Promise<boolean> => {
+    setOtpStage("sending");
+    try {
+      const res = await fetch("/api/sms/otp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: fullPhone }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Failed to send the verification code.");
+        setOtpStage("idle");
+        return false;
+      }
+      setOtpStage("sent");
+      setOtpPhone(fullPhone);
+      setOtpValue("");
+      setResendIn(60);
+      toast.success(`Verification code sent to ${fullPhone}.`);
+      return true;
+    } catch {
+      toast.error("Failed to send the verification code. Please try again.");
+      setOtpStage("idle");
+      return false;
+    }
+  };
+
   const handleCompleteOrder = async () => {
     if (formData.emailOrPhone && !isValidEmail(formData.emailOrPhone)) {
       toast.error("Please enter a valid email address");
       return;
     }
-    if (!formData.firstName || !formData.lastName) {
+    if (!formData.fullName.trim()) {
       toast.error("Please enter your full name");
       return;
     }
@@ -97,6 +143,18 @@ export default function CheckoutForm({
       return;
     }
 
+    if (otpEnabled && otpStage === "idle") {
+      setIsSubmitting(true);
+      await sendOtp();
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (otpEnabled && otpStage === "sent" && !otpValue.trim()) {
+      toast.error("Please enter the verification code we sent you.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -109,16 +167,16 @@ export default function CheckoutForm({
         ? computePromoDiscount(subtotal, appliedPromo.percent)
         : 0;
       const total = Math.max(0, subtotal - discount) + shipping;
-      const fullPhone = `${formData.phoneCode}${formData.phone.replace(
-        /^0+/,
-        "",
-      )}`;
+
+      const nameParts = formData.fullName.trim().split(/\s+/);
+      const firstName = nameParts[0] ?? "";
+      const lastName = nameParts.slice(1).join(" ");
 
       const orderData = {
         delivery: {
           country: formData.country,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
+          firstName,
+          lastName,
           address: formData.address,
           city: formData.city,
           postalCode: formData.postalCode,
@@ -136,6 +194,7 @@ export default function CheckoutForm({
         })),
         promoCode: appliedPromo?.code ?? (formData.discountCode.trim() || null),
         paymentMethod: formData.paymentMethod,
+        otp: otpEnabled ? otpValue.trim() : undefined,
         totals: {
           subtotal,
           shipping,
@@ -210,22 +269,13 @@ export default function CheckoutForm({
         >
           <option value="Bangladesh">Bangladesh</option>
         </Select>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Input
-            type="text"
-            label="First name *"
-            placeholder="First name"
-            value={formData.firstName}
-            onChange={(e) => updateFormData({ firstName: e.target.value })}
-          />
-          <Input
-            type="text"
-            label="Last name *"
-            placeholder="Last name"
-            value={formData.lastName}
-            onChange={(e) => updateFormData({ lastName: e.target.value })}
-          />
-        </div>
+        <Input
+          type="text"
+          label="Full name *"
+          placeholder="Full name"
+          value={formData.fullName}
+          onChange={(e) => updateFormData({ fullName: e.target.value })}
+        />
         <Input
           type="text"
           label="Address *"
@@ -233,13 +283,45 @@ export default function CheckoutForm({
           value={formData.address}
           onChange={(e) => updateFormData({ address: e.target.value })}
         />
-        <Input
-          type="text"
-          label="City *"
-          placeholder="City"
-          value={formData.city}
-          onChange={(e) => updateFormData({ city: e.target.value })}
-        />
+        <div>
+          <label className="mb-2 block text-sm font-medium text-foreground">
+            City *
+          </label>
+          <Select
+            value={formData.city}
+            onChange={(e) => updateFormData({ city: e.target.value })}
+          >
+            <option value="">Select your city</option>
+            {BANGLADESH_CITIES.map((city) => (
+              <option key={city} value={city}>
+                {city}
+              </option>
+            ))}
+          </Select>
+          {formData.city ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Delivery area:{" "}
+              <span className="text-foreground">
+                {deliveryZoneLabel(deliveryZoneForCity(formData.city))}
+              </span>{" "}
+              ·{" "}
+              {shippingCostForZone(deliveryCharges, formData.shippingMethod) ===
+              0 ? (
+                "Free delivery"
+              ) : (
+                <>
+                  {format(
+                    shippingCostForZone(
+                      deliveryCharges,
+                      formData.shippingMethod,
+                    ),
+                  )}{" "}
+                  delivery
+                </>
+              )}
+            </p>
+          ) : null}
+        </div>
         <Input
           type="text"
           label="Postal code (optional)"
@@ -283,57 +365,6 @@ export default function CheckoutForm({
           />
           <span>Save this information for next time</span>
         </label>
-      </div>
-
-      <div className="space-y-4">
-        <h2 className="font-display text-lg font-semibold">Delivery area</h2>
-        <p className="text-sm text-muted-foreground">
-          Choose where we should deliver.
-        </p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {(
-            [
-              {
-                value: "inside-dhaka" as const,
-                label: "Inside Dhaka",
-                amount: shippingCostForZone(deliveryCharges, "inside-dhaka"),
-              },
-              {
-                value: "outside-dhaka" as const,
-                label: "Outside Dhaka",
-                amount: shippingCostForZone(deliveryCharges, "outside-dhaka"),
-              },
-            ] as const
-          ).map((zone) => {
-            const selected = formData.shippingMethod === zone.value;
-            return (
-              <button
-                key={zone.value}
-                type="button"
-                onClick={() => updateFormData({ shippingMethod: zone.value })}
-                className={cn(
-                  "rounded-xl border px-4 py-3 text-left text-sm transition-colors",
-                  selected
-                    ? "border-primary bg-primary/10 text-foreground"
-                    : "border-border bg-card hover:border-primary/50",
-                )}
-              >
-                <span className="block font-medium">{zone.label}</span>
-                <span className="mt-1 block text-muted-foreground">
-                  {zone.amount === 0
-                    ? "Free delivery"
-                    : `${format(zone.amount)} delivery`}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Delivery charge for this order:{" "}
-          <span className="text-foreground">
-            {shippingCost === 0 ? "Free" : format(shippingCost)}
-          </span>
-        </p>
       </div>
 
       <div className="space-y-4">
@@ -387,6 +418,57 @@ export default function CheckoutForm({
         </div>
       </div>
 
+      {otpEnabled ? (
+        <div
+          className={cn(
+            "space-y-3 rounded-xl border p-4",
+            otpStage === "sent"
+              ? "border-primary/50 bg-primary/5"
+              : "border-border bg-card",
+          )}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                Phone verification
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {otpStage === "sent"
+                  ? `Enter the 6-digit code sent to ${fullPhone}.`
+                  : "We’ll text a one-time code to verify your order."}
+              </p>
+            </div>
+            {otpStage === "sent" ? (
+              <span className="shrink-0 rounded-full bg-emerald-500/10 px-2 py-1 text-[11px] font-medium text-emerald-600">
+                Code sent
+              </span>
+            ) : null}
+          </div>
+          {otpStage === "sent" ? (
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                placeholder="6-digit code"
+                value={otpValue}
+                onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ""))}
+                className="flex-1"
+              />
+              <button
+                type="button"
+                onClick={sendOtp}
+                disabled={resendIn > 0}
+                className="shrink-0 rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground transition-colors hover:border-primary/50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}
+              </button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       <button
         type="button"
         onClick={handleCompleteOrder}
@@ -394,12 +476,20 @@ export default function CheckoutForm({
         className="w-full rounded-full bg-primary px-4 py-3.5 text-sm font-semibold uppercase tracking-wider text-primary-foreground transition-colors duration-200 hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isSubmitting
-          ? formData.paymentMethod === "bkash"
-            ? "Starting bKash…"
-            : "Placing order…"
-          : formData.paymentMethod === "bkash"
-            ? "Pay with bKash"
-            : "Complete order"}
+          ? otpEnabled && otpStage === "sent"
+            ? "Verifying…"
+            : otpEnabled && otpStage === "sending"
+              ? "Sending code…"
+              : formData.paymentMethod === "bkash"
+                ? "Starting bKash…"
+                : "Placing order…"
+          : otpEnabled && otpStage === "idle"
+            ? "Confirm & send code"
+            : otpEnabled && otpStage === "sent"
+              ? "Verify & Place order"
+              : formData.paymentMethod === "bkash"
+                ? "Pay with bKash"
+                : "Complete order"}
       </button>
     </div>
   );

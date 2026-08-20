@@ -15,6 +15,8 @@ import { appConfig } from "@/lib/config";
 import { createBkashPayment } from "@/lib/payments/bkash";
 import { getBkashSettings, isBkashReady } from "@/lib/payments/bkashSettings";
 import { paymentMethodLabel } from "@/lib/payments/paymentLabels";
+import { getSmsSettings } from "@/lib/sms/settings";
+import { verifyOtp } from "@/lib/sms/otp";
 import type { OrderFormData } from "@/type/orderType";
 import type { ProductImageRow } from "@/type/db";
 
@@ -70,7 +72,7 @@ export async function POST(request: NextRequest) {
     const paymentMethod =
       body.paymentMethod === "bkash" ? ("bkash" as const) : ("cod" as const);
 
-    if (!firstName || !lastName || !address || !city || !phone) {
+    if (!firstName || !address || !city || !phone) {
       return NextResponse.json(
         { error: "Please complete all delivery information" },
         { status: 400 },
@@ -89,6 +91,27 @@ export async function POST(request: NextRequest) {
         { error: "Order must contain at least one item" },
         { status: 400 },
       );
+    }
+
+    const sms = await getSmsSettings();
+    if (sms.enabled && sms.checkoutOtp) {
+      const otpCode = (body.otp ?? "").trim();
+      if (!otpCode) {
+        return NextResponse.json(
+          {
+            error:
+              "Please enter the verification code sent to your phone to confirm the order.",
+          },
+          { status: 400 },
+        );
+      }
+      const verification = await verifyOtp(phone, otpCode);
+      if (!verification.ok) {
+        return NextResponse.json(
+          { error: verification.error },
+          { status: 400 },
+        );
+      }
     }
 
     const supabase = createSupabaseAdminClient();

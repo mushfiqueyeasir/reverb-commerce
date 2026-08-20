@@ -27,6 +27,7 @@ import {
   saveBkashSettingsRow,
   type SaveBkashInput,
 } from "@/lib/payments/bkashSettings";
+import { saveSmsSettingsRow, type SaveSmsInput } from "@/lib/sms/settings";
 import {
   courierSettingsReady,
   getCourierSettings,
@@ -359,6 +360,53 @@ export async function saveBkashSettings(
       enabled: input.enabled,
       sandbox: input.sandbox,
       username: input.username?.trim() || null,
+    },
+  });
+
+  revalidatePath("/admin/settings");
+  revalidatePath("/checkout");
+  return {};
+}
+
+export async function saveSmsSettings(
+  input: SaveSmsInput,
+): Promise<{ error?: string }> {
+  const s = await requireAdminSession();
+  if (!isAdmin(s.role)) {
+    return {
+      error: "You do not have permission to change SMS settings.",
+    };
+  }
+
+  if (input.enabled) {
+    if (!input.senderId?.trim()) {
+      return {
+        error: "Sender ID is required when the SMS gateway is enabled.",
+      };
+    }
+    if (!input.apiKey?.trim()) {
+      return { error: "API Key is required when the SMS gateway is enabled." };
+    }
+  }
+
+  const res = await saveSmsSettingsRow({
+    enabled: input.enabled,
+    senderId: input.senderId?.trim() || null,
+    apiKey: input.apiKey?.trim() || null,
+    secretKey: input.secretKey?.trim() ? input.secretKey : null,
+    checkoutOtp: input.checkoutOtp,
+  });
+  if (res.error) return res;
+
+  await writeAuditLog({
+    actor: s,
+    action: "update",
+    entity: "settings",
+    summary: "Updated Khudebarta SMS settings",
+    metadata: {
+      enabled: input.enabled,
+      senderId: input.senderId?.trim() || null,
+      checkoutOtp: input.checkoutOtp,
     },
   });
 

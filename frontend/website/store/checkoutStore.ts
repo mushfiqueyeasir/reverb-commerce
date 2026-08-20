@@ -1,12 +1,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { deliveryZoneForCity, isKnownBangladeshCity } from "@/lib/bangladesh";
 
 export interface CheckoutFormData {
   emailOrPhone: string;
   emailNews: boolean;
   country: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   address: string;
   city: string;
   postalCode: string;
@@ -16,8 +16,7 @@ export interface CheckoutFormData {
   shippingMethod: "inside-dhaka" | "outside-dhaka";
   paymentMethod: "cod" | "bkash";
   billingAddress: "same" | "different";
-  billingFirstName?: string;
-  billingLastName?: string;
+  billingFullName?: string;
   billingAddressLine?: string;
   billingCity?: string;
   billingPostalCode?: string;
@@ -31,8 +30,7 @@ export type AppliedPromo = {
 
 interface SavedDeliveryInfo {
   country: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   address: string;
   city: string;
   postalCode: string;
@@ -54,8 +52,7 @@ const defaultFormData: CheckoutFormData = {
   emailOrPhone: "",
   emailNews: false,
   country: "Bangladesh",
-  firstName: "",
-  lastName: "",
+  fullName: "",
   address: "",
   city: "",
   postalCode: "",
@@ -77,9 +74,13 @@ export const useCheckoutStore = create<CheckoutStore>()(
       appliedPromo: null,
 
       updateFormData: (data) => {
-        set((state) => ({
-          formData: { ...state.formData, ...data },
-        }));
+        set((state) => {
+          const next = { ...state.formData, ...data };
+          if (data.city) {
+            next.shippingMethod = deliveryZoneForCity(data.city);
+          }
+          return { formData: next };
+        });
       },
 
       setAppliedPromo: (promo) => {
@@ -101,8 +102,7 @@ export const useCheckoutStore = create<CheckoutStore>()(
         if (formData.saveInfo) {
           const deliveryInfo: SavedDeliveryInfo = {
             country: formData.country,
-            firstName: formData.firstName,
-            lastName: formData.lastName,
+            fullName: formData.fullName,
             address: formData.address,
             city: formData.city,
             postalCode: formData.postalCode,
@@ -124,14 +124,23 @@ export const useCheckoutStore = create<CheckoutStore>()(
           if (saved) {
             try {
               const deliveryInfo: SavedDeliveryInfo = JSON.parse(saved);
-              set((state) => ({
-                formData: {
-                  ...state.formData,
-                  ...deliveryInfo,
-                  phoneCode: deliveryInfo.phoneCode || "+880",
-                  saveInfo: true,
-                },
-              }));
+              set((state) => {
+                const city = isKnownBangladeshCity(deliveryInfo.city)
+                  ? deliveryInfo.city
+                  : "";
+                return {
+                  formData: {
+                    ...state.formData,
+                    ...deliveryInfo,
+                    city,
+                    shippingMethod: city
+                      ? deliveryZoneForCity(city)
+                      : state.formData.shippingMethod,
+                    phoneCode: deliveryInfo.phoneCode || "+880",
+                    saveInfo: true,
+                  },
+                };
+              });
             } catch {}
           }
         }

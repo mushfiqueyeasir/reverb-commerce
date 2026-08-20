@@ -11,11 +11,13 @@ import type { DeliveryCharges } from "@/lib/delivery";
 interface CheckoutPageScreenProps {
   deliveryCharges: DeliveryCharges;
   bkashEnabled?: boolean;
+  otpEnabled?: boolean;
 }
 
 export default function CheckoutPageScreen({
   deliveryCharges,
   bkashEnabled = false,
+  otpEnabled = false,
 }: CheckoutPageScreenProps) {
   const { items, getTotal, getItemCount } = useCartStore();
 
@@ -58,6 +60,7 @@ export default function CheckoutPageScreen({
         <CheckoutForm
           deliveryCharges={deliveryCharges}
           bkashEnabled={bkashEnabled}
+          otpEnabled={otpEnabled}
         />
         <div className="lg:sticky lg:top-28 lg:self-start">
           <CheckoutOrderSummary deliveryCharges={deliveryCharges} />

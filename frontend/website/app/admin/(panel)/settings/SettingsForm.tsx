@@ -57,6 +57,7 @@ import type {
 } from "@/lib/email/smtpSettings";
 import type { BkashSettingsPublic } from "@/lib/payments/bkashSettings";
 import type { CourierSettingsPublic } from "@/lib/couriers/types";
+import type { SmsSettingsPublic } from "@/lib/sms/settings";
 import { COURIER_PROVIDERS } from "@/lib/couriers/metadata";
 import type { AiSearchSettingsPublic } from "@/lib/aiSearchSettings";
 import type { StorageUsage } from "@/lib/admin/storageUsage";
@@ -70,11 +71,13 @@ import {
   testSmtpSettings,
   saveBkashSettings,
   saveCourierSettings,
+  saveSmsSettings,
   type SettingsInput,
 } from "./actions";
 import { CourierSettings, courierDraftFromPublic } from "./CourierSettings";
 import { PaymentSettings, paymentDraftFromPublic } from "./PaymentSettings";
 import { AiSearchSettings, aiSearchDraftFromPublic } from "./AiSearchSettings";
+import { SmsSettings, smsDraftFromPublic } from "./SmsSettings";
 
 function orNull(v: string): string | null {
   const t = v.trim();
@@ -107,6 +110,7 @@ export function SettingsForm({
   smtp: initialSmtp,
   bkash: initialBkash,
   courier: initialCourier,
+  sms: initialSms,
   aiSearch: initialAiSearch,
   siteUrl,
   storageUsage,
@@ -121,6 +125,7 @@ export function SettingsForm({
   smtp: SmtpSettingsPublic;
   bkash: BkashSettingsPublic;
   courier: CourierSettingsPublic;
+  sms: SmsSettingsPublic;
   aiSearch: AiSearchSettingsPublic;
   siteUrl: string;
   storageUsage: StorageUsage;
@@ -240,6 +245,7 @@ export function SettingsForm({
   const [courier, setCourier] = useState(() =>
     courierDraftFromPublic(initialCourier),
   );
+  const [sms, setSms] = useState(() => smsDraftFromPublic(initialSms));
   const [aiSearch, setAiSearch] = useState(() =>
     aiSearchDraftFromPublic(initialAiSearch),
   );
@@ -408,6 +414,18 @@ export function SettingsForm({
         return;
       }
 
+      const smsRes = await saveSmsSettings({
+        enabled: sms.enabled,
+        senderId: orNull(sms.senderId),
+        apiKey: orNull(sms.apiKey),
+        secretKey: sms.secretKey.trim() ? sms.secretKey : null,
+        checkoutOtp: sms.checkoutOtp,
+      });
+      if (smsRes?.error) {
+        toast.error(smsRes.error);
+        return;
+      }
+
       toast.success("Settings saved");
       setSmtpPassword("");
       setPayments((current) => {
@@ -449,6 +467,11 @@ export function SettingsForm({
             ];
           }),
         ) as typeof current.providers,
+      }));
+      setSms((current) => ({
+        ...current,
+        secretKey: "",
+        hasSecretKey: current.hasSecretKey || Boolean(current.secretKey),
       }));
       router.refresh();
     });
@@ -648,6 +671,9 @@ export function SettingsForm({
               <TabsTrigger value="payments" className={subTabTriggerClass}>
                 Payments
               </TabsTrigger>
+              <TabsTrigger value="sms" className={subTabTriggerClass}>
+                SMS / OTP
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="currency" className="mt-0 space-y-5">
@@ -822,6 +848,10 @@ export function SettingsForm({
                 onChange={setPayments}
                 defaultCurrency={defaultCurrency}
               />
+            </TabsContent>
+
+            <TabsContent value="sms" className="mt-0">
+              <SmsSettings value={sms} onChange={setSms} />
             </TabsContent>
           </Tabs>
         </TabsContent>

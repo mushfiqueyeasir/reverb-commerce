@@ -27,6 +27,7 @@ import {
   GripVertical,
   Pencil,
   Search,
+  Star,
   Tags,
   Trash2,
 } from "lucide-react";
@@ -37,7 +38,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { deleteCategory, reorderCategories } from "./actions";
+import {
+  deleteCategory,
+  reorderCategories,
+  setDefaultCategory,
+} from "./actions";
 
 export interface CategoryTableRow {
   id: string;
@@ -131,6 +136,18 @@ export function CategoriesTable({
     setQuery("");
   };
 
+  const setAsDefault = (id: string, name: string) => {
+    startTransition(async () => {
+      const result = await setDefaultCategory(id);
+      if (result?.error) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success(`"${name}" is now the store default`);
+      router.refresh();
+    });
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card/80 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -187,6 +204,7 @@ export function CategoriesTable({
                   canWrite={canWrite}
                   canDrag={canWrite && !query.trim() && !item.isDefault}
                   onOpen={() => openCategory(item.id)}
+                  onSetDefault={() => setAsDefault(item.id, item.name)}
                   onDeleted={() => router.refresh()}
                 />
               ))}
@@ -213,12 +231,14 @@ function SortableCategoryCard({
   canWrite,
   canDrag,
   onOpen,
+  onSetDefault,
   onDeleted,
 }: {
   item: CategoryTableRow;
   canWrite: boolean;
   canDrag: boolean;
   onOpen: () => void;
+  onSetDefault: () => void;
   onDeleted: () => void;
 }) {
   const {
@@ -305,6 +325,22 @@ function SortableCategoryCard({
               <Pencil />
             </Link>
           </Button>
+          {canWrite &&
+          !item.isDefault &&
+          !item.parentId &&
+          !item.hasChildren ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+              title={`Make "${item.name}" the store default category`}
+              aria-label={`Set ${item.name} as default category`}
+              onClick={onSetDefault}
+            >
+              <Star />
+            </Button>
+          ) : null}
           {canWrite && !item.isDefault && !item.hasChildren ? (
             <ConfirmDialog
               trigger={

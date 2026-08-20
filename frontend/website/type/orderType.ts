@@ -34,6 +34,8 @@ export interface OrderFormData {
   promoCode?: string | null;
   notes?: string;
   paymentMethod?: "cod" | "bkash";
+  /** One-time code for checkout phone verification (required when enabled). */
+  otp?: string;
 }
 
 export interface OrderFormResponse {
