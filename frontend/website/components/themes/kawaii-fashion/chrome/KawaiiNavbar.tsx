@@ -112,23 +112,7 @@ export default function KawaiiNavbar({
               homeLinkAriaLabelTemplate={copy.homeLinkAriaLabelTemplate}
               compact
             />
-            <div className="flex items-center gap-1">
-              <ActionButton
-                label={copy.desktopSearchAriaLabel}
-                onClick={openSearch}
-              >
-                <Search className="size-5" />
-              </ActionButton>
-              <ActionLink
-                href="/cart"
-                label={copy.desktopBagAriaLabel}
-                count={itemCount}
-                countOverflowLabel={copy.countOverflowLabel}
-                active={isActivePath(pathname, "/cart")}
-              >
-                <ShoppingBag className="size-5" />
-              </ActionLink>
-              <button
+            <button
                 type="button"
                 aria-label={copy.shopByCategoryLabel}
                 aria-expanded={isCategoriesOpen}
@@ -137,7 +121,6 @@ export default function KawaiiNavbar({
               >
                 <Menu className="size-5" />
               </button>
-            </div>
           </div>
 
           <div className="hidden h-20 grid-cols-[minmax(10rem,1fr)_minmax(0,2fr)_minmax(10rem,1fr)] items-center gap-6 md:grid">
