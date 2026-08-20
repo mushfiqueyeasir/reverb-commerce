@@ -8,3 +8,8 @@ frontend/website/config.json
 
 # node
 node_modules/
+
+# local opencode runtime + scratch files
+.opencode/
+design.md
+*.url
