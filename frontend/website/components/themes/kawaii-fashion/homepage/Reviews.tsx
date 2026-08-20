@@ -167,7 +167,7 @@ function ReviewCard({
     <figure
       role="listitem"
       tabIndex={duplicate ? -1 : 0}
-      className="flex h-[21rem] w-[min(82vw,21rem)] shrink-0 flex-col overflow-hidden border border-border bg-card p-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface sm:h-[22rem] sm:w-[23rem] sm:p-7 xl:w-[calc((min(100vw,1600px)-11rem)/5)] xl:p-5 2xl:p-6"
+      className="flex h-[21rem] w-[min(50vw,21rem)] shrink-0 flex-col overflow-hidden border border-border bg-card p-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface sm:h-[22rem] sm:w-[23rem] sm:p-7 xl:w-[calc((min(100vw,1600px)-11rem)/5)] xl:p-5 2xl:p-6"
     >
       <div className="flex items-start justify-between gap-4">
         {image ? (
