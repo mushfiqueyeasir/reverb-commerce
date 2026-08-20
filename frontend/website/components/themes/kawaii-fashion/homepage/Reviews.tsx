@@ -54,7 +54,7 @@ export default function KawaiiFashionReviews({
   if (reviews.length === 0) return null;
 
   return (
-    <section className="relative overflow-hidden bg-surface py-10 sm:py-20 lg:py-28">
+    <section className="relative overflow-hidden bg-surface py-6 sm:py-20 lg:py-28">
       <div className="pointer-events-none absolute -right-20 bottom-0 size-80 rounded-[9999px] bg-primary/10 blur-3xl" />
       <div className="relative mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
         <SectionHeading

@@ -116,7 +116,7 @@ export default function KawaiiFashionBanner({
 
   return (
     <section
-      className="relative isolate overflow-hidden bg-background px-4 py-6 text-foreground sm:px-6 sm:py-8 lg:px-10 lg:py-10"
+      className="relative isolate overflow-hidden bg-background px-4 pb-2 pt-6 text-foreground sm:px-6 sm:py-8 lg:px-10 lg:py-10"
       aria-roledescription={CAROUSEL_ROLE_DESCRIPTION}
       aria-labelledby={normalizedEditLabel ? labelId : undefined}
       onMouseEnter={() => setInteracting(true)}
