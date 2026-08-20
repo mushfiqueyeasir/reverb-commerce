@@ -8,6 +8,7 @@ import {
   ChevronDown,
   Heart,
   Home,
+  Menu,
   Search,
   ShoppingBag,
   Sparkles,
@@ -15,6 +16,7 @@ import {
 } from "lucide-react";
 import { CategoryMegaMenu } from "@/components/Common/Header/Navbar";
 import SearchSidebar from "@/components/Common/SearchSidebar";
+import KawaiiCategoriesDrawer from "./KawaiiCategoriesDrawer";
 import { OPEN_AI_SEARCH_EVENT } from "@/components/Common/searchUi";
 import {
   DropdownMenu,
@@ -62,6 +64,7 @@ export default function KawaiiNavbar({
   const itemCount = useCartStore((state) => state.getItemCount());
   const wishlistCount = useWishlistStore((state) => state.getItemCount());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const [searchTab, setSearchTab] = useState<"search" | "advisor">("search");
   const activeCategory = searchParams.get("category")?.trim() || null;
   const menus = menuData.filter((menu): menu is MenuType & { href: string } =>
@@ -102,13 +105,39 @@ export default function KawaiiNavbar({
           />
         ) : null}
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
-          <div className="flex h-16 items-center md:hidden">
+          <div className="flex h-16 items-center justify-between gap-3 md:hidden">
             <Brand
               logoUrl={logoUrl}
               storeName={storeName}
               homeLinkAriaLabelTemplate={copy.homeLinkAriaLabelTemplate}
               compact
             />
+            <div className="flex items-center gap-1">
+              <ActionButton
+                label={copy.desktopSearchAriaLabel}
+                onClick={openSearch}
+              >
+                <Search className="size-5" />
+              </ActionButton>
+              <ActionLink
+                href="/cart"
+                label={copy.desktopBagAriaLabel}
+                count={itemCount}
+                countOverflowLabel={copy.countOverflowLabel}
+                active={isActivePath(pathname, "/cart")}
+              >
+                <ShoppingBag className="size-5" />
+              </ActionLink>
+              <button
+                type="button"
+                aria-label={copy.shopByCategoryLabel}
+                aria-expanded={isCategoriesOpen}
+                onClick={() => setIsCategoriesOpen(true)}
+                className="grid size-10 place-items-center rounded-full text-foreground/75 transition hover:bg-surface hover:text-primary-readable focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Menu className="size-5" />
+              </button>
+            </div>
           </div>
 
           <div className="hidden h-20 grid-cols-[minmax(10rem,1fr)_minmax(0,2fr)_minmax(10rem,1fr)] items-center gap-6 md:grid">
@@ -180,6 +209,15 @@ export default function KawaiiNavbar({
             onOpenChange={setIsSearchOpen}
             aiSearchEnabled={aiSearchEnabled}
             initialTab={searchTab}
+          />
+          <KawaiiCategoriesDrawer
+            open={isCategoriesOpen}
+            onOpenChange={setIsCategoriesOpen}
+            menuData={menuData}
+            pathname={pathname}
+            activeCategory={activeCategory}
+            title={copy.shopByCategoryLabel}
+            description={copy.compactMenuDescription}
           />
         </>
       ) : null}
