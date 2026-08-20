@@ -48,7 +48,7 @@ export default function KawaiiFashionFeaturedProducts({
   if (products.length === 0) return null;
 
   return (
-    <section className="relative bg-surface py-16 sm:py-24 lg:py-32">
+    <section className="relative bg-surface py-10 sm:py-20 lg:py-28">
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
         <SectionHeading
           eyebrow={eyebrow}

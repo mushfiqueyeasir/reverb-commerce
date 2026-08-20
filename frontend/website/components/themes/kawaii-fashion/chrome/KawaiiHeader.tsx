@@ -39,6 +39,8 @@ export default function KawaiiHeader({
         announcementActive={announcement.active}
         announcementUrl={announcement.url}
         aiSearchEnabled={aiSearchEnabled}
+        socials={settings.socials}
+        socialCopy={settings.footer.copy}
         preview={preview}
       />
     </Suspense>

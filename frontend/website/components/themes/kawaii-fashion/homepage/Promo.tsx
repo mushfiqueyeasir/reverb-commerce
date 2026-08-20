@@ -56,7 +56,7 @@ export default function KawaiiFashionPromo({
       : null;
 
   return (
-    <section className="bg-background py-16 sm:py-24 lg:py-32">
+    <section className="bg-background py-10 sm:py-20 lg:py-28">
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
         <div className="grid overflow-hidden border border-border bg-surface lg:grid-cols-[0.9fr_1.1fr]">
           <div className="relative flex min-h-[440px] flex-col justify-between overflow-hidden p-7 sm:min-h-[500px] sm:p-10 lg:min-h-[590px] lg:p-14 xl:p-16">
@@ -76,7 +76,7 @@ export default function KawaiiFashionPromo({
                 ) : null}
               </div>
             ) : null}
-            <div className="relative py-12">
+            <div className="relative py-8 sm:py-10">
               {discount ? (
                 <p className="mb-5 font-display text-6xl font-semibold leading-none tracking-[-0.06em] text-primary-readable sm:text-7xl lg:text-8xl">
                   {discount}%

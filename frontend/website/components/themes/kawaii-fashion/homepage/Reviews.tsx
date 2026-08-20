@@ -54,7 +54,7 @@ export default function KawaiiFashionReviews({
   if (reviews.length === 0) return null;
 
   return (
-    <section className="relative overflow-hidden bg-surface py-16 sm:py-24 lg:py-32">
+    <section className="relative overflow-hidden bg-surface py-10 sm:py-20 lg:py-28">
       <div className="pointer-events-none absolute -right-20 bottom-0 size-80 rounded-[9999px] bg-primary/10 blur-3xl" />
       <div className="relative mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
         <SectionHeading
@@ -167,7 +167,7 @@ function ReviewCard({
     <figure
       role="listitem"
       tabIndex={duplicate ? -1 : 0}
-      className="flex h-[21rem] w-[min(38vw,21rem)] shrink-0 flex-col overflow-hidden border border-border bg-card p-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface sm:h-[22rem] sm:w-[23rem] sm:p-7 xl:w-[calc((min(100vw,1600px)-11rem)/5)] xl:p-5 2xl:p-6"
+      className="flex h-[21rem] w-[min(82vw,21rem)] shrink-0 flex-col overflow-hidden border border-border bg-card p-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface sm:h-[22rem] sm:w-[23rem] sm:p-7 xl:w-[calc((min(100vw,1600px)-11rem)/5)] xl:p-5 2xl:p-6"
     >
       <div className="flex items-start justify-between gap-4">
         {image ? (

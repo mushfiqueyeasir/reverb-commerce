@@ -24,7 +24,7 @@ export function KawaiiFashionGuarantees({
   items,
 }: KawaiiFashionGuaranteesProps) {
   return (
-    <div className="relative overflow-hidden bg-background px-4 pb-16 pt-6 sm:px-6 sm:pb-24 lg:px-10 lg:pb-32">
+    <div className="relative overflow-hidden bg-background px-4 pb-10 pt-4 sm:px-6 sm:pb-20 lg:px-10 lg:pb-28">
       <section
         aria-label={accessibleLabel}
         className="relative mx-auto grid max-w-[1520px] overflow-hidden rounded-2xl border border-border bg-card sm:grid-cols-3"
@@ -76,7 +76,7 @@ export function KawaiiFashionStudioNotes({
   ctaHref,
 }: KawaiiFashionStudioNotesProps) {
   return (
-    <div className="relative overflow-hidden bg-background px-4 pb-16 pt-4 sm:px-6 sm:pb-24 sm:pt-5 lg:px-10 lg:pb-32">
+    <div className="relative overflow-hidden bg-background px-4 pb-10 pt-4 sm:px-6 sm:pb-20 sm:pt-5 lg:px-10 lg:pb-28">
       <div className="pointer-events-none absolute bottom-0 left-1/2 size-80 -translate-x-1/2 rounded-[9999px] bg-primary/10 blur-3xl" />
       <section
         aria-labelledby="kawaii-studio-notes-title"

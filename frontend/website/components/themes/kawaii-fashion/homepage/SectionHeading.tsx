@@ -32,7 +32,7 @@ export default function SectionHeading({
 
   return (
     <header
-      className={`mb-10 flex flex-col gap-5 sm:mb-14 ${
+      className={`mb-7 flex flex-col gap-5 sm:mb-12 ${
         centered
           ? "items-center text-center"
           : "md:flex-row md:items-end md:justify-between"

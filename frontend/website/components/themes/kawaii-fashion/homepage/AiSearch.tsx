@@ -36,7 +36,7 @@ export default function KawaiiFashionAiSearch({
     return null;
 
   return (
-    <div className="relative overflow-hidden bg-background px-4 pb-16 pt-4 sm:px-6 sm:pb-24 sm:pt-5 lg:px-10 lg:pb-32">
+    <div className="relative overflow-hidden bg-background px-4 pb-10 pt-4 sm:px-6 sm:pb-20 sm:pt-5 lg:px-10 lg:pb-28">
       <section
         aria-labelledby="kawaii-ai-search-title"
         className="relative isolate mx-auto max-w-[1520px] overflow-hidden rounded-2xl border border-primary/20 bg-surface"

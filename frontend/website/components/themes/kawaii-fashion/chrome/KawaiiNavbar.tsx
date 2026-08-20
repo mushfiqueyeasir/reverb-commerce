@@ -28,6 +28,7 @@ import {
   interpolateChromeTemplate,
   isExternalChromeHref,
   isSafeChromeHref,
+  type FooterCopy,
   type NavbarCopy,
 } from "@/lib/cms/siteChrome";
 import { isActivePath } from "@/lib/nav";
@@ -45,6 +46,8 @@ interface KawaiiNavbarProps {
   announcementActive?: boolean;
   announcementUrl?: string | null;
   aiSearchEnabled?: boolean;
+  socials?: Record<string, string>;
+  socialCopy?: FooterCopy;
   preview?: boolean;
 }
 
@@ -57,6 +60,8 @@ export default function KawaiiNavbar({
   announcementActive = false,
   announcementUrl,
   aiSearchEnabled = false,
+  socials,
+  socialCopy,
   preview = false,
 }: KawaiiNavbarProps) {
   const pathname = usePathname();
@@ -82,6 +87,16 @@ export default function KawaiiNavbar({
     window.addEventListener(OPEN_AI_SEARCH_EVENT, openAiSearch);
     return () => window.removeEventListener(OPEN_AI_SEARCH_EVENT, openAiSearch);
   }, []);
+
+  useEffect(() => {
+    if (!isCategoriesOpen) return;
+    const desktop = window.matchMedia("(min-width: 768px)");
+    const handleChange = (event: MediaQueryListEvent) => {
+      if (event.matches) setIsCategoriesOpen(false);
+    };
+    desktop.addEventListener("change", handleChange);
+    return () => desktop.removeEventListener("change", handleChange);
+  }, [isCategoriesOpen]);
 
   const openSearch = () => {
     setSearchTab("search");
@@ -201,6 +216,8 @@ export default function KawaiiNavbar({
             activeCategory={activeCategory}
             title={copy.shopByCategoryLabel}
             description={copy.compactMenuDescription}
+            socials={socials}
+            socialCopy={socialCopy}
           />
         </>
       ) : null}

@@ -109,13 +109,15 @@ export default function ProductCard({
                 });
               }}
               className={cn(
-                "absolute right-3 top-3 grid size-10 place-items-center border backdrop-blur-sm transition-colors sm:right-4 sm:top-4",
+                "absolute right-2.5 top-2.5 grid size-9 place-items-center border backdrop-blur-sm transition-colors sm:right-4 sm:top-4 sm:size-10",
                 isFavorite
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-background/90 text-foreground hover:border-primary hover:text-primary-readable",
               )}
             >
-              <Heart className={cn("size-4", isFavorite && "fill-current")} />
+              <Heart
+                className={cn("size-3.5 sm:size-4", isFavorite && "fill-current")}
+              />
             </button>
 
             <button
@@ -123,7 +125,7 @@ export default function ProductCard({
               onClick={() => !isOutOfStock && setIsModalOpen(true)}
               disabled={isOutOfStock}
               className={cn(
-                "absolute inset-x-3 bottom-3 flex min-h-10 items-center justify-between bg-primary px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary-foreground transition-all duration-300 sm:inset-x-4 sm:bottom-4 sm:text-[11px] md:translate-y-2 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 md:group-focus-within:translate-y-0 md:group-focus-within:opacity-100 motion-reduce:transition-none",
+                "absolute inset-x-2 bottom-2 flex min-h-8 items-center justify-between bg-primary px-2.5 py-1.5 text-[8px] font-semibold uppercase tracking-[0.12em] text-primary-foreground transition-all duration-300 sm:inset-x-4 sm:bottom-4 sm:min-h-10 sm:px-4 sm:py-2.5 sm:text-[11px] sm:tracking-[0.16em] md:translate-y-2 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 md:group-focus-within:translate-y-0 md:group-focus-within:opacity-100 motion-reduce:transition-none",
                 isOutOfStock &&
                   "translate-y-0 cursor-not-allowed bg-foreground/90 opacity-100 text-background md:translate-y-0 md:opacity-100",
               )}
@@ -131,26 +133,26 @@ export default function ProductCard({
               {isOutOfStock
                 ? productCardCopy.soldOutButtonLabel
                 : productCardCopy.quickAddButtonLabel}
-              <Plus className="size-4 shrink-0" />
+              <Plus className="size-3 shrink-0 sm:size-4" />
             </button>
           </div>
 
           <Link
             href={href}
-            className="block pt-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4"
+            className="block pt-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 sm:pt-4"
           >
-            <p className="truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            <p className="truncate text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground sm:text-[10px]">
               {label || storeName}
             </p>
-            <h3 className="mt-1 line-clamp-2 font-display text-base font-semibold leading-snug tracking-[-0.025em] text-foreground sm:text-lg">
+            <h3 className="mt-1 line-clamp-2 font-display text-sm font-semibold leading-snug tracking-[-0.025em] text-foreground sm:mt-1.5 sm:text-lg">
               {title}
             </h3>
-            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:mt-2 sm:text-sm">
               <span className="font-semibold text-foreground">
                 {format(currentPrice)}
               </span>
               {originalPrice > currentPrice && (
-                <span className="text-xs text-muted-foreground line-through">
+                <span className="text-[10px] text-muted-foreground line-through sm:text-xs">
                   {format(originalPrice)}
                 </span>
               )}
