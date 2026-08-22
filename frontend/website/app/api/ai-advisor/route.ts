@@ -24,8 +24,8 @@ export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
 const CATALOG_PAGE_SIZE = 500;
-const RELEVANT_PRODUCT_LIMIT = 64;
-const GROQ_RELEVANT_PRODUCT_LIMIT = 16;
+const RELEVANT_PRODUCT_LIMIT = 6;
+const GROQ_RELEVANT_PRODUCT_LIMIT = 6;
 const PRODUCT_DESCRIPTION_LIMIT = 400;
 const GROQ_PRODUCT_DESCRIPTION_LIMIT = 180;
 const GEMINI_RESPONSE_SCHEMA = {
