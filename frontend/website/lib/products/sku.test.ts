@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { generateProductSku } from "./sku";
+import { generateProductSku, generateUniqueProductSkus } from "./sku";
 
 describe("product SKU generation", () => {
   it("combines product, color, and size tokens", () => {
@@ -16,5 +16,24 @@ describe("product SKU generation", () => {
     expect(generateProductSku("Café Racer", "Mid-night", "M/L")).toBe(
       "CAF-RAC-MIT-ML",
     );
+  });
+
+  it("disambiguates matching generated SKUs", () => {
+    expect(
+      generateUniqueProductSkus("Utility Bottle", [
+        { id: "12345678-abcd-4000-8000-000000000001" },
+        { id: "87654321-abcd-4000-8000-000000000002" },
+      ]),
+    ).toEqual(["UTI-BOT", "UTI-BOT-87654321"]);
+  });
+
+  it("moves every SKU to a new candidate after a database collision", () => {
+    expect(
+      generateUniqueProductSkus(
+        "Utility Bottle",
+        [{ id: "12345678-abcd-4000-8000-000000000001" }],
+        2,
+      ),
+    ).toEqual(["UTI-BOT-12345678ABCD"]);
   });
 });

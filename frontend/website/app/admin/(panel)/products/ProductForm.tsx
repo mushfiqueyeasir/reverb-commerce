@@ -321,14 +321,17 @@ export function ProductForm({
       toast.error("A size-free product requires one general inventory row.");
       return;
     }
-    if (cleanedVariants.some((variant) => !variant.sku)) {
+    if (
+      skuMode === "manual" &&
+      cleanedVariants.some((variant) => !variant.sku)
+    ) {
       toast.error("Every variation requires an SKU.");
       return;
     }
     const skus = cleanedVariants
       .map((variant) => variant.sku?.toLowerCase())
       .filter((sku): sku is string => Boolean(sku));
-    if (new Set(skus).size !== skus.length) {
+    if (skuMode === "manual" && new Set(skus).size !== skus.length) {
       toast.error("Every variation must have a unique SKU.");
       return;
     }
@@ -355,6 +358,7 @@ export function ProductForm({
           hasSizes && cleanedSizeChart.length ? cleanedSizeChart : null,
         categoryIds,
         images,
+        skuMode,
         variants: cleanedVariants,
       });
       if (res.error) {

@@ -1,10 +1,12 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, canWrite } from "@/lib/admin/auth";
 import { writeAuditLog } from "@/lib/admin/auditLog";
 import { buildDescriptionPayload } from "@/lib/products/sizeChart";
+import { generateUniqueProductSkus } from "@/lib/products/sku";
 import { chooseUniqueProductSlug, productSlugBase } from "@/lib/products/slug";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { BUCKETS } from "@/lib/supabase/config";
@@ -42,6 +44,7 @@ export interface ProductInput {
   size_chart: ProductSizeChartInput[] | null;
   categoryIds: string[];
   images: ProductImageInput[];
+  skuMode: "auto" | "manual";
   variants: ProductVariantInput[];
 }
 
@@ -115,6 +118,7 @@ export async function saveProduct(
   if (!canWrite(s.role))
     return { error: "You do not have permission to do this." };
 
+  const autoSku = input.skuMode === "auto";
   if (!input.title?.trim()) return { error: "Title is required." };
   if (input.sizing_mode === "required") {
     if (
@@ -126,13 +130,16 @@ export async function saveProduct(
   } else if (input.variants.length !== 1 || input.variants[0]?.size?.trim()) {
     return { error: "A size-free product requires one general inventory row." };
   }
-  if (input.variants.some((variant) => !variant.sku?.trim())) {
+  if (
+    !autoSku &&
+    input.variants.some((variant) => !variant.sku?.trim())
+  ) {
     return { error: "Every variation requires an SKU." };
   }
   const skus = input.variants
     .map((variant) => variant.sku?.trim().toLowerCase())
     .filter((sku): sku is string => Boolean(sku));
-  if (new Set(skus).size !== skus.length) {
+  if (!autoSku && new Set(skus).size !== skus.length) {
     return { error: "Every variation must have a unique SKU." };
   }
   if (input.images.length > 5) {
@@ -267,9 +274,11 @@ export async function saveProduct(
   }
 
   // 3. Sync variants: delete removed ones, then upsert the rest.
-  const keepIds = input.variants
-    .map((v) => v.id)
-    .filter((id): id is string => Boolean(id));
+  const preparedVariants = input.variants.map((variant) => ({
+    ...variant,
+    id: variant.id ?? randomUUID(),
+  }));
+  const keepIds = preparedVariants.map((variant) => variant.id);
 
   const { data: existing } = await supabase
     .from("product_variants")
@@ -288,31 +297,43 @@ export async function saveProduct(
     if (error) return { error: error.message };
   }
 
-  if (input.variants.length) {
-    const variantRows = input.variants.map((v) => ({
-      ...(v.id ? { id: v.id } : {}),
-      product_id: productId,
-      size: v.size?.trim() || null,
-      color: v.color?.trim() || null,
-      sku: v.sku?.trim() || null,
-      stock_quantity: Number(v.stock_quantity) || 0,
-      low_stock_threshold: Number(v.low_stock_threshold) || 0,
-      updated_at: new Date().toISOString(),
-    }));
-    const { error } = await supabase
-      .from("product_variants")
-      .upsert(variantRows);
-    if (error?.code === "23505") {
+  if (preparedVariants.length) {
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      const autoSkus = generateUniqueProductSkus(
+        input.title,
+        preparedVariants,
+        attempt,
+      );
+      const variantRows = preparedVariants.map((variant, index) => ({
+        id: variant.id,
+        product_id: productId,
+        size: variant.size?.trim() || null,
+        color: variant.color?.trim() || null,
+        sku:
+          autoSku ? autoSkus[index] : variant.sku?.trim() || null,
+        stock_quantity: Number(variant.stock_quantity) || 0,
+        low_stock_threshold: Number(variant.low_stock_threshold) || 0,
+        updated_at: new Date().toISOString(),
+      }));
+      const { error } = await supabase
+        .from("product_variants")
+        .upsert(variantRows);
+      if (!error) break;
+
+      const skuCollision = error.code === "23505" && /sku/i.test(error.message);
+      if (autoSku && skuCollision && attempt < 19) continue;
       if (!input.id) {
         await supabase.from("products").delete().eq("id", productId);
       }
-      return {
-        error: /sku/i.test(error.message)
-          ? "That SKU is already used by another variation."
-          : "Two variations cannot have the same size and color.",
-      };
+      if (error.code === "23505") {
+        return {
+          error: skuCollision
+            ? "That SKU is already used by another variation."
+            : "Two variations cannot have the same size and color.",
+        };
+      }
+      return { error: error.message };
     }
-    if (error) return { error: error.message };
   }
 
   // 4. Sync images last so a category or variant failure cannot leave newly
